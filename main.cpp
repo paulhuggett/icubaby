@@ -6,18 +6,6 @@
 
 #include "icubaby/icubaby.hpp"
 
-static_assert (std::is_same_v<icubaby::t8_8 ::input_type, char8_t> &&
-               std::is_same_v<icubaby::t8_8 ::output_type, char8_t>);
-static_assert (std::is_same_v<icubaby::t8_16::input_type, char8_t> &&
-               std::is_same_v<icubaby::t8_16::output_type, char16_t>);
-static_assert (std::is_same_v<icubaby::t8_32::input_type, char8_t> &&
-               std::is_same_v<icubaby::t8_32::output_type, char32_t>);
-static_assert (std::is_same_v<icubaby::t16_8 ::input_type, char16_t> &&
-               std::is_same_v<icubaby::t16_8 ::output_type, char8_t>);
-static_assert (std::is_same_v<icubaby::t16_16::input_type, char16_t> &&
-               std::is_same_v<icubaby::t16_16::output_type, char16_t>);
-static_assert (std::is_same_v<icubaby::t16_32::input_type, char16_t> &&
-               std::is_same_v<icubaby::t16_32::output_type, char32_t>);
 static_assert (std::is_same_v<icubaby::t32_8 ::input_type, char32_t> &&
                std::is_same_v<icubaby::t32_8 ::output_type, char8_t>);
 static_assert (std::is_same_v<icubaby::t32_16::input_type, char32_t> &&
@@ -26,152 +14,6 @@ static_assert (std::is_same_v<icubaby::t32_32::input_type, char32_t> &&
                std::is_same_v<icubaby::t32_32::output_type, char32_t>);
 
 namespace {
-
-void good1 () {
-  // | UTF-8 Sequence         | Code point                   |
-  // | ---------------------- + ---------------------------- +
-  // | 0x24,                  | U+0024  DOLLAR SIGN          |
-  // | 0xC2, 0xA2,            | U+00A2  CENT SIGN            |
-  // | 0xE0, 0xA4, 0xB9,      | U+0939  DEVANAGARI LETTER HA |
-  // | 0xE2, 0x82, 0xAC,      | U+20AC  EURO SIGN            |
-  // | 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN  |
-  // | 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR  |
-  icubaby::t8_32 d;
-  assert (d.good ());
-  std::array<char32_t, 6> cu{{0}};
-  auto out = std::begin (cu);
-  out = d (0x24, out);
-  assert (out == std::begin (cu) + 1 && cu[0] == char32_t{0x0024});
-  {
-    // 0xC2, 0xA2 => U+00A2  CENT SIGN
-    std::array<char8_t, 2> const cent_sign = {{0xC2, 0xA2}};
-    out = d (cent_sign[0], out);
-    assert (out == std::begin (cu) + 1);
-    out = d (cent_sign[1], out);
-    assert (d.good () && out == std::begin (cu) + 2 &&
-            cu[1] == char32_t{0x00A2});
-  }
-  {
-    // 0xE0, 0xA4, 0xB9 => U+0939 DEVANAGARI LETTER HA
-    std::array<char8_t, 3> const devanagri_letter_ha{{0xE0, 0xA4, 0xB9}};
-    out = d (devanagri_letter_ha[0], out);
-    assert (out == std::begin (cu) + 2);
-    out = d (devanagri_letter_ha[1], out);
-    assert (out == std::begin (cu) + 2);
-    out = d (devanagri_letter_ha[2], out);
-    assert (out == std::begin (cu) + 3 && cu[2] == char32_t{0x0939});
-  }
-  {
-    // 0xE2, 0x82, 0xAC => U+20AC EURO SIGN
-    std::array<char8_t, 3> const euro_sign{{0xE2, 0x82, 0xAC}};
-    out = d (euro_sign[0], out);
-    assert (out == std::begin (cu) + 3);
-    out = d (euro_sign[1], out);
-    assert (out == std::begin (cu) + 3);
-    out = d (euro_sign[2], out);
-    assert (out == std::begin (cu) + 4 && cu[3] == char32_t{0x20AC});
-  }
-  {
-    // 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN
-    std::array<char8_t, 3> const hangul_syllable_han{{0xED, 0x95, 0x9C}};
-    out = d (hangul_syllable_han[0], out);
-    assert (out == std::begin (cu) + 4);
-    out = d (hangul_syllable_han[1], out);
-    assert (out == std::begin (cu) + 4);
-    out = d (hangul_syllable_han[2], out);
-    assert (out == std::begin (cu) + 5 && cu[4] == char32_t{0xD55C});
-  }
-  {
-    // 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR
-    std::array<char8_t, 4> const gothic_letter_hwair{{0xF0, 0x90, 0x8D, 0x88}};
-    out = d (gothic_letter_hwair[0], out);
-    assert (out == std::begin (cu) + 5);
-    out = d (gothic_letter_hwair[1], out);
-    assert (out == std::begin (cu) + 5);
-    out = d (gothic_letter_hwair[2], out);
-    assert (out == std::begin (cu) + 5);
-    out = d (gothic_letter_hwair[3], out);
-    assert (out == std::begin (cu) + 6 && cu[5] == char32_t{0x10348});
-  }
-
-  assert (d.finalize ());
-  assert (d.good ());
-}
-
-template <typename T>
-class null_output_iterator {
-public:
-  null_output_iterator& operator= (char32_t) { return *this; }
-  null_output_iterator& operator* () { return *this; }
-  null_output_iterator& operator++ () { return *this; }
-};
-
-// 80 24
-// 80 first possible two-CU sequence
-void bad1 () {
-  icubaby::t8_32 d2;
-  assert (d2.good ());
-#if 0
-  assert (d2 (0x80) == 0xFFFD);
-  assert (!d2.good ());
-  assert (d2 (0x24) == 0x0024);
-  assert (!d2.finalize ());
-  assert (!d2.good ());
-#endif
-}
-
-void bad2 () {
-#if 0
-  icubaby::utf8_decoder d2;
-  assert (d2 (0x80) == 0xFFFD);
-  assert (!d2.finalize ());
-  assert (!d2.good ());
-#endif
-}
-
-void good16 () {
-  {
-    std::array<char32_t, 4> out;
-    auto it = std::begin (out);
-    icubaby::t16_32 d1;
-    assert (d1.good ());
-
-    it = d1 (1, it);
-    assert (it == std::begin (out) + 1 && out[0] == 0x0001);
-    it = d1 (2, it);
-    assert (it == std::begin (out) + 2 && out[1] == 0x0002);
-    it = d1 (3, it);
-    assert (it == std::begin (out) + 3 && out[2] == 0x0003);
-    it = d1 (4, it);
-    assert (it == std::begin (out) + 4 && out[3] == 0x0004);
-  }
-  {
-    std::array<char32_t, 5> out;
-    auto it = std::begin (out);
-    icubaby::t16_32 d2;
-    it = d2 (0xFFFF, it);
-    assert (it == std::begin (out) + 1 && out[0] == 0xFFFF);
-    it = d2 (0xD800, it);
-    assert (it == std::begin (out) + 1);
-    it = d2 (0xDC00, it);
-    assert (it == std::begin (out) + 2 && out[1] == 0x10000);
-    //    assert (d2 (0xDC00) == 0x10000);
-    it = d2 (0xD800, it);
-    assert (it == std::begin (out) + 2);
-    it = d2 (0xDC01, it);
-    assert (it == std::begin (out) + 3 && out[2] == 0x10001);
-
-    it = d2 (0xD808, it);
-    assert (it == std::begin (out) + 3);
-    it = d2 (0xDF45, it);
-    assert (it == std::begin (out) + 4 && out[3] == 0x12345);
-
-    it = d2 (0xDBFF, it);
-    assert (it == std::begin (out) + 4);
-    it = d2 (0xDFFF, it);
-    assert (it == std::begin (out) + 5 && out[4] == 0x10ffff);
-  }
-}
 
 // This test encodes every input code point and then decodes it to ensure that
 // we get back the character we started with.
@@ -303,11 +145,6 @@ int main () {
   int exit_code = EXIT_SUCCESS;
   try {
     exhaustive_check ();
-
-    good1 ();
-    bad1 ();
-    bad2 ();
-    good16 ();
 
     auto const in = u8"Hello, world\n"s;
     std::u16string out;

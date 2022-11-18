@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
 project (icubaby CXX)
+option (LIBCXX "Use libc++ rather than libstdc++ (clang only)")
 
 function (setup_target target)
   set (clang_options
@@ -13,7 +14,6 @@ function (setup_target target)
     -Wno-exit-time-destructors
     -Wno-padded
     -Wno-undef
-    -stdlib=libc++
   )
   set (gcc_options
     -Wall
@@ -31,7 +31,9 @@ function (setup_target target)
     list (APPEND gcc_options -Werror)
     list (APPEND msvc_options /WX)
   endif ()
-
+  if (LIBCXX)
+    list (APPEND clang_options -stdlib=libc++)
+  endif ()
   if (COVERAGE)
     list (APPEND clang_options -fprofile-instr-generate -fcoverage-mapping)
   endif ()
@@ -60,5 +62,28 @@ add_executable (main main.cpp)
 target_link_libraries (main PUBLIC icubaby)
 setup_target (main)
 
+
+# Tell gtest to link against the "Multi-threaded Debug DLL runtime
+# library" on Windows.
+set (gtest_force_shared_crt ON CACHE BOOL "Always use msvcrt.dll")
+add_subdirectory (googletest)
+foreach (target gtest gmock gmock_main gtest_main)
+  set_target_properties (${target} PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED Yes
+    CXX_EXTENSIONS No
+  )
+  if (LIBCXX)
+    target_compile_options (${target} PRIVATE
+      $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-stdlib=libc++>
+    )
+    target_link_options (${target} PRIVATE
+      $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-stdlib=libc++>
+    )
+  endif ()
+endforeach()
+
+
 add_subdirectory (tests)
+add_subdirectory (unittests)
 

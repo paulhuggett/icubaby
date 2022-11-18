@@ -163,10 +163,12 @@ public:
   template <typename OutputIt>
     requires std::output_iterator<OutputIt, output_type>
   OutputIt operator() (input_type code_unit, OutputIt dest) {
-    char32_t type = utf8d_[code_unit];
+    auto const type = utf8d_[code_unit];
     code_point_ = (state_ != accept) ? (code_unit & 0x3FU) | (code_point_ << 6)
                                      : (0xFF >> type) & code_unit;
-    state_ = utf8d_[256 + state_ * 16 + type];
+    auto const idx = 256U + state_ * 16U + type;
+    assert (idx < utf8d_.size ());
+    state_ = utf8d_[idx];
     switch (state_) {
     case accept: *(dest++) = code_point_; break;
     case reject:
@@ -181,6 +183,7 @@ public:
 
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial character.
+  ///
   /// \returns True if the input represented valid UTF-8.
   bool finalize () {
     if (state_ != accept) {
@@ -195,10 +198,10 @@ public:
 
 private:
   static std::array<uint8_t const, 400> const utf8d_;
-  char32_t code_point_ = 0;
-  bool good_ = true;
+  unsigned code_point_ : 21 = 0;  // U+10FFFF is the maximum code point.
+  unsigned good_ : 1 = true;
   enum : std::uint8_t { accept, reject };
-  std::uint8_t state_ = accept;
+  unsigned state_ : 8 = accept;
 };
 
 template <>
