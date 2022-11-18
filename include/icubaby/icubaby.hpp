@@ -283,7 +283,6 @@ private:
 namespace details {
 
 template <typename From, typename To>
-  requires (!std::is_same_v<From, To> && !std::is_same_v<From, char32_t>)
 class double_transcoder {
 public:
   using input_type = From;
@@ -323,7 +322,7 @@ public:
     *(dest++) = c;
     return dest;
   }
-  constexpr bool finalize () { return good (); }
+  constexpr bool finalize () const { return good (); }
   constexpr bool good () const { return true; }
 };
 
@@ -337,10 +336,11 @@ class transcoder<char16_t, char8_t>
     : public details::double_transcoder<char16_t, char8_t> {};
 
 template <>
-class transcoder<char8_t, char8_t> : public details::nop_transcoder<char8_t> {};
+class transcoder<char8_t, char8_t>
+    : public details::double_transcoder<char8_t, char8_t> {};
 template <>
 class transcoder<char16_t, char16_t>
-    : public details::nop_transcoder<char16_t> {};
+    : public details::double_transcoder<char16_t, char16_t> {};
 template <>
 class transcoder<char32_t, char32_t>
     : public details::nop_transcoder<char32_t> {};
