@@ -1,0 +1,7 @@
+include (FindIconv)
+if (Iconv_FOUND)
+  add_executable (iconv-test iconv.cpp)
+  target_include_directories (iconv-test PUBLIC ${Iconv_INCLUDE_DIRS})
+  target_link_libraries (iconv-test PUBLIC icubaby ${Iconv_LIBRARIES})
+  setup_target (iconv-test)
+endif (Iconv_FOUND)
