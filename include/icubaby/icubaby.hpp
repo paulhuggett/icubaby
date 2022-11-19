@@ -313,22 +313,6 @@ private:
   char32_t inter_ = 0;
 };
 
-template <typename T>
-class nop_transcoder {
-public:
-  using input_type = T;
-  using output_type = T;
-
-  template <typename OutputIt>
-    requires std::output_iterator<OutputIt, output_type>
-  OutputIt operator() (input_type c, OutputIt dest) {
-    *(dest++) = c;
-    return dest;
-  }
-  constexpr bool finalize () const { return good (); }
-  constexpr bool good () const { return true; }
-};
-
 }  // end namespace details
 
 template <>
@@ -345,8 +329,27 @@ template <>
 class transcoder<char16_t, char16_t>
     : public details::double_transcoder<char16_t, char16_t> {};
 template <>
-class transcoder<char32_t, char32_t>
-    : public details::nop_transcoder<char32_t> {};
+class transcoder<char32_t, char32_t> {
+public:
+  using input_type = char32_t;
+  using output_type = char32_t;
+
+  template <typename OutputIt>
+    requires std::output_iterator<OutputIt, output_type>
+  OutputIt operator() (input_type c, OutputIt dest) {
+    if (c > max_code_point) {
+      good_ = false;
+      c = replacement_char;
+    }
+    *(dest++) = c;
+    return dest;
+  }
+  constexpr bool finalize () const { return good (); }
+  constexpr bool good () const { return good_; }
+
+private:
+  bool good_ = true;
+};
 
 /// A shorter name for the UTF-8 to UTF-8 transcoder. This, of course,
 /// represents no change and is included for completeness.
@@ -380,7 +383,7 @@ class iterator {
 public:
   using iterator_category = std::output_iterator_tag;
   using value_type = void;
-  using difference_type = void;
+  using difference_type = std::ptrdiff_t;
   using pointer = void;
   using reference = void;
 
