@@ -1,17 +1,11 @@
 #include <array>
 #include <bit>
 #include <iostream>
+#include <iomanip>
 #include <iterator>
 #include <vector>
 
 #include "icubaby/icubaby.hpp"
-
-static_assert (std::is_same_v<icubaby::t32_8 ::input_type, char32_t> &&
-               std::is_same_v<icubaby::t32_8 ::output_type, char8_t>);
-static_assert (std::is_same_v<icubaby::t32_16::input_type, char32_t> &&
-               std::is_same_v<icubaby::t32_16::output_type, char16_t>);
-static_assert (std::is_same_v<icubaby::t32_32::input_type, char32_t> &&
-               std::is_same_v<icubaby::t32_32::output_type, char32_t>);
 
 namespace {
 
@@ -24,7 +18,10 @@ template <typename Encoder, typename Decoder>
                            typename Decoder::input_type> &&
             std::is_same_v<typename Encoder::input_type, char32_t> &&
             std::is_same_v<typename Decoder::output_type, char32_t>)
-void check_each_code_point (Encoder encode, Decoder decode) {
+void check_each_code_point () {
+  Encoder encode;
+  Decoder decode;
+
   std::vector<typename Encoder::output_type> encoded;
   std::vector<typename Decoder::output_type> output;
 
@@ -126,15 +123,6 @@ void check_utf8_to_16 () {
 }
 
 void exhaustive_check () {
-  check_each_code_point (icubaby::t32_8{}, icubaby::t8_32{});
-  check_each_code_point (icubaby::t32_16{}, icubaby::t16_32{});
-  check_each_code_point (icubaby::t32_32{}, icubaby::t32_32{});
-
-  check_all_code_points<icubaby::t32_8, icubaby::t8_32> ();
-  check_all_code_points<icubaby::t32_16, icubaby::t16_32> ();
-  check_all_code_points<icubaby::t32_32, icubaby::t32_32> ();
-
-  check_utf8_to_16 ();
 }
 
 }  // end anonymous namespace
@@ -144,16 +132,15 @@ using namespace std::string_literals;
 int main () {
   int exit_code = EXIT_SUCCESS;
   try {
-    exhaustive_check ();
+    check_each_code_point<icubaby::t32_8, icubaby::t8_32> ();
+    check_each_code_point<icubaby::t32_16, icubaby::t16_32> ();
+    check_each_code_point<icubaby::t32_32, icubaby::t32_32> ();
 
-    auto const in = u8"Hello, world\n"s;
-    std::u16string out;
-    icubaby::t8_16 utf_8_to_16;
-    std::copy (std::begin (in), std::end (in),
-               icubaby::iterator{utf_8_to_16, std::back_inserter (out)});
-    if (!utf_8_to_16.finalize ()) {
-      std::cerr << "Input stream was ill-formed!\n";
-    }
+    check_all_code_points<icubaby::t32_8, icubaby::t8_32> ();
+    check_all_code_points<icubaby::t32_16, icubaby::t16_32> ();
+    check_all_code_points<icubaby::t32_32, icubaby::t32_32> ();
+
+    check_utf8_to_16 ();
 
     std::cout << "Tests passed\n";
   } catch (std::exception const& ex) {
