@@ -7,7 +7,19 @@ A fast minimal library for converting a sequence of values between any of UTF-8,
 ### transcoder<>
 
 ~~~cpp
-icubaby::transcoder<typename From, typename To>
+template <typename From, typename To>
+class transcoder {
+public:
+  using input_type = From;
+  using output_type = To;
+
+  template <typename OutputIt>
+    requires std::output_iterator<OutputIt, output_type>
+  OutputIt operator() (input_type c, OutputIt dest);
+
+  bool finalize ();
+  bool good ();
+};
 ~~~
 
 Where `From` and `To` are any of `char8_t`, `char16_t`, or `char32_t`.
