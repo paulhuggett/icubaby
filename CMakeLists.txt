@@ -56,13 +56,6 @@ function (setup_target target)
   )
 endfunction (setup_target)
 
-add_subdirectory (lib)
-
-add_executable (main main.cpp)
-target_link_libraries (main PUBLIC icubaby)
-setup_target (main)
-
-
 # Tell gtest to link against the "Multi-threaded Debug DLL runtime
 # library" on Windows.
 set (gtest_force_shared_crt ON CACHE BOOL "Always use msvcrt.dll")
@@ -83,7 +76,7 @@ foreach (target gtest gmock gmock_main gtest_main)
   endif ()
 endforeach()
 
-
+add_subdirectory (lib)
 add_subdirectory (tests)
 add_subdirectory (unittests)
 
