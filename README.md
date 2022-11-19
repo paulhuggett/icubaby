@@ -1,6 +1,6 @@
-# icubaby (A Baby Library to Immediately Convert Unicode)
+# icubaby 
 
-A fast, minimal, and easy to use library for converting a sequence of values between any of UTF-8, UTF-16, or UTF-32.
+A Baby Library to Immediately Convert Unicode. Fast, minimal, and easy to use for converting a sequence between any of UTF-8, UTF-16, or UTF-32.
 
 ## API
 
