@@ -104,7 +104,7 @@ public:
 
   template <typename OutputIt>
     requires std::output_iterator<OutputIt, output_type>
-  OutputIt operator() (input_type c, OutputIt dest) const {
+  OutputIt operator() (input_type c, OutputIt dest) {
     if (c < 0x80) {
       *(dest++) = static_cast<output_type> (c);
       return dest;
@@ -115,6 +115,7 @@ public:
       return dest;
     }
     if (is_surrogate (c)) {
+      good_ = false;
       return (*this) (replacement_char, dest);
     }
     if (c < 0x10000) {
@@ -123,35 +124,22 @@ public:
       *(dest++) = static_cast<output_type> ((c & 0x3F) | 0x80);
       return dest;
     }
-    if (c < 0x200000) {
+    if (c <= max_code_point) {
       *(dest++) = static_cast<output_type> ((c >> 18) | 0xF0);
       *(dest++) = static_cast<output_type> (((c >> 12) & 0x3F) | 0x80);
       *(dest++) = static_cast<output_type> (((c >> 6) & 0x3F) | 0x80);
       *(dest++) = static_cast<output_type> ((c & 0x3F) | 0x80);
       return dest;
     }
-    if (c < 0x4000000) {
-      *(dest++) = static_cast<output_type> ((c >> 24) | 0xF8);
-      *(dest++) = static_cast<output_type> (((c >> 18) & 0x3F) | 0x80);
-      *(dest++) = static_cast<output_type> (((c >> 12) & 0x3F) | 0x80);
-      *(dest++) = static_cast<output_type> (((c >> 6) & 0x3F) | 0x80);
-      *(dest++) = static_cast<output_type> ((c & 0x3F) | 0x80);
-      return dest;
-    }
-    if (c < 0x80000000) {
-      *(dest++) = static_cast<output_type> ((c >> 30) | 0xFC);
-      *(dest++) = static_cast<output_type> (((c >> 24) & 0x3F) | 0x80);
-      *(dest++) = static_cast<output_type> (((c >> 18) & 0x3F) | 0x80);
-      *(dest++) = static_cast<output_type> (((c >> 12) & 0x3F) | 0x80);
-      *(dest++) = static_cast<output_type> (((c >> 6) & 0x3F) | 0x80);
-      *(dest++) = static_cast<output_type> ((c & 0x3F) | 0x80);
-      return dest;
-    }
+    good_ = false;
     return (*this) (replacement_char, dest);
   }
 
-  constexpr bool finalize () const { return true; }
-  constexpr bool good () const { return true; }
+  constexpr bool finalize () const { return good (); }
+  constexpr bool good () const { return good_; }
+
+private:
+  bool good_ = true;
 };
 
 template <>
@@ -337,7 +325,13 @@ public:
   template <typename OutputIt>
     requires std::output_iterator<OutputIt, output_type>
   OutputIt operator() (input_type c, OutputIt dest) {
-    if (c > max_code_point) {
+    // From D90 in Chapter 3 of Unicode 15.0.0
+    // <https://www.unicode.org/versions/Unicode15.0.0/ch03.pdf>:
+    //
+    // "Because surrogate code points are not included in the set of Unicode
+    // scalar values, UTF-32 code units in the range 0000D80016..0000DFFF16 are
+    // ill-formed. Any UTF-32 code unit greater than 0x0010FFFF is ill-formed."
+    if (c > max_code_point || is_surrogate (c)) {
       good_ = false;
       c = replacement_char;
     }
