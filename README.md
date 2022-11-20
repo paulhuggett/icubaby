@@ -36,12 +36,12 @@ It’s possible for `From` and `To` to be the same character type. This can be u
 #### Member functions
 
 | Member function | Description |
-| ---- | ----------- |
-| (constructor) | constructs a new transcoder |
-| (destructor) | destructs a transcoder |
-| operator() |  (input_type c, OutputIt dest) | 
-| finalize | |
-| good | |
+| --------------- | ----------- |
+| (constructor)   | constructs a new transcoder |
+| (destructor)    | destructs a transcoder |
+| operator()      |  (input_type c, OutputIt dest) | 
+| finalize        | call once the entire input sequence has been fed to operator(). Ensures the sequence did not end with a partial character and returns true if the input represented valid input, false otherwise. |
+| good            | returns true if the input represented valid input, false otherwise |
 
 
 ### iterator
@@ -74,7 +74,35 @@ icubaby::iterator<typename Transcoder, typename OutputIterator>
 
 # Examples
 
-## Convert from UTF-8 to UTF-16 using an explicit loop
+## Convert using std::copy()
+
+The example code below converts from UTF-8 to UTF-16 using `icubaby::t8_16` (this name is just a shortened form of `icubaby::transcoder<char8_t, char16_t>`). To convert from UTF-<i>x</i> to UTF-<i>y</i> just use t<i>x</i>\_<i>y</i> (UTF-16 to UTF-8 is `t16_8`, UTF-32 to UTF-8 is `t32_8`, and so on).
+
+In this code we use `std::copy()` to loop over the input code units and pass them to `icubaby::iterator<>`. `iterator<>` conveniently passes each code unit to the transcoder along with the supplied output iterator (`std::back_inserter(out)` here) and returns the updated iterator.
+
+Note that this code continues to process and generate characters even if we see badly formed input. Once all of the characters are processed, the function will return an empty optional if any input was bad. If the input was good, the UTF-16 equivalent is returned.
+
+~~~cpp
+#include "icubaby/icubaby.hpp"
+#include <string_view>
+
+std::optional<std::u16string>
+convert (std::u8string_view const & src) {
+  std::u16string out;
+  // t8_16 is the class which converts from UTF-8 to UTF-16.
+  // This name is a shortned form of transcoder<char8_t, char16_T>.
+  icubaby::t8_16 utf_8_to_16;
+  std::copy (std::begin (src), std::end (src),
+             icubaby::iterator{utf_8_to_16, std::back_inserter (out)});
+  if (!utf_8_to_16.finalize ()) {
+    // The input was malformed or ended with a partial character.
+    return std::nullopt;
+  }
+  return out;
+}
+~~~
+
+## Convert using an explicit loop
 
 ~~~cpp
 std::optional<std::u16string>
@@ -99,19 +127,3 @@ convert2 (std::u8string const & src) {
 }
 ~~~
 
-## Convert from UTF-8 to UTF-16 using std::copy()
-
-~~~cpp
-std::optional<std::u16string>
-convert (std::u8string const & src) {
-  std::u16string out;
-  icubaby::t8_16 utf_8_to_16;
-  std::copy (std::begin (src), std::end (src),
-             icubaby::iterator{utf_8_to_16, std::back_inserter (out)});
-  if (!utf_8_to_16.finalize ()) {
-    // The input was malformed or ended with a partial character.
-    return std::nullopt;
-  }
-  return out;
-}
-~~~
