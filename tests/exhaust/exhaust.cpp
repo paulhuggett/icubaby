@@ -84,8 +84,21 @@ void check_all_code_points () {
 
   // 4. Ensure that the result matches the initial UTF-32 collection from
   // step 1.
-  assert (std::equal (std::begin (all), std::end (all), std::begin (decoded),
-                      std::end (decoded)));
+  if (!std::equal (std::begin (all), std::end (all), std::begin (decoded),
+                   std::end (decoded))) {
+    std::cout << all.size () << '\n';
+    std::cout << decoded.size () << '\n';
+
+    for (size_t ctr = 0, end = std::min (all.size (), decoded.size ());
+         ctr < end; ++ctr) {
+      if (all[ctr] != decoded[ctr]) {
+        std::cout << std::hex << ctr << ": "
+                  << "U+" << std::hex << static_cast<unsigned> (all[ctr]) << ' '
+                  << "U+" << std::hex << static_cast<unsigned> (decoded[ctr])
+                  << '\n';
+      }
+    }
+  }
 }
 
 void check_utf8_to_16 () {
@@ -120,9 +133,6 @@ void check_utf8_to_16 () {
   // 5. Compare the results of step 2 and step 4.
   assert (std::equal (std::begin (all8a), std::end (all8a), std::begin (all8b),
                       std::end (all8b)));
-}
-
-void exhaustive_check () {
 }
 
 }  // end anonymous namespace
