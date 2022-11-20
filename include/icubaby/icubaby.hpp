@@ -42,14 +42,16 @@ namespace icubaby {
 
 inline constexpr auto replacement_char = char32_t{0xFFFD};
 inline constexpr auto first_high_surrogate = char32_t{0xD800};
+inline constexpr auto last_high_surrogate = char32_t{0xDBFF};
 inline constexpr auto first_low_surrogate = char32_t{0xDC00};
+inline constexpr auto last_low_surrogate = char32_t{0xDFFF};
 inline constexpr auto max_code_point = char32_t{0x10FFFF};
 
 constexpr bool is_high_surrogate (char32_t c) {
-  return c >= first_high_surrogate && c <= 0xDBFF;
+  return c >= first_high_surrogate && c <= last_high_surrogate;
 }
 constexpr bool is_low_surrogate (char32_t c) {
-  return c >= first_low_surrogate && c <= 0xDFFF;
+  return c >= first_low_surrogate && c <= last_low_surrogate;
 }
 constexpr bool is_surrogate (char32_t c) {
   return is_high_surrogate (c) || is_low_surrogate (c);
