@@ -1,12 +1,8 @@
-#include <algorithm>
-#include <iostream>
 #include <iomanip>
-#include <optional>
-#include <string>
+#include <iostream>
+#include <string_view>
 
 #include "icubaby/icubaby.hpp"
-
-using namespace std::string_literals;
 
 static void show (std::ostream & os, auto const & str) {
   os << std::setfill('0') << std::hex;
@@ -18,20 +14,21 @@ static void show (std::ostream & os, auto const & str) {
   os << '\n';
 }
 
-std::optional<std::u16string>
-convert (std::u8string const & src) {
+std::optional<std::u16string> convert (std::u8string_view const& src) {
   std::u16string out;
+  // t8_16 is the class which converts from UTF-8 to UTF-16.
+  // This name is a shortned form of transcoder<char8_t, char16_T>.
   icubaby::t8_16 utf_8_to_16;
-  std::copy (std::begin (src), std::end (src),
-             icubaby::iterator{utf_8_to_16, std::back_inserter (out)});
-  if (!utf_8_to_16.finalize ()) {
+  auto it = icubaby::iterator{utf_8_to_16, std::back_inserter (out)};
+  it = std::copy (std::begin (src), std::end (src), it);
+  utf_8_to_16.finalize (it);
+  if (!utf_8_to_16.good ()) {
+    // The input was malformed or ended with a partial character.
     return std::nullopt;
   }
   return out;
 }
-
-std::optional<std::u16string>
-convert2 (std::u8string const & src) {
+std::optional<std::u16string> convert2 (std::u8string_view const& src) {
   // The UTF-16 code units are written to the 'out' string via the 'it' output iterator.
   std::u16string out;
   auto it = std::back_inserter (out);
@@ -45,14 +42,16 @@ convert2 (std::u8string const & src) {
     }
   }
   // Check that the input finished with a complete character.
-  if (!utf_8_to_16.finalize ()) {
+  it = utf_8_to_16.finalize (it);
+  if (!utf_8_to_16.good ()) {
     return std::nullopt;
   }
   return out; // Conversion was successful.
 }
 
 int main () {
-  auto const in = u8"こんにちは世界\n"s;
+  using namespace std::string_view_literals;
+  auto const in = u8"こんにちは世界\n"sv;
   show (std::cout, in);
   show (std::cout, *convert (in));
   show (std::cout, *convert2 (in));

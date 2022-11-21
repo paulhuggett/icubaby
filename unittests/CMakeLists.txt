@@ -1,6 +1,6 @@
 add_executable (icubaby-unittests
   harness.cpp
-  test_u8.cpp
+  test_u8_32.cpp
   test_u16.cpp
   test_u32.cpp
 )

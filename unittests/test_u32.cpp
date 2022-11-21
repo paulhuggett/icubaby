@@ -29,5 +29,5 @@ TEST (Utf32To8, FirstLowSurrogate) {
   auto it = std::back_inserter (out);
   icubaby::t32_8 d1;
   it = d1 (icubaby::first_low_surrogate, it);
-  EXPECT_TRUE (d1.good ());
+  EXPECT_FALSE (d1.good ());
 }

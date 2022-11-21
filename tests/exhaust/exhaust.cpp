@@ -35,9 +35,9 @@ void check_each_code_point () {
     assert (encode.good ());
 
     output.clear ();
-    std::copy (std::begin (encoded), std::end (encoded),
-               icubaby::iterator{decode, std::back_inserter (output)});
-    assert (decode.finalize ());
+    auto it = icubaby::iterator{decode, std::back_inserter (output)};
+    std::copy (std::begin (encoded), std::end (encoded), it);
+    it = decode.finalize (it);
     assert (decode.good ());
 
     assert (output.size () == 1);
@@ -49,6 +49,9 @@ std::vector<char32_t> all_code_points () {
   std::vector<char32_t> result;
   result.reserve (icubaby::max_code_point);
   for (auto cp = char32_t{0}; cp <= icubaby::max_code_point; ++cp) {
+    // The high-surrogate and low-surrogate code points are designated for
+    // surrogate code units in the UTF-16 character encoding form. They are
+    // unassigned to any abstract character.
     if (!icubaby::is_surrogate (cp)) {
       result.push_back (cp);
     }
@@ -63,6 +66,9 @@ template <typename Encoder, typename Decoder>
                            typename Decoder::input_type>)
 void check_all_code_points () {
   Encoder encode;
+  icubaby::transcoder<typename Encoder::output_type,
+                      typename Decoder::input_type>
+      midcode;
   Decoder decode;
 
   // 1. Start with the set of all valid UTF-32 code points.
@@ -70,16 +76,26 @@ void check_all_code_points () {
 
   // 2. Run the complete set of code points through the encoder.
   std::vector<typename Decoder::input_type> encoded;
-  std::copy (std::begin (all), std::end (all),
-             icubaby::iterator{encode, std::back_inserter (encoded)});
-  assert (encode.finalize ());
+  auto encoded_it =
+      std::copy (std::begin (all), std::end (all),
+                 icubaby::iterator{encode, std::back_inserter (encoded)});
+  encode.finalize (encoded_it);
   assert (encode.good ());
 
+  // 2a. Pass the output from step 2 through the mid-coder.
+  std::vector<typename Decoder::input_type> midcoded;
+  auto midcoded_it =
+      std::copy (std::begin (encoded), std::end (encoded),
+                 icubaby::iterator{midcode, std::back_inserter (midcoded)});
+  midcode.finalize (midcoded_it);
+  assert (midcode.good ());
+
   // 3. Run the encoded stream from step 2 through the decoder.
-  std::vector<char32_t> decoded;
-  std::copy (std::begin (encoded), std::end (encoded),
-             icubaby::iterator{decode, std::back_inserter (decoded)});
-  assert (decode.finalize ());
+  std::vector<typename Decoder::output_type> decoded;
+  auto decoded_it =
+      std::copy (std::begin (midcoded), std::end (midcoded),
+                 icubaby::iterator{decode, std::back_inserter (decoded)});
+  decode.finalize (decoded_it);
   assert (decode.good ());
 
   // 4. Ensure that the result matches the initial UTF-32 collection from
@@ -109,25 +125,25 @@ void check_utf8_to_16 () {
   // 2. Convert the complete set of code points to UTF-8.
   std::vector<char8_t> all8a;
   t32_8 convert32_8;
-  std::copy (std::begin (all), std::end (all),
-             iterator{convert32_8, std::back_inserter (all8a)});
-  assert (convert32_8.finalize ());
+  convert32_8.finalize (
+      std::copy (std::begin (all), std::end (all),
+                 iterator{convert32_8, std::back_inserter (all8a)}));
   assert (convert32_8.good ());
 
   // 3. Convert the UTF-8 stream from step 2 to UTF-16.
   std::vector<char16_t> all16;
   t8_16 convert8_16;
-  std::copy (std::begin (all8a), std::end (all8a),
-             iterator{convert8_16, std::back_inserter (all16)});
-  assert (convert8_16.finalize ());
+  convert8_16.finalize (
+      std::copy (std::begin (all8a), std::end (all8a),
+                 iterator{convert8_16, std::back_inserter (all16)}));
   assert (convert8_16.good ());
 
   // 4. Convert the UTF-16 collection from step 3 to UTF-8.
   std::vector<char8_t> all8b;
   t16_8 convert16_8;
-  std::copy (std::begin (all16), std::end (all16),
-             iterator{convert16_8, std::back_inserter (all8b)});
-  assert (convert16_8.finalize ());
+  convert16_8.finalize (
+      std::copy (std::begin (all16), std::end (all16),
+                 iterator{convert16_8, std::back_inserter (all8b)}));
   assert (convert16_8.good ());
 
   // 5. Compare the results of step 2 and step 4.

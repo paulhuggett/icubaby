@@ -34,7 +34,6 @@
 #include <cstdint>
 #include <iterator>
 #include <optional>
-#include <string>
 #include <tuple>
 #include <type_traits>
 
@@ -57,15 +56,22 @@ constexpr bool is_surrogate (char32_t c) {
   return is_high_surrogate (c) || is_low_surrogate (c);
 }
 
-constexpr bool is_utf8_char_start (char8_t c) noexcept {
+constexpr bool is_code_point_start (char8_t c) noexcept {
   return (c & 0xC0U) != 0x80U;
 }
+constexpr bool is_code_point_start (char16_t c) noexcept {
+  return !is_low_surrogate (c);
+}
+constexpr bool is_code_point_start (char32_t c) noexcept {
+  return true;
+}
 
-/// Returns the number of code-points in a UTF-8 sequence.
-template <typename Iterator>
-constexpr auto utf8_length (Iterator first, Iterator last) {
+/// Returns the number of code points in a sequence.
+template <typename InputIterator>
+  requires std::input_iterator<InputIterator>
+constexpr auto length (InputIterator first, InputIterator last) {
   return std::count_if (first, last,
-                        [] (auto c) { return is_utf8_char_start (c); });
+                        [] (auto c) { return is_code_point_start (c); });
 }
 
 /// Returns an iterator to the beginning of the pos'th code-point in the UTF-8
@@ -81,7 +87,7 @@ template <typename InputIterator>
 InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
   auto start_count = std::size_t{0};
   return std::find_if (first, last, [&start_count, pos] (char8_t c) {
-    return is_utf8_char_start (c) ? (start_count++ == pos) : false;
+    return is_code_point_start (c) ? (start_count++ == pos) : false;
   });
 }
 
@@ -89,7 +95,8 @@ template <typename T>
 concept is_transcoder = requires (T t) {
                           typename T::input_type;
                           typename T::output_type;
-                          { t.finalize () } -> std::convertible_to<bool>;
+                          // we must also have operator() and finalize() which
+                          // both take template arguments.
                           { t.good () } -> std::convertible_to<bool>;
                         };
 
@@ -98,15 +105,54 @@ concept is_transcoder = requires (T t) {
 template <typename From, typename To>
 class transcoder;
 
+template <typename Transcoder, typename OutputIterator>
+  requires (
+      is_transcoder<Transcoder> &&
+      std::output_iterator<OutputIterator, typename Transcoder::output_type>)
+class iterator {
+public:
+  using iterator_category = std::output_iterator_tag;
+  using value_type = void;
+  using difference_type = std::ptrdiff_t;
+  using pointer = void;
+  using reference = void;
+
+  constexpr iterator (Transcoder& t, OutputIterator it)
+      : transcoder_{t}, it_{it} {}
+
+  iterator& operator= (typename Transcoder::input_type const& value) {
+    it_ = transcoder_ (value, it_);
+    return *this;
+  }
+
+  constexpr iterator& operator* () noexcept { return *this; }
+  constexpr iterator& operator++ () noexcept { return *this; }
+  constexpr iterator operator++ (int) noexcept { return *this; }
+
+private:
+  Transcoder transcoder_;
+  [[no_unique_address]] OutputIterator it_;
+};
+
+template <typename Transcoder, typename OutputIterator>
+iterator (Transcoder& t, OutputIterator it)
+    -> iterator<Transcoder, OutputIterator>;
+
 template <>
 class transcoder<char32_t, char8_t> {
 public:
   using input_type = char32_t;
   using output_type = char8_t;
 
-  template <typename OutputIt>
-    requires std::output_iterator<OutputIt, output_type>
-  OutputIt operator() (input_type c, OutputIt dest) {
+  transcoder () = default;
+  explicit transcoder (bool well_formed) : good_{well_formed} {}
+
+  /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  OutputIterator operator() (input_type c, OutputIterator dest) {
     if (c < 0x80) {
       *(dest++) = static_cast<output_type> (c);
       return dest;
@@ -118,6 +164,7 @@ public:
     }
     if (is_surrogate (c)) {
       good_ = false;
+      static_assert (!is_surrogate (replacement_char));
       return (*this) (replacement_char, dest);
     }
     if (c < 0x10000) {
@@ -137,7 +184,19 @@ public:
     return (*this) (replacement_char, dest);
   }
 
-  constexpr bool finalize () const { return good (); }
+  /// Call once the entire input sequence has been fed to operator(). This
+  /// function ensures that the sequence did not end with a partial character.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  constexpr OutputIterator finalize (OutputIterator dest) const {
+    return dest;
+  }
+
+  /// \returns True if the input represented well formed UTF-32.
   constexpr bool good () const { return good_; }
 
 private:
@@ -150,9 +209,17 @@ public:
   using input_type = char8_t;
   using output_type = char32_t;
 
-  template <typename OutputIt>
-    requires std::output_iterator<OutputIt, output_type>
-  OutputIt operator() (input_type code_unit, OutputIt dest) {
+  transcoder () = default;
+  explicit transcoder (bool well_formed) : good_{well_formed} { pad_ = 0; }
+
+  /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
+  /// \param code_unit  A UTF-8 code unit,
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
+    assert (code_unit < utf8d_.size ());
     auto const type = utf8d_[code_unit];
     code_point_ = (state_ != accept) ? (code_unit & 0x3FU) | (code_point_ << 6)
                                      : (0xFF >> type) & code_unit;
@@ -174,22 +241,45 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial character.
   ///
-  /// \returns True if the input represented valid UTF-8.
-  bool finalize () {
+  /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  constexpr OutputIterator finalize (OutputIterator dest) {
     if (state_ != accept) {
       state_ = reject;
+      *(dest++) = replacement_char;
       good_ = false;
     }
-    return good_;
+    return dest;
   }
 
-  /// \returns True if the input represented valid UTF-8.
+  /// \returns True if the input represented well formed UTF-8.
   constexpr bool good () const { return good_; }
 
 private:
-  static std::array<uint8_t const, 400> const utf8d_;
-  unsigned code_point_ : 21 = 0;  // U+10FFFF is the maximum code point.
+  static inline std::array<std::uint8_t const, 400> const utf8d_ = {
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 00..1f
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 20..3f
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 40..5f
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 60..7f
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9, // 80..9f
+    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, // a0..bf
+    8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, // c0..df
+    0xa,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x4,0x3,0x3, // e0..ef
+    0xb,0x6,0x6,0x6,0x5,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8, // f0..ff
+    0x0,0x1,0x2,0x3,0x5,0x8,0x7,0x1,0x1,0x1,0x4,0x6,0x1,0x1,0x1,0x1, // s0..s0
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,1, // s1..s2
+    1,2,1,1,1,1,1,2,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1, // s3..s4
+    1,2,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,3,1,1,1,1,1,1, // s5..s6
+    1,3,1,1,1,1,1,3,1,3,1,1,1,1,1,1,1,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1, // s7..s8
+  };
+  static constexpr auto code_point_bits = 21;
+  static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
+  unsigned code_point_ : code_point_bits = 0;
   unsigned good_ : 1 = true;
+  unsigned pad_ : 2 = 0;
   enum : std::uint8_t { accept, reject };
   unsigned state_ : 8 = accept;
 };
@@ -200,15 +290,22 @@ public:
   using input_type = char32_t;
   using output_type = char16_t;
 
+  transcoder () = default;
+  explicit transcoder (bool well_formed) : good_{well_formed} {}
+
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  The output iterator.
   template <typename OutputIt>
     requires std::output_iterator<OutputIt, output_type>
-  OutputIt operator() (char32_t code_point, OutputIt dest) const {
+  OutputIt operator() (char32_t code_point, OutputIt dest) {
     if (is_surrogate (code_point)) {
       dest = (*this) (replacement_char, dest);
+      good_ = false;
     } else if (code_point <= 0xFFFF) {
       *(dest++) = static_cast<output_type> (code_point);
     } else if (code_point > max_code_point) {
       dest = (*this) (replacement_char, dest);
+      good_ = false;
     } else {
       *(dest++) = static_cast<output_type> (0xD7C0 + (code_point >> 10));
       *(dest++) =
@@ -219,11 +316,20 @@ public:
 
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial character.
-  /// \returns True if the input represented valid UTF-8.
-  bool finalize () const { return true; }
+  ///
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  The output iterator.
+  template <typename OutputIt>
+    requires std::output_iterator<OutputIt, output_type>
+  constexpr OutputIt finalize (OutputIt dest) {
+    return dest;
+  }
 
-  /// \returns True if the input represented valid UTF-8.
-  bool good () const { return true; }
+  /// \returns True if the input represented valid UTF-32.
+  constexpr bool good () const { return good_; }
+
+private:
+  bool good_ = true;
 };
 
 template <>
@@ -232,45 +338,68 @@ public:
   using input_type = char16_t;
   using output_type = char32_t;
 
-  template <typename OutputIt>
-    requires std::output_iterator<OutputIt, output_type>
-  OutputIt operator() (input_type c, OutputIt dest) {
+  transcoder () = default;
+  explicit transcoder (bool well_formed) : good_{well_formed} {}
+
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  OutputIterator operator() (input_type c, OutputIterator dest) {
     if (!has_high_) {
-      if (!is_high_surrogate (c)) {
-        *(dest++) = c;
-      } else {
+      if (is_high_surrogate (c)) {
+        // A high surrogate character indicates that this is the first of a
+        // high/low surrogate pair.
         assert (c >= first_high_surrogate);
         auto const h = c - first_high_surrogate;
-        assert (h < (1U << high_bits));
+        assert (h < std::numeric_limits<decltype (high_)>::max ());
         high_ = h;
         has_high_ = true;
+        return dest;
       }
+
+      *(dest++) = c;
       return dest;
     }
+
     if (is_low_surrogate (c)) {
+      // We saw a high/low surrogate pair.
       has_high_ = false;
       *(dest++) = (static_cast<char32_t> (high_) << 10) +
                   (c - first_low_surrogate) + 0x10000;
       return dest;
     }
+    // There was a high surrogate followed by something other than a low
+    // surrogate.
+    if (is_high_surrogate (c)) {
+      c = replacement_char;
+    }
+    *(dest++) = replacement_char;
+    *(dest++) = c;
     good_ = false;
     return dest;
   }
 
-  bool finalize () {
+  /// Call once the entire input sequence has been fed to operator(). This
+  /// function ensures that the sequence did not end with a partial character.
+  ///
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  The output iterator.
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  OutputIterator finalize (OutputIterator dest) {
     if (has_high_) {
+      *(dest++) = replacement_char;
       good_ = false;
     }
-    return good_;
+    return dest;
   }
 
   bool good () const { return good_; }
 
 private:
   static constexpr int high_bits = 10;
-  unsigned high_ : high_bits = 0;
-  unsigned has_high_ : 1 = false;
-  unsigned good_ : 1 = 1;
+  bool has_high_ = false;
+  bool good_ = true;
+  uint_least16_t high_;
 };
 
 namespace details {
@@ -281,26 +410,29 @@ public:
   using input_type = From;
   using output_type = To;
 
-  template <typename OutputIt>
-    requires std::output_iterator<OutputIt, output_type>
-  OutputIt operator() (input_type c, OutputIt dest) {
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  OutputIterator operator() (input_type c, OutputIterator dest) {
     if (to_inter_ (c, &inter_) != &inter_) {
       dest = to_out_ (inter_, dest);
     }
     return dest;
   }
 
-  bool finalize () {
-    to_inter_.finalize ();
-    to_out_.finalize ();
-    return good ();
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  OutputIterator finalize (OutputIterator dest) {
+    if (to_inter_.finalize (&inter_) != &inter_) {
+      dest = to_out_ (inter_, dest);
+    }
+    return to_out_.finalize (dest);
   }
   bool good () const { return to_inter_.good () && to_out_.good (); }
 
 private:
+  char32_t inter_ = 0;
   transcoder<input_type, char32_t> to_inter_;
   transcoder<char32_t, output_type> to_out_;
-  char32_t inter_ = 0;
 };
 
 }  // end namespace details
@@ -340,7 +472,18 @@ public:
     *(dest++) = c;
     return dest;
   }
-  constexpr bool finalize () const { return good (); }
+
+  /// Call once the entire input sequence has been fed to operator(). This
+  /// function ensures that the sequence did not end with a partial character.
+  ///
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  The output iterator.
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  constexpr OutputIterator finalize (OutputIterator dest) const {
+    return dest;
+  }
+
   constexpr bool good () const { return good_; }
 
 private:
@@ -370,39 +513,6 @@ using t32_16 = transcoder<char32_t, char16_t>;
 /// A shorter name for the UTF-32 to UTF-32 transcoder. This, of course,
 /// represents no change and is included for completeness.
 using t32_32 = transcoder<char32_t, char32_t>;
-
-template <typename Transcoder, typename OutputIterator>
-  requires (
-      is_transcoder<Transcoder> &&
-      std::output_iterator<OutputIterator, typename Transcoder::output_type>)
-class iterator {
-public:
-  using iterator_category = std::output_iterator_tag;
-  using value_type = void;
-  using difference_type = std::ptrdiff_t;
-  using pointer = void;
-  using reference = void;
-
-  constexpr iterator (Transcoder& t, OutputIterator it)
-      : transcoder_{t}, it_{it} {}
-
-  iterator& operator= (typename Transcoder::input_type const& value) {
-    it_ = transcoder_ (value, it_);
-    return *this;
-  }
-
-  constexpr iterator& operator* () noexcept { return *this; }
-  constexpr iterator& operator++ () noexcept { return *this; }
-  constexpr iterator operator++ (int) noexcept { return *this; }
-
-private:
-  Transcoder transcoder_;
-  OutputIterator it_;
-};
-
-template <typename Transcoder, typename OutputIterator>
-iterator (Transcoder& t, OutputIterator it)
-    -> iterator<Transcoder, OutputIterator>;
 
 }  // end namespace icubaby
 

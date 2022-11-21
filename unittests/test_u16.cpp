@@ -37,38 +37,33 @@ TEST (Utf16, Good1) {
 }
 
 TEST (Utf16, Good2) {
-  auto const match1 = ElementsAre (char32_t{0xFFFF});
-  auto const match2 = ElementsAre (char32_t{0xFFFF}, char32_t{0x10000});
-  auto const match3 =
-      ElementsAre (char32_t{0xFFFF}, char32_t{0x10000}, char32_t{0x10001});
-  auto const match4 = ElementsAre (char32_t{0xFFFF}, char32_t{0x10000},
-                                   char32_t{0x10001}, char32_t{0x12345});
-  auto const match5 =
-      ElementsAre (char32_t{0xFFFF}, char32_t{0x10000}, char32_t{0x10001},
-                   char32_t{0x12345}, char32_t{0x10ffff});
-
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
   icubaby::t16_32 d2;
+  auto const match1 = ElementsAre (char32_t{0xFFFF});
   it = d2 (0xFFFF, it);
   EXPECT_TRUE (d2.good ());
   EXPECT_THAT (out, match1);
   it = d2 (0xD800, it);
   EXPECT_TRUE (d2.good ());
   EXPECT_THAT (out, match1);
+  auto const match2 = ElementsAre (char32_t{0xFFFF}, char32_t{0x10000});
   it = d2 (0xDC00, it);
   EXPECT_TRUE (d2.good ());
   EXPECT_THAT (out, match2);
   it = d2 (0xD800, it);
   EXPECT_TRUE (d2.good ());
   EXPECT_THAT (out, match2);
+  auto const match3 =
+      ElementsAre (char32_t{0xFFFF}, char32_t{0x10000}, char32_t{0x10001});
   it = d2 (0xDC01, it);
   EXPECT_TRUE (d2.good ());
   EXPECT_THAT (out, match3);
-
   it = d2 (0xD808, it);
   EXPECT_TRUE (d2.good ());
   EXPECT_THAT (out, match3);
+  auto const match4 = ElementsAre (char32_t{0xFFFF}, char32_t{0x10000},
+                                   char32_t{0x10001}, char32_t{0x12345});
   it = d2 (0xDF45, it);
   EXPECT_TRUE (d2.good ());
   EXPECT_THAT (out, match4);
@@ -78,5 +73,48 @@ TEST (Utf16, Good2) {
   EXPECT_THAT (out, match4);
   it = d2 (0xDFFF, it);
   EXPECT_TRUE (d2.good ());
+  auto const match5 =
+      ElementsAre (char32_t{0xFFFF}, char32_t{0x10000}, char32_t{0x10001},
+                   char32_t{0x12345}, char32_t{0x10ffff});
   EXPECT_THAT (out, match5);
+  it = d2.finalize (it);
+  EXPECT_THAT (out, match5);
+  EXPECT_TRUE (d2.good ());
+}
+
+TEST (Utf16, HighSurrogateWithoutLow) {
+  std::vector<char32_t> out;
+  auto it = std::back_inserter (out);
+  icubaby::t16_32 d2;
+  it = d2 (0xD800, it);
+  EXPECT_TRUE (d2.good ());
+  EXPECT_TRUE (out.empty ());
+  it = d2 (0x0000, it);
+  EXPECT_FALSE (d2.good ());
+  EXPECT_THAT (out, ElementsAre (icubaby::replacement_char, char32_t{0x0000}));
+}
+
+TEST (Utf16, HighSurrogateFollowedbyAnotherHigh) {
+  std::vector<char32_t> out;
+  auto it = std::back_inserter (out);
+  icubaby::t16_32 d2;
+  it = d2 (icubaby::first_high_surrogate, it);
+  EXPECT_TRUE (d2.good ());
+  EXPECT_TRUE (out.empty ());
+  it = d2 (icubaby::first_high_surrogate, it);
+  EXPECT_FALSE (d2.good ());
+  EXPECT_THAT (
+      out, ElementsAre (icubaby::replacement_char, icubaby::replacement_char));
+}
+
+TEST (Utf16, HighSurrogateAtEnd) {
+  std::vector<char32_t> out;
+  auto it = std::back_inserter (out);
+  icubaby::t16_32 d2;
+  it = d2 (icubaby::first_high_surrogate, it);
+  EXPECT_TRUE (d2.good ());
+  EXPECT_TRUE (out.empty ());
+  it = d2.finalize (it);
+  EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
+  EXPECT_FALSE (d2.good ());
 }

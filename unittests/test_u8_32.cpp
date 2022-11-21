@@ -23,7 +23,7 @@ using testing::ElementsAre;
 // | 0xE2, 0x82, 0xAC,      | U+20AC  EURO SIGN            |
 // | 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN  |
 // | 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR  |
-TEST (Utf8, Good) {
+TEST (Utf8_32, Good) {
   icubaby::t8_32 d;
   EXPECT_TRUE (d.good ());
 
@@ -112,11 +112,11 @@ TEST (Utf8, Good) {
     EXPECT_THAT (cu, matcher6);
   }
 
-  EXPECT_TRUE (d.finalize ());
+  out = d.finalize (out);
   EXPECT_TRUE (d.good ());
 }
 
-TEST (Utf8, Bad1) {
+TEST (Utf8_32, Bad1) {
   icubaby::t8_32 d2;
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
@@ -125,17 +125,30 @@ TEST (Utf8, Bad1) {
   EXPECT_FALSE (d2.good ());
   it = d2 (char8_t{0x24}, it);
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char, char32_t{0x24}));
-  EXPECT_FALSE (d2.finalize ());
+  EXPECT_FALSE (d2.good ());
+  it = d2.finalize (it);
   EXPECT_FALSE (d2.good ());
 }
 
-TEST (Utf8, Bad2) {
+TEST (Utf8_32, Bad2) {
   icubaby::t8_32 d2;
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
   it = d2 (char8_t{0x80}, it);
   EXPECT_FALSE (d2.good ());
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
-  EXPECT_FALSE (d2.finalize ());
+  it = d2.finalize (it);
+  EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
   EXPECT_FALSE (d2.good ());
+}
+
+TEST (Utf8_32, AssignBad) {
+  icubaby::t32_8 t1;
+  std::vector<char8_t> out;
+  // A code unit t1 will signal as an error (!good()).
+  t1.finalize (t1 (icubaby::first_low_surrogate, std::back_inserter (out)));
+  EXPECT_FALSE (t1.good ());
+
+  icubaby::t8_32 t2{t1.good ()};
+  EXPECT_FALSE (t2.good ()) << "The 'good' state should be transfered";
 }
