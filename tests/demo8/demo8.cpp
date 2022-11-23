@@ -1,10 +1,13 @@
 #include <iomanip>
 #include <iostream>
+#include <optional>
 #include <string_view>
 
 #include "icubaby/icubaby.hpp"
 
-static void show (std::ostream & os, auto const & str) {
+namespace {
+
+void show (std::ostream& os, auto const& str) {
   os << std::setfill('0') << std::hex;
   auto separator = "";
   for (auto const c: str) {
@@ -16,10 +19,11 @@ static void show (std::ostream & os, auto const & str) {
 
 std::optional<std::u16string> convert (std::u8string_view const& src) {
   std::u16string out;
+
   // t8_16 is the class which converts from UTF-8 to UTF-16.
   // This name is a shortned form of transcoder<char8_t, char16_T>.
   icubaby::t8_16 utf_8_to_16;
-  auto it = icubaby::iterator{utf_8_to_16, std::back_inserter (out)};
+  auto it = icubaby::iterator{&utf_8_to_16, std::back_inserter (out)};
   it = std::copy (std::begin (src), std::end (src), it);
   utf_8_to_16.finalize (it);
   if (!utf_8_to_16.good ()) {
@@ -48,6 +52,8 @@ std::optional<std::u16string> convert2 (std::u8string_view const& src) {
   }
   return out; // Conversion was successful.
 }
+
+}  // namespace
 
 int main () {
   using namespace std::string_view_literals;

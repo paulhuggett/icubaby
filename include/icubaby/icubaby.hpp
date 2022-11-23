@@ -33,8 +33,7 @@
 #include <concepts>
 #include <cstdint>
 #include <iterator>
-#include <optional>
-#include <tuple>
+#include <limits>
 #include <type_traits>
 
 namespace icubaby {
@@ -46,13 +45,13 @@ inline constexpr auto first_low_surrogate = char32_t{0xDC00};
 inline constexpr auto last_low_surrogate = char32_t{0xDFFF};
 inline constexpr auto max_code_point = char32_t{0x10FFFF};
 
-constexpr bool is_high_surrogate (char32_t c) {
+constexpr bool is_high_surrogate (char32_t c) noexcept {
   return c >= first_high_surrogate && c <= last_high_surrogate;
 }
-constexpr bool is_low_surrogate (char32_t c) {
+constexpr bool is_low_surrogate (char32_t c) noexcept {
   return c >= first_low_surrogate && c <= last_low_surrogate;
 }
-constexpr bool is_surrogate (char32_t c) {
+constexpr bool is_surrogate (char32_t c) noexcept {
   return is_high_surrogate (c) || is_low_surrogate (c);
 }
 
@@ -62,7 +61,7 @@ constexpr bool is_code_point_start (char8_t c) noexcept {
 constexpr bool is_code_point_start (char16_t c) noexcept {
   return !is_low_surrogate (c);
 }
-constexpr bool is_code_point_start (char32_t c) noexcept {
+constexpr bool is_code_point_start (char32_t) noexcept {
   return true;
 }
 
@@ -117,20 +116,29 @@ public:
   using pointer = void;
   using reference = void;
 
-  constexpr iterator (Transcoder& t, OutputIterator it)
-      : transcoder_{t}, it_{it} {}
+  constexpr iterator (Transcoder* const transcoder, OutputIterator it)
+      : transcoder_{transcoder}, it_{it} {}
+  iterator (iterator const& rhs) = default;
 
   iterator& operator= (typename Transcoder::input_type const& value) {
-    it_ = transcoder_ (value, it_);
+    it_ = (*transcoder_) (value, it_);
     return *this;
   }
+
+  iterator& operator= (iterator const& rhs) = default;
 
   constexpr iterator& operator* () noexcept { return *this; }
   constexpr iterator& operator++ () noexcept { return *this; }
   constexpr iterator operator++ (int) noexcept { return *this; }
 
+  /// Accesses the underlying iterator.
+  OutputIterator base () const noexcept { return it_; }
+  /// Accesses the underlying transcoder.
+  Transcoder* transcoder () noexcept { return transcoder_; }
+  Transcoder const* transcoder () const noexcept { return transcoder_; }
+
 private:
-  Transcoder transcoder_;
+  Transcoder* transcoder_;
   [[no_unique_address]] OutputIterator it_;
 };
 
@@ -152,7 +160,7 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
     requires std::output_iterator<OutputIterator, output_type>
-  OutputIterator operator() (input_type c, OutputIterator dest) {
+  OutputIterator operator() (input_type c, OutputIterator dest) noexcept {
     if (c < 0x80) {
       *(dest++) = static_cast<output_type> (c);
       return dest;
@@ -196,6 +204,15 @@ public:
     return dest;
   }
 
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  constexpr iterator<transcoder, OutputIterator> finalize (
+      iterator<transcoder, OutputIterator> dest) {
+    auto t = dest.transcoder ();
+    assert (t == this);
+    return {t, t->finalize (dest.base ())};
+  }
+
   /// \returns True if the input represented well formed UTF-32.
   constexpr bool good () const { return good_; }
 
@@ -221,8 +238,10 @@ public:
   OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     assert (code_unit < utf8d_.size ());
     auto const type = utf8d_[code_unit];
-    code_point_ = (state_ != accept) ? (code_unit & 0x3FU) | (code_point_ << 6)
-                                     : (0xFF >> type) & code_unit;
+    code_point_ = (state_ != accept)
+                      ? (code_unit & 0x3FU) |
+                            static_cast<uint_least32_t> (code_point_ << 6U)
+                      : (0xFF >> type) & code_unit;
     auto const idx = 256U + state_ + type;
     assert (idx < utf8d_.size ());
     state_ = utf8d_[idx];
@@ -255,6 +274,15 @@ public:
     return dest;
   }
 
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  constexpr iterator<transcoder, OutputIterator> finalize (
+      iterator<transcoder, OutputIterator> dest) {
+    auto t = dest.transcoder ();
+    assert (t == this);
+    return {t, t->finalize (dest.base ())};
+  }
+
   /// \returns True if the input represented well formed UTF-8.
   constexpr bool good () const { return good_; }
 
@@ -281,11 +309,11 @@ private:
   };
   static constexpr auto code_point_bits = 21;
   static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
-  unsigned code_point_ : code_point_bits = 0;
-  unsigned good_ : 1 = true;
-  unsigned pad_ : 2 = 0;
+  uint_least32_t code_point_ : code_point_bits = 0;
+  uint_least32_t good_ : 1 = true;
+  uint_least32_t pad_ : 2 = 0;
   enum : std::uint8_t { accept, reject = 12 };
-  unsigned state_ : 8 = accept;
+  uint_least32_t state_ : 8 = accept;
 };
 
 template <>
@@ -299,15 +327,12 @@ public:
 
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
-  template <typename OutputIt>
-    requires std::output_iterator<OutputIt, output_type>
-  OutputIt operator() (char32_t code_point, OutputIt dest) {
-    if (is_surrogate (code_point)) {
-      dest = (*this) (replacement_char, dest);
-      good_ = false;
-    } else if (code_point <= 0xFFFF) {
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  OutputIterator operator() (input_type code_point, OutputIterator dest) {
+    if (code_point <= 0xFFFF) {
       *(dest++) = static_cast<output_type> (code_point);
-    } else if (code_point > max_code_point) {
+    } else if (is_surrogate (code_point) || code_point > max_code_point) {
       dest = (*this) (replacement_char, dest);
       good_ = false;
     } else {
@@ -323,10 +348,19 @@ public:
   ///
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
-  template <typename OutputIt>
-    requires std::output_iterator<OutputIt, output_type>
-  constexpr OutputIt finalize (OutputIt dest) {
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  constexpr OutputIterator finalize (OutputIterator dest) {
     return dest;
+  }
+
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  constexpr iterator<transcoder, OutputIterator> finalize (
+      iterator<transcoder, OutputIterator> dest) {
+    auto t = dest.transcoder ();
+    assert (t == this);
+    return {t, t->finalize (dest.base ())};
   }
 
   /// \returns True if the input represented valid UTF-32.
@@ -355,7 +389,7 @@ public:
         assert (c >= first_high_surrogate);
         auto const h = c - first_high_surrogate;
         assert (h < std::numeric_limits<decltype (high_)>::max ());
-        high_ = h;
+        high_ = static_cast<uint_least16_t> (h);
         has_high_ = true;
         return dest;
       }
@@ -397,13 +431,22 @@ public:
     return dest;
   }
 
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  constexpr iterator<transcoder, OutputIterator> finalize (
+      iterator<transcoder, OutputIterator> dest) {
+    auto t = dest.transcoder ();
+    assert (t == this);
+    return {t, t->finalize (dest.base ())};
+  }
+
   bool good () const { return good_; }
 
 private:
   static constexpr int high_bits = 10;
   bool has_high_ = false;
   bool good_ = true;
-  uint_least16_t high_;
+  uint_least16_t high_ = 0;
 };
 
 namespace details {
@@ -431,6 +474,16 @@ public:
     }
     return to_out_.finalize (dest);
   }
+
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  constexpr iterator<transcoder<From, To>, OutputIterator> finalize (
+      iterator<transcoder<From, To>, OutputIterator> dest) {
+    auto t = dest.transcoder ();
+    assert (t == this);
+    return {t, t->finalize (dest.base ())};
+  }
+
   bool good () const { return to_inter_.good () && to_out_.good (); }
 
 private:
@@ -447,7 +500,6 @@ class transcoder<char8_t, char16_t>
 template <>
 class transcoder<char16_t, char8_t>
     : public details::double_transcoder<char16_t, char8_t> {};
-
 template <>
 class transcoder<char8_t, char8_t>
     : public details::double_transcoder<char8_t, char8_t> {};
@@ -486,6 +538,15 @@ public:
     requires std::output_iterator<OutputIterator, output_type>
   constexpr OutputIterator finalize (OutputIterator dest) const {
     return dest;
+  }
+
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  constexpr iterator<transcoder, OutputIterator> finalize (
+      iterator<transcoder, OutputIterator> dest) {
+    auto t = dest.transcoder ();
+    assert (t == this);
+    return {t, t->finalize (dest.base ())};
   }
 
   constexpr bool good () const { return good_; }

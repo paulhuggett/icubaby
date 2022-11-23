@@ -129,7 +129,7 @@ void check (std::vector<char32_t> const &all) {
     icubaby::transcoder<char32_t, T> convert_32_8;
     auto it = std::copy (
         std::begin (all), std::end (all),
-        icubaby::iterator{convert_32_8, std::back_inserter (baby_out)});
+        icubaby::iterator{&convert_32_8, std::back_inserter (baby_out)});
     it = convert_32_8.finalize (it);
     assert (convert_32_8.good ());
 
