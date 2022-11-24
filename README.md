@@ -21,7 +21,7 @@ public:
     requires std::output_iterator<OutputIterator, output_type>
   OutputIterator finalize (OutputIterator dest);
 
-  bool good ();
+  bool good () const;
 };
 ~~~
 
