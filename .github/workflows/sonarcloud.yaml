@@ -71,13 +71,13 @@ jobs:
 
       - name: Run test tools
         run: |
-          ./build/unittests/icubaby-unittests &&        \
-          ./build/tests/exhaust/icubaby-exhaust-test && \
-          ./build/tests/iconv/iconv-test
+          LLVM_PROFILE_FILE="build/icubaby-unittests.profraw" ./build/unittests/icubaby-unittests && \
+          LLVM_PROFILE_FILE="build/icubaby-exhaust.profraw" ./build/tests/exhaust/icubaby-exhaust-test && \
+          LLVM_PROFILE_FILE="build/iconv-test.profraw" ./build/tests/iconv/iconv-test
 
       - name: Index the raw profile
         run: |
-          llvm-profdata-${{ env.CLANG_VERSION }} merge -sparse build/default.profraw -o build/merged.profdata
+          llvm-profdata-${{ env.CLANG_VERSION }} merge -sparse build/*.profraw -o build/merged.profdata
 
       - name: Collect the coverage
         run: |
