@@ -120,7 +120,7 @@ concept is_transcoder = requires (T t) {
                           typename T::output_type;
                           // we must also have operator() and end_cp() which
                           // both take template arguments.
-                          { t.good () } -> std::convertible_to<bool>;
+                          { t.well_formed () } -> std::convertible_to<bool>;
                         };
 #endif  // ICUBABY_CXX20
 
@@ -178,7 +178,7 @@ public:
   using output_type = char8;
 
   transcoder () = default;
-  explicit transcoder (bool well_formed) : good_{well_formed} {}
+  explicit transcoder (bool well_formed) : well_formed_{well_formed} {}
 
   /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -196,7 +196,7 @@ public:
       return dest;
     }
     if (is_surrogate (c)) {
-      good_ = false;
+      well_formed_ = false;
       static_assert (!is_surrogate (replacement_char));
       return (*this) (replacement_char, dest);
     }
@@ -213,7 +213,7 @@ public:
       *(dest++) = static_cast<output_type> ((c & 0x3F) | 0x80);
       return dest;
     }
-    good_ = false;
+    well_formed_ = false;
     return (*this) (replacement_char, dest);
   }
 
@@ -239,10 +239,10 @@ public:
   }
 
   /// \returns True if the input represented well formed UTF-32.
-  constexpr bool good () const { return good_; }
+  constexpr bool well_formed () const { return well_formed_; }
 
 private:
-  bool good_ = true;
+  bool well_formed_ = true;
 };
 
 template <>
@@ -253,7 +253,7 @@ public:
 
   constexpr transcoder () noexcept : transcoder(true) {}
   explicit constexpr transcoder (bool well_formed) noexcept
-      : code_point_{0}, good_{well_formed}, pad_{0}, state_{accept} {
+      : code_point_{0}, well_formed_{well_formed}, pad_{0}, state_{accept} {
     pad_ = 0;
   }
 
@@ -278,7 +278,7 @@ public:
     switch (state_) {
     case accept: *(dest++) = code_point_; break;
     case reject:
-      good_ = false;
+      well_formed_ = false;
       state_ = accept;
       *(dest++) = replacement_char;
       break;
@@ -299,7 +299,7 @@ public:
     if (state_ != accept) {
       state_ = reject;
       *(dest++) = replacement_char;
-      good_ = false;
+      well_formed_ = false;
     }
     return dest;
   }
@@ -314,7 +314,7 @@ public:
   }
 
   /// \returns True if the input represented well formed UTF-8.
-  constexpr bool good () const { return good_; }
+  constexpr bool well_formed () const { return well_formed_; }
 
 private:
   static inline std::array<uint8_t, 364> const utf8d_ = {{
@@ -340,7 +340,7 @@ private:
   static constexpr auto code_point_bits = 21;
   static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
   uint_least32_t code_point_ : code_point_bits;
-  uint_least32_t good_ : 1;
+  uint_least32_t well_formed_ : 1;
   uint_least32_t pad_ : 2;
   enum : std::uint8_t { accept, reject = 12 };
   uint_least32_t state_ : 8;
@@ -353,7 +353,7 @@ public:
   using output_type = char16_t;
 
   transcoder () = default;
-  explicit transcoder (bool well_formed) : good_{well_formed} {}
+  explicit transcoder (bool well_formed) : well_formed_{well_formed} {}
 
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
@@ -364,7 +364,7 @@ public:
       *(dest++) = static_cast<output_type> (code_point);
     } else if (is_surrogate (code_point) || code_point > max_code_point) {
       dest = (*this) (replacement_char, dest);
-      good_ = false;
+      well_formed_ = false;
     } else {
       *(dest++) = static_cast<output_type> (0xD7C0 + (code_point >> 10));
       *(dest++) =
@@ -394,10 +394,10 @@ public:
   }
 
   /// \returns True if the input represented valid UTF-32.
-  constexpr bool good () const { return good_; }
+  constexpr bool well_formed () const { return well_formed_; }
 
 private:
-  bool good_ = true;
+  bool well_formed_ = true;
 };
 
 template <>
@@ -407,7 +407,7 @@ public:
   using output_type = char32_t;
 
   transcoder () = default;
-  explicit transcoder (bool well_formed) : good_{well_formed} {}
+  explicit transcoder (bool well_formed) : well_formed_{well_formed} {}
 
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
@@ -442,7 +442,7 @@ public:
     }
     *(dest++) = replacement_char;
     *(dest++) = c;
-    good_ = false;
+    well_formed_ = false;
     return dest;
   }
 
@@ -456,7 +456,7 @@ public:
   OutputIterator end_cp (OutputIterator dest) {
     if (has_high_) {
       *(dest++) = replacement_char;
-      good_ = false;
+      well_formed_ = false;
     }
     return dest;
   }
@@ -470,12 +470,12 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
-  bool good () const { return good_; }
+  bool well_formed () const { return well_formed_; }
 
 private:
   static constexpr int high_bits = 10;
   bool has_high_ = false;
-  bool good_ = true;
+  bool well_formed_ = true;
   uint_least16_t high_ = 0;
 };
 
@@ -514,7 +514,9 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
-  bool good () const { return to_inter_.good () && to_out_.good (); }
+  bool well_formed () const {
+    return to_inter_.well_formed () && to_out_.well_formed ();
+  }
 
 private:
   char32_t inter_ = 0;
@@ -552,7 +554,7 @@ public:
     // scalar values, UTF-32 code units in the range 0000D80016..0000DFFF16 are
     // ill-formed. Any UTF-32 code unit greater than 0x0010FFFF is ill-formed."
     if (c > max_code_point || is_surrogate (c)) {
-      good_ = false;
+      well_formed_ = false;
       c = replacement_char;
     }
     *(dest++) = c;
@@ -579,10 +581,10 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
-  constexpr bool good () const { return good_; }
+  constexpr bool well_formed () const { return well_formed_; }
 
 private:
-  bool good_ = true;
+  bool well_formed_ = true;
 };
 
 /// A shorter name for the UTF-8 to UTF-8 transcoder. This, of course,

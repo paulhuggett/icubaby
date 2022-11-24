@@ -21,7 +21,7 @@ TEST (Utf32To8, MaxPlus1) {
   icubaby::t32_8 d1;
 
   it = d1 (icubaby::max_code_point + 1, it);
-  EXPECT_FALSE (d1.good ());
+  EXPECT_FALSE (d1.well_formed ());
   EXPECT_THAT (out, testing::ContainerEq (replacement));
 }
 
@@ -30,5 +30,5 @@ TEST (Utf32To8, FirstLowSurrogate) {
   auto it = std::back_inserter (out);
   icubaby::t32_8 d1;
   it = d1 (icubaby::first_low_surrogate, it);
-  EXPECT_FALSE (d1.good ());
+  EXPECT_FALSE (d1.well_formed ());
 }

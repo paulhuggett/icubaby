@@ -42,7 +42,7 @@ public:
   template <typename OutputIterator>
   OutputIterator end_cp (OutputIterator dest);
 
-  bool good () const;
+  bool well_formed () const;
 };
 ~~~
 
@@ -65,7 +65,7 @@ Member function | Description
 (destructor)    | destructs a transcoder
 operator()      |  (input_type c, OutputIt dest)
 end_cp          | call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character
-good            | returns true if the input was well formed, false otherwise
+well_formed     | returns true if the input was well formed, false otherwise
 
 
 ### iterator
@@ -107,7 +107,7 @@ The example code below converts from UTF-8 to UTF-16 using `icubaby::t8_16` (thi
 
 In this code we use `std::copy()` to loop over the input code units and pass them to `icubaby::iterator<>`. `iterator<>` conveniently passes each code unit to the transcoder along with the supplied output iterator (`std::back_inserter(out)` here) and returns the updated iterator.
 
-This code continues to process and generate characters even if we see badly formed input. Once all of the characters are processed, the function will return an empty optional if any input was bad. If the input was good, the UTF-16 equivalent is returned.
+This code continues to process and generate characters even if we see badly formed input. Once all of the characters are processed, the function will return an empty optional if any input was bad. If the input was well formed, the UTF-16 equivalent is returned.
 
 ~~~cpp
 #include "icubaby/icubaby.hpp"
@@ -124,7 +124,7 @@ std::optional<std::u16string> convert (std::u8string_view const& src) {
   auto it = icubaby::iterator{&utf_8_to_16, std::back_inserter (out)};
   it = std::copy (std::begin (src), std::end (src), it);
   utf_8_to_16.end_cp (it);
-  if (!utf_8_to_16.good ()) {
+  if (!utf_8_to_16.well_formed ()) {
     // The input was malformed or ended with a partial character.
     return std::nullopt;
   }
@@ -134,6 +134,8 @@ std::optional<std::u16string> convert (std::u8string_view const& src) {
 ~~~
 
 ## Convert using an explicit loop
+
+Whilst std::copy() provides a compact method of performing conversions, sometimes more control is needed. This example converts the code units using an explicit loop and exits as soon as malformed input is encountered.
 
 ~~~cpp
 std::optional<std::u16string>
@@ -145,7 +147,7 @@ convert2 (std::u8string const & src) {
   for (auto const c: src) {
     // Pass this UTF-8 code-unit to the transcoder.
     it = utf_8_to_16(c, it);
-    if (!utf_8_to_16.good()) {
+    if (!utf_8_to_16.well_formed()) {
       // The input was malformed. Bail immediately.
       return std::nullopt;
     }
@@ -153,7 +155,7 @@ convert2 (std::u8string const & src) {
   // Tell the converter that this it the end of the sequence.
   utf_8_to_16.end_cp (it)
   // Check that we didn't end with a partial character.
-  if (!utf_8_to_16.good ()) {
+  if (!utf_8_to_16.well_formed ()) {
     return std::nullopt;
   }
   return out; // Conversion was successful.

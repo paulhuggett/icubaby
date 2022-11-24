@@ -28,7 +28,7 @@ std::optional<std::u16string> convert (
   auto it = icubaby::iterator{&utf_8_to_16, std::back_inserter (out)};
   it = std::copy (std::begin (src), std::end (src), it);
   utf_8_to_16.end_cp (it);
-  if (!utf_8_to_16.good ()) {
+  if (!utf_8_to_16.well_formed ()) {
     // The input was malformed or ended with a partial character.
     return std::nullopt;
   }
@@ -50,7 +50,7 @@ std::optional<std::u16string> convert2 (
   }
   // Check that the input finished with a complete character.
   it = utf_8_to_16.end_cp (it);
-  if (!utf_8_to_16.good ()) {
+  if (!utf_8_to_16.well_formed ()) {
     return std::nullopt;
   }
   return out; // Conversion was successful.

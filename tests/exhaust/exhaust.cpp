@@ -33,13 +33,13 @@ void check_each_code_point () {
     auto encoded_it = std::back_inserter (encoded);
     encoded.clear ();
     encode.end_cp (encode (cp, encoded_it));
-    assert (encode.good ());
+    assert (encode.well_formed ());
 
     output.clear ();
     auto it = icubaby::iterator{&decode, std::back_inserter (output)};
     std::copy (std::begin (encoded), std::end (encoded), it);
     it = decode.end_cp (it);
-    assert (decode.good ());
+    assert (decode.well_formed ());
 
     assert (output.size () == 1);
     assert (output.front () == cp);
@@ -81,7 +81,7 @@ void check_all_code_points () {
       std::copy (std::begin (all), std::end (all),
                  icubaby::iterator{&encode, std::back_inserter (encoded)});
   encode.end_cp (encoded_it);
-  assert (encode.good ());
+  assert (encode.well_formed ());
 
   // 2a. Pass the output from step 2 through the mid-coder.
   std::vector<typename Decoder::input_type> midcoded;
@@ -89,7 +89,7 @@ void check_all_code_points () {
       std::copy (std::begin (encoded), std::end (encoded),
                  icubaby::iterator{&midcode, std::back_inserter (midcoded)});
   midcode.end_cp (midcoded_it);
-  assert (midcode.good ());
+  assert (midcode.well_formed ());
 
   // 3. Run the encoded stream from step 2 through the decoder.
   std::vector<typename Decoder::output_type> decoded;
@@ -97,7 +97,7 @@ void check_all_code_points () {
       std::copy (std::begin (midcoded), std::end (midcoded),
                  icubaby::iterator{&decode, std::back_inserter (decoded)});
   decode.end_cp (decoded_it);
-  assert (decode.good ());
+  assert (decode.well_formed ());
 
   // 4. Ensure that the result matches the initial UTF-32 collection from
   // step 1.
@@ -129,7 +129,7 @@ void check_utf8_to_16 () {
   convert32_8.end_cp (
       std::copy (std::begin (all), std::end (all),
                  iterator{&convert32_8, std::back_inserter (all8a)}));
-  assert (convert32_8.good ());
+  assert (convert32_8.well_formed ());
 
   // 3. Convert the UTF-8 stream from step 2 to UTF-16.
   std::vector<char16_t> all16;
@@ -137,7 +137,7 @@ void check_utf8_to_16 () {
   convert8_16.end_cp (
       std::copy (std::begin (all8a), std::end (all8a),
                  iterator{&convert8_16, std::back_inserter (all16)}));
-  assert (convert8_16.good ());
+  assert (convert8_16.well_formed ());
 
   // 4. Convert the UTF-16 collection from step 3 to UTF-8.
   std::vector<char8> all8b;
@@ -145,7 +145,7 @@ void check_utf8_to_16 () {
   convert16_8.end_cp (
       std::copy (std::begin (all16), std::end (all16),
                  iterator{&convert16_8, std::back_inserter (all8b)}));
-  assert (convert16_8.good ());
+  assert (convert16_8.well_formed ());
 
   // 5. Compare the results of step 2 and step 4.
   assert (std::equal (std::begin (all8a), std::end (all8a), std::begin (all8b),

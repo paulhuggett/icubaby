@@ -29,12 +29,12 @@ TEST (Utf8_32, GoodDollarSign) {
   auto out = std::back_inserter (cu);
 
   icubaby::t8_32 d;
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   out = d (0x24, out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0024}));
   d.end_cp (out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0024}));
 }
 
@@ -48,13 +48,13 @@ TEST (Utf8_32, GoodCentSign) {
 
   icubaby::t8_32 d;
   out = d (cent_sign[0], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_TRUE (cu.empty ());
   out = d (cent_sign[1], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x00A2}));
   out = d.end_cp (out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x00A2}));
 }
 
@@ -69,16 +69,16 @@ TEST (Utf8_32, GoodDevanagariLetterHa) {
 
   icubaby::t8_32 d;
   out = d (devanagri_letter_ha[0], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_TRUE (cu.empty ());
   out = d (devanagri_letter_ha[1], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_TRUE (cu.empty ());
   out = d (devanagri_letter_ha[2], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0939}));
   out = d.end_cp (out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0939}));
 }
 
@@ -93,16 +93,16 @@ TEST (Utf8_32, GoodEuroSign) {
 
   icubaby::t8_32 d;
   out = d (euro_sign[0], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_TRUE (cu.empty ());
   out = d (euro_sign[1], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_TRUE (cu.empty ());
   out = d (euro_sign[2], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x20AC}));
   out = d.end_cp (out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x20AC}));
 }
 
@@ -117,16 +117,16 @@ TEST (Utf8_32, GoodHangulSyllableHan) {
 
   icubaby::t8_32 d;
   out = d (hangul_syllable_han[0], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_TRUE (cu.empty ());
   out = d (hangul_syllable_han[1], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_TRUE (cu.empty ());
   out = d (hangul_syllable_han[2], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0xD55C}));
   out = d.end_cp (out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0xD55C}));
 }
 
@@ -141,19 +141,19 @@ TEST (Utf8_32, GoodGothicLetterHwair) {
 
   icubaby::t8_32 d;
   out = d (gothic_letter_hwair[0], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_TRUE (cu.empty ());
   out = d (gothic_letter_hwair[1], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_TRUE (cu.empty ());
   out = d (gothic_letter_hwair[2], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_TRUE (cu.empty ());
   out = d (gothic_letter_hwair[3], out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x10348}));
   out = d.end_cp (out);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x10348}));
 }
 
@@ -163,12 +163,12 @@ TEST (Utf8_32, Bad1) {
   auto it = std::back_inserter (out);
   it = d2 (static_cast<icubaby::char8> (0x80), it);
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
-  EXPECT_FALSE (d2.good ());
+  EXPECT_FALSE (d2.well_formed ());
   it = d2 (icubaby::char8{0x24}, it);
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char, char32_t{0x24}));
-  EXPECT_FALSE (d2.good ());
+  EXPECT_FALSE (d2.well_formed ());
   it = d2.end_cp (it);
-  EXPECT_FALSE (d2.good ());
+  EXPECT_FALSE (d2.well_formed ());
 }
 
 TEST (Utf8_32, Bad2) {
@@ -176,11 +176,11 @@ TEST (Utf8_32, Bad2) {
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
   it = d2 (static_cast<icubaby::char8> (0x80), it);
-  EXPECT_FALSE (d2.good ());
+  EXPECT_FALSE (d2.well_formed ());
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
   it = d2.end_cp (it);
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
-  EXPECT_FALSE (d2.good ());
+  EXPECT_FALSE (d2.well_formed ());
 }
 
 TEST (Utf8_32, AssignBad) {
@@ -188,10 +188,10 @@ TEST (Utf8_32, AssignBad) {
   std::vector<icubaby::char8> out;
   // A code unit t1 will signal as an error (!good()).
   t1.end_cp (t1 (icubaby::first_low_surrogate, std::back_inserter (out)));
-  EXPECT_FALSE (t1.good ());
+  EXPECT_FALSE (t1.well_formed ());
 
-  icubaby::t8_32 t2{t1.good ()};
-  EXPECT_FALSE (t2.good ()) << "The 'good' state should be transfered";
+  icubaby::t8_32 t2{t1.well_formed ()};
+  EXPECT_FALSE (t2.well_formed ()) << "The 'good' state should be transfered";
 }
 
 TEST (Utf8_32, PartialEndCp) {
@@ -205,13 +205,13 @@ TEST (Utf8_32, PartialEndCp) {
   it = d (static_cast<icubaby::char8> (0x9F), it);
   it = d (static_cast<icubaby::char8> (0x82), it);
   it = d (static_cast<icubaby::char8> (0xA6), it);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   EXPECT_THAT (out, ElementsAre (char32_t{0x1F0A6}));
   // Now just the first two bytes of that sequence.
   it = d (static_cast<icubaby::char8> (0xF0), it);
   it = d (static_cast<icubaby::char8> (0x9F), it);
-  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (d.well_formed ());
   it = d.end_cp (it);
-  EXPECT_FALSE (d.good ());
+  EXPECT_FALSE (d.well_formed ());
   EXPECT_THAT (out, ElementsAre (char32_t{0x1F0A6}, icubaby::replacement_char));
 }
