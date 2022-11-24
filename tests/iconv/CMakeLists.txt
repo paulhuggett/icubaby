@@ -6,6 +6,6 @@ if (Iconv_FOUND)
   setup_target (iconv-test)
 
   target_compile_options (iconv-test PRIVATE
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-Wno-unreachable-code-return
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-Wno-unreachable-code-return>
   )
 endif (Iconv_FOUND)
