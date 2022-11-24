@@ -5,7 +5,7 @@ if (Iconv_FOUND)
   target_link_libraries (iconv-test PUBLIC icubaby ${Iconv_LIBRARIES})
   setup_target (iconv-test)
 
-  target_compile_options (${target} PRIVATE
+  target_compile_options (iconv-test PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-Wno-unreachable-code-return
   )
 endif (Iconv_FOUND)
