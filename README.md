@@ -41,7 +41,7 @@ It’s possible for `From` and `To` to be the same character type. This can be u
 | (constructor)   | constructs a new transcoder |
 | (destructor)    | destructs a transcoder |
 | operator()      |  (input_type c, OutputIt dest) | 
-| finalize        | call once the entire input sequence has been fed to operator(). Ensures the sequence did not end with a partial character and returns true if the input represented valid input, false otherwise. |
+| finalize        | call once the entire input sequence has been fed to operator() to ensures the sequence did not end with a partial character
 | good            | returns true if the input represented valid input, false otherwise |
 
 
