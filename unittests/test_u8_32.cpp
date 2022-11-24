@@ -23,108 +23,138 @@ using testing::ElementsAre;
 // | 0xE2, 0x82, 0xAC,      | U+20AC  EURO SIGN            |
 // | 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN  |
 // | 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR  |
-TEST (Utf8_32, Good) {
+
+TEST (Utf8_32, GoodDollarSign) {
+  std::vector<char32_t> cu;
+  auto out = std::back_inserter (cu);
+
   icubaby::t8_32 d;
   EXPECT_TRUE (d.good ());
+  out = d (0x24, out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0x0024}));
+  d.end_cp (out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0x0024}));
+}
 
-  auto const matcher1 = ElementsAre (char32_t{0x0024});
-  auto const matcher2 = ElementsAre (char32_t{0x0024}, char32_t{0x00A2});
-  auto const matcher3 =
-      ElementsAre (char32_t{0x0024}, char32_t{0x00A2}, char32_t{0x0939});
-  auto const matcher4 = ElementsAre (char32_t{0x0024}, char32_t{0x00A2},
-                                     char32_t{0x0939}, char32_t{0x20AC});
-  auto const matcher5 =
-      ElementsAre (char32_t{0x0024}, char32_t{0x00A2}, char32_t{0x0939},
-                   char32_t{0x20AC}, char32_t{0xD55C});
-  auto const matcher6 =
-      ElementsAre (char32_t{0x0024}, char32_t{0x00A2}, char32_t{0x0939},
-                   char32_t{0x20AC}, char32_t{0xD55C}, char32_t{0x10348});
+TEST (Utf8_32, GoodCentSign) {
+  // 0xC2, 0xA2 => U+00A2  CENT SIGN
+  std::array<icubaby::char8, 2> const cent_sign = {
+      {static_cast<icubaby::char8> (0xC2), static_cast<icubaby::char8> (0xA2)}};
 
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
-  out = d (0x24, out);
+
+  icubaby::t8_32 d;
+  out = d (cent_sign[0], out);
   EXPECT_TRUE (d.good ());
-  EXPECT_THAT (cu, matcher1);
-
-  {
-    // 0xC2, 0xA2 => U+00A2  CENT SIGN
-    std::array<icubaby::char8, 2> const cent_sign = {
-        {static_cast<icubaby::char8> (0xC2),
-         static_cast<icubaby::char8> (0xA2)}};
-    out = d (cent_sign[0], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher1);
-    out = d (cent_sign[1], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher2);
-  }
-  {
-    // 0xE0, 0xA4, 0xB9 => U+0939 DEVANAGARI LETTER HA
-    std::array<icubaby::char8, 3> const devanagri_letter_ha{
-        {static_cast<icubaby::char8> (0xE0), static_cast<icubaby::char8> (0xA4),
-         static_cast<icubaby::char8> (0xB9)}};
-    out = d (devanagri_letter_ha[0], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher2);
-    out = d (devanagri_letter_ha[1], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher2);
-    out = d (devanagri_letter_ha[2], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher3);
-  }
-  {
-    // 0xE2, 0x82, 0xAC => U+20AC EURO SIGN
-    std::array<icubaby::char8, 3> const euro_sign{
-        {static_cast<icubaby::char8> (0xE2), static_cast<icubaby::char8> (0x82),
-         static_cast<icubaby::char8> (0xAC)}};
-    out = d (euro_sign[0], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher3);
-    out = d (euro_sign[1], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher3);
-    out = d (euro_sign[2], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher4);
-  }
-  {
-    // 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN
-    std::array<icubaby::char8, 3> const hangul_syllable_han{
-        {static_cast<icubaby::char8> (0xED), static_cast<icubaby::char8> (0x95),
-         static_cast<icubaby::char8> (0x9C)}};
-    out = d (hangul_syllable_han[0], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher4);
-    out = d (hangul_syllable_han[1], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher4);
-    out = d (hangul_syllable_han[2], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher5);
-  }
-  {
-    // 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR
-    std::array<icubaby::char8, 4> const gothic_letter_hwair{
-        {static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x90),
-         static_cast<icubaby::char8> (0x8D),
-         static_cast<icubaby::char8> (0x88)}};
-    out = d (gothic_letter_hwair[0], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher5);
-    out = d (gothic_letter_hwair[1], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher5);
-    out = d (gothic_letter_hwair[2], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher5);
-    out = d (gothic_letter_hwair[3], out);
-    EXPECT_TRUE (d.good ());
-    EXPECT_THAT (cu, matcher6);
-  }
-
+  EXPECT_TRUE (cu.empty ());
+  out = d (cent_sign[1], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0x00A2}));
   out = d.end_cp (out);
   EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0x00A2}));
+}
+
+TEST (Utf8_32, GoodDevanagariLetterHa) {
+  // 0xE0, 0xA4, 0xB9 => U+0939 DEVANAGARI LETTER HA
+  std::array<icubaby::char8, 3> const devanagri_letter_ha{
+      {static_cast<icubaby::char8> (0xE0), static_cast<icubaby::char8> (0xA4),
+       static_cast<icubaby::char8> (0xB9)}};
+
+  std::vector<char32_t> cu;
+  auto out = std::back_inserter (cu);
+
+  icubaby::t8_32 d;
+  out = d (devanagri_letter_ha[0], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (cu.empty ());
+  out = d (devanagri_letter_ha[1], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (cu.empty ());
+  out = d (devanagri_letter_ha[2], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0x0939}));
+  out = d.end_cp (out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0x0939}));
+}
+
+TEST (Utf8_32, GoodEuroSign) {
+  // 0xE2, 0x82, 0xAC => U+20AC EURO SIGN
+  std::array<icubaby::char8, 3> const euro_sign{
+      {static_cast<icubaby::char8> (0xE2), static_cast<icubaby::char8> (0x82),
+       static_cast<icubaby::char8> (0xAC)}};
+
+  std::vector<char32_t> cu;
+  auto out = std::back_inserter (cu);
+
+  icubaby::t8_32 d;
+  out = d (euro_sign[0], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (cu.empty ());
+  out = d (euro_sign[1], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (cu.empty ());
+  out = d (euro_sign[2], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0x20AC}));
+  out = d.end_cp (out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0x20AC}));
+}
+
+TEST (Utf8_32, GoodHangulSyllableHan) {
+  // 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN
+  std::array<icubaby::char8, 3> const hangul_syllable_han{
+      {static_cast<icubaby::char8> (0xED), static_cast<icubaby::char8> (0x95),
+       static_cast<icubaby::char8> (0x9C)}};
+
+  std::vector<char32_t> cu;
+  auto out = std::back_inserter (cu);
+
+  icubaby::t8_32 d;
+  out = d (hangul_syllable_han[0], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (cu.empty ());
+  out = d (hangul_syllable_han[1], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (cu.empty ());
+  out = d (hangul_syllable_han[2], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0xD55C}));
+  out = d.end_cp (out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0xD55C}));
+}
+
+TEST (Utf8_32, GoodGothicLetterHwair) {
+  // 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR
+  std::array<icubaby::char8, 4> const gothic_letter_hwair{
+      {static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x90),
+       static_cast<icubaby::char8> (0x8D), static_cast<icubaby::char8> (0x88)}};
+
+  std::vector<char32_t> cu;
+  auto out = std::back_inserter (cu);
+
+  icubaby::t8_32 d;
+  out = d (gothic_letter_hwair[0], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (cu.empty ());
+  out = d (gothic_letter_hwair[1], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (cu.empty ());
+  out = d (gothic_letter_hwair[2], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_TRUE (cu.empty ());
+  out = d (gothic_letter_hwair[3], out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0x10348}));
+  out = d.end_cp (out);
+  EXPECT_TRUE (d.good ());
+  EXPECT_THAT (cu, ElementsAre (char32_t{0x10348}));
 }
 
 TEST (Utf8_32, Bad1) {
