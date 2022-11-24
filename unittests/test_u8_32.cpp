@@ -201,15 +201,15 @@ TEST (Utf8_32, PartialEndCp) {
   icubaby::t8_32 d;
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
-  it = d (0xF0, it);
-  it = d (0x9F, it);
-  it = d (0x82, it);
-  it = d (0xA6, it);
+  it = d (static_cast<icubaby::char8> (0xF0), it);
+  it = d (static_cast<icubaby::char8> (0x9F), it);
+  it = d (static_cast<icubaby::char8> (0x82), it);
+  it = d (static_cast<icubaby::char8> (0xA6), it);
   EXPECT_TRUE (d.good ());
   EXPECT_THAT (out, ElementsAre (char32_t{0x1F0A6}));
   // Now just the first two bytes of that sequence.
-  it = d (0xF0, it);
-  it = d (0x9F, it);
+  it = d (static_cast<icubaby::char8> (0xF0), it);
+  it = d (static_cast<icubaby::char8> (0x9F), it);
   EXPECT_TRUE (d.good ());
   it = d.end_cp (it);
   EXPECT_FALSE (d.good ());
