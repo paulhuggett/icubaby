@@ -251,8 +251,8 @@ public:
   using input_type = char8;
   using output_type = char32_t;
 
-  transcoder () = default;
-  explicit transcoder (bool well_formed)
+  constexpr transcoder () noexcept : transcoder(true) {}
+  explicit constexpr transcoder (bool well_formed) noexcept
       : code_point_{0}, good_{well_formed}, pad_{0}, state_{accept} {
     pad_ = 0;
   }
