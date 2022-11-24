@@ -81,7 +81,9 @@ jobs:
 
       - name: Collect the coverage
         run: |
-           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata build/unittests/pj-unittests > coverage.txt
+           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/unittests/icubaby-unittests > coverage.txt
+           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/tests/exhaust/icubaby-exhaust-test >> coverage.txt
+           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/tests/iconv/iconv-test >> coverage.txt
 
       - name: Run sonar-scanner
         env:
