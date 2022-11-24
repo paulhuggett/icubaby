@@ -95,7 +95,7 @@ jobs:
                         --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
                         --define sonar.cfamily.llvm-cov.reportPath=coverage.txt                        \
                         --define sonar.projectVersion="$(git rev-parse HEAD)"                          \
-                        --define sonar.projectKey=paulhuggett_peejay                                   \
+                        --define sonar.projectKey=paulhuggett_icubaby                                  \
                         --define sonar.organization=paulhuggett-github                                 \
                         --define sonar.sourceEncoding=UTF-8                                            \
                         --define sonar.exclusions='build/**/*','docs/**/*'
