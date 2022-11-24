@@ -75,7 +75,7 @@ foreach (target gtest gmock gmock_main gtest_main)
   )
   set (gclang_options -Wno-implicit-int-float-conversion)
   if (LIBCXX)
-    list (APPEND gclang_options -stdlib=c++)
+    list (APPEND gclang_options -stdlib=libc++)
   endif ()
 
   target_compile_options (${target} PRIVATE
