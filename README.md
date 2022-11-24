@@ -17,7 +17,10 @@ public:
     requires std::output_iterator<OutputIterator, output_type>
   OutputIterator operator() (input_type c, OutputIterator dest);
 
-  bool finalize ();
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  OutputIterator finalize (OutputIterator dest);
+
   bool good ();
 };
 ~~~
