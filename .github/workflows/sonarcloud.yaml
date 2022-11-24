@@ -71,9 +71,9 @@ jobs:
 
       - name: Run test tools
         run: |
-          ./build/unittests/icubaby-unittests && \
-          ./build/tests/exhaust &&               \
-          ./build/tests/iconv
+          ./build/unittests/icubaby-unittests &&        \
+          ./build/tests/exhaust/icubaby-exhaust-test && \
+          ./build/tests/iconv/iconv-test
 
       - name: Index the raw profile
         run: |
