@@ -43,7 +43,7 @@ std::optional<std::u16string> convert2 (
   for (icubaby::char8 const c : src) {
     // Pass this UTF-8 code-unit to the transcoder.
     it = utf_8_to_16(c, it);
-    if (!utf_8_to_16.good()) {
+    if (!utf_8_to_16.well_formed ()) {
       // The input was malformed. Bail out immediately.
       return std::nullopt;
     }
