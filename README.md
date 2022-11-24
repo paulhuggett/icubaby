@@ -6,6 +6,13 @@ A C++ Baby Library to Immediately Convert Unicode. A header-only, dependency-fre
 
 ## API
 
+### Macro constants
+
+Macro name            | Description
+--------------------- | -----------
+ICUBABY_CXX20         | Has value 1 when compiled with C++20 or later and 0 otherwise.
+ICUBABY_CXX20REQUIRES | used to enable use of the `require` keyword to state template constaints when compiled with C++20. An empty macro when compiled with C++\<20.
+
 ### char8
 
 ~~~cpp
@@ -17,10 +24,9 @@ using char8 = char;
 #endif
 } // end namespace icubaby
 ~~~
-C++ 20 introduced `char8_t` as the type for UTF-8 character representation. Since this library needs to work with earlier versions of C++, we have `icubaby::char8` which is defined as either `char8_t` (for C++ 20 or later) or `char` to match type of a u8 string literal.
+C++ 20 introduced `char8_t` as the type for UTF-8 character representation. Since this library needs to work with earlier versions of C++, we have `icubaby::char8` which is defined as either `char8_t` (for C++ 20 or later) or `char` to match the type of a u8 string literal.
 
 ### transcoder
-
 
 ~~~cpp
 template <typename From, typename To>
@@ -33,61 +39,64 @@ public:
   OutputIterator operator() (input_type c, OutputIterator dest);
 
   template <typename OutputIterator>
-  OutputIterator finalize (OutputIterator dest);
+  OutputIterator end_cp (OutputIterator dest);
 
   bool good () const;
 };
 ~~~
 
-Where `From` and `To` are any of `icubaby::char8`, `char16_t`, or `char32_t`.
+Where `From` and `To` are each any of `icubaby::char8`, `char16_t`, or `char32_t`.
 
 It’s possible for `From` and `To` to be the same character type. This can be used to both validate and/or correct unchecked input such as data arriving at a network port.
 
 #### Member types
 
-| Member type | Definition |
-| ---- | ----------- |
-| input_type | the character type from which conversions will be performed. May be any of `icubaby::char8`, `char16_t` or `char32_t` |
-| output_type | the character type to which the transcoder will convert. May be any of `icubaby::char8`, `char16_t` or `char32_t`|
+Member type | Definition
+----------- | -----------
+input_type  | the character type from which conversions will be performed. May be any of `icubaby::char8`, `char16_t` or `char32_t`
+output_type | the character type to which the transcoder will convert. May be any of `icubaby::char8`, `char16_t` or `char32_t`
 
 #### Member functions
 
-| Member function | Description |
-| --------------- | ----------- |
-| (constructor)   | constructs a new transcoder |
-| (destructor)    | destructs a transcoder |
-| operator()      |  (input_type c, OutputIt dest) | 
-| finalize        | call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character
-| good            | returns true if the input was well formed, false otherwise |
+Member function | Description
+--------------- | -----------
+(constructor)   | constructs a new transcoder
+(destructor)    | destructs a transcoder
+operator()      |  (input_type c, OutputIt dest)
+end_cp          | call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character
+good            | returns true if the input was well formed, false otherwise
 
 
 ### iterator
 
 ~~~cpp
-icubaby::iterator<typename Transcoder, typename OutputIterator>
+template <typename Transcoder, typename OutputIterator>
+class icubaby::iterator;
 ~~~
 
 `Transcoder` should be a type which implements the `transcoder<>` interface described above; `OutputIterator` should be an output-iterator which produces values of type `Transcoder::output_type`.
 
 #### Member types
 
-| Member type       | Definition                 |
-| ----------------- | -------------------------- |
-| iterator_category | `std::output_iterator_tag` |
-| value_type        | `void`                     |
-| difference_type   | `std::ptrdiff_t`           |
-| pointer           | `void`                     |
-| reference         | `void`                     |
+Member type       | Definition
+----------------- | --------------------------
+iterator_category | `std::output_iterator_tag`
+value_type        | `void`
+difference_type   | `std::ptrdiff_t`
+pointer           | `void`
+reference         | `void`
 
 #### Member functions
 
-| Member function | Description |
-| ---- | ----------- |
-| (constructor) | constructs a new iterator<br><small>(public member function)</small> |
-| operator= | passes an individual character to the associated transcoder<br><small>(public member function)</small> |
-| operator* | no-op<br><small>(public member function)</small> |
-| operator++ | no-op<br><small>(public member function)</small> | 
-| operator++(int) | no-op<br><small>(public member function)</small> | 
+Member function | Description
+--------------- | -----------
+(constructor)   | constructs a new iterator<br><small>(public member function)</small>
+operator=       | passes an individual character to the associated transcoder<br><small>(public member function)</small> 
+operator*       | no-op<br><small>(public member function)</small>
+operator++      | no-op<br><small>(public member function)</small>
+operator++(int) | no-op<br><small>(public member function)</small>
+base            | accesses the underlying iterator<br><small>(public member function)</small>
+transcoder      | accesses the underlying transcoder<br><small>(public member function)</small>
 
 # Examples
 
@@ -113,7 +122,7 @@ std::optional<std::u16string> convert (std::u8string_view const& src) {
   // We could combine the next three lines, if desired.
   auto it = icubaby::iterator{&utf_8_to_16, std::back_inserter (out)};
   it = std::copy (std::begin (src), std::end (src), it);
-  utf_8_to_16.finalize (it);
+  utf_8_to_16.end_cp (it);
   if (!utf_8_to_16.good ()) {
     // The input was malformed or ended with a partial character.
     return std::nullopt;
@@ -141,7 +150,7 @@ convert2 (std::u8string const & src) {
     }
   }
   // Tell the converter that this it the end of the sequence.
-  utf_8_to_16.finalize (it)
+  utf_8_to_16.end_cp (it)
   // Check that we didn't end with a partial character.
   if (!utf_8_to_16.good ()) {
     return std::nullopt;

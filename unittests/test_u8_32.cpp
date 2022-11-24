@@ -123,7 +123,7 @@ TEST (Utf8_32, Good) {
     EXPECT_THAT (cu, matcher6);
   }
 
-  out = d.finalize (out);
+  out = d.end_cp (out);
   EXPECT_TRUE (d.good ());
 }
 
@@ -137,7 +137,7 @@ TEST (Utf8_32, Bad1) {
   it = d2 (icubaby::char8{0x24}, it);
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char, char32_t{0x24}));
   EXPECT_FALSE (d2.good ());
-  it = d2.finalize (it);
+  it = d2.end_cp (it);
   EXPECT_FALSE (d2.good ());
 }
 
@@ -148,7 +148,7 @@ TEST (Utf8_32, Bad2) {
   it = d2 (static_cast<icubaby::char8> (0x80), it);
   EXPECT_FALSE (d2.good ());
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
-  it = d2.finalize (it);
+  it = d2.end_cp (it);
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
   EXPECT_FALSE (d2.good ());
 }
@@ -157,7 +157,7 @@ TEST (Utf8_32, AssignBad) {
   icubaby::t32_8 t1;
   std::vector<icubaby::char8> out;
   // A code unit t1 will signal as an error (!good()).
-  t1.finalize (t1 (icubaby::first_low_surrogate, std::back_inserter (out)));
+  t1.end_cp (t1 (icubaby::first_low_surrogate, std::back_inserter (out)));
   EXPECT_FALSE (t1.good ());
 
   icubaby::t8_32 t2{t1.good ()};

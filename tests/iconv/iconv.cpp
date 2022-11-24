@@ -130,7 +130,7 @@ void check (std::vector<char32_t> const &all) {
     auto it = std::copy (
         std::begin (all), std::end (all),
         icubaby::iterator{&convert_32_8, std::back_inserter (baby_out)});
-    it = convert_32_8.finalize (it);
+    it = convert_32_8.end_cp (it);
     assert (convert_32_8.good ());
 
     std::vector<T> iconv_out = convert_using_iconv<T> (all);

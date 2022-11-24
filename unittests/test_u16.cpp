@@ -77,7 +77,7 @@ TEST (Utf16, Good2) {
       ElementsAre (char32_t{0xFFFF}, char32_t{0x10000}, char32_t{0x10001},
                    char32_t{0x12345}, char32_t{0x10ffff});
   EXPECT_THAT (out, match5);
-  it = d2.finalize (it);
+  it = d2.end_cp (it);
   EXPECT_THAT (out, match5);
   EXPECT_TRUE (d2.good ());
 }
@@ -114,7 +114,7 @@ TEST (Utf16, HighSurrogateAtEnd) {
   it = d2 (icubaby::first_high_surrogate, it);
   EXPECT_TRUE (d2.good ());
   EXPECT_TRUE (out.empty ());
-  it = d2.finalize (it);
+  it = d2.end_cp (it);
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
   EXPECT_FALSE (d2.good ());
 }

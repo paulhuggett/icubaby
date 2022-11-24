@@ -118,7 +118,7 @@ template <typename T>
 concept is_transcoder = requires (T t) {
                           typename T::input_type;
                           typename T::output_type;
-                          // we must also have operator() and finalize() which
+                          // we must also have operator() and end_cp() which
                           // both take template arguments.
                           { t.good () } -> std::convertible_to<bool>;
                         };
@@ -225,17 +225,17 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr OutputIterator finalize (OutputIterator dest) const {
+  constexpr OutputIterator end_cp (OutputIterator dest) const {
     return dest;
   }
 
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder, OutputIterator> finalize (
+  constexpr iterator<transcoder, OutputIterator> end_cp (
       iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
-    return {t, t->finalize (dest.base ())};
+    return {t, t->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-32.
@@ -295,7 +295,7 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr OutputIterator finalize (OutputIterator dest) {
+  constexpr OutputIterator end_cp (OutputIterator dest) {
     if (state_ != accept) {
       state_ = reject;
       *(dest++) = replacement_char;
@@ -306,11 +306,11 @@ public:
 
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder, OutputIterator> finalize (
+  constexpr iterator<transcoder, OutputIterator> end_cp (
       iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
-    return {t, t->finalize (dest.base ())};
+    return {t, t->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-8.
@@ -731,17 +731,17 @@ public:
   /// \returns  The output iterator.
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr OutputIterator finalize (OutputIterator dest) {
+  constexpr OutputIterator end_cp (OutputIterator dest) {
     return dest;
   }
 
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder, OutputIterator> finalize (
+  constexpr iterator<transcoder, OutputIterator> end_cp (
       iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
-    return {t, t->finalize (dest.base ())};
+    return {t, t->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented valid UTF-32.
@@ -804,7 +804,7 @@ public:
   /// \returns  The output iterator.
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  OutputIterator finalize (OutputIterator dest) {
+  OutputIterator end_cp (OutputIterator dest) {
     if (has_high_) {
       *(dest++) = replacement_char;
       good_ = false;
@@ -814,11 +814,11 @@ public:
 
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder, OutputIterator> finalize (
+  constexpr iterator<transcoder, OutputIterator> end_cp (
       iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
-    return {t, t->finalize (dest.base ())};
+    return {t, t->end_cp (dest.base ())};
   }
 
   bool good () const { return good_; }
@@ -849,20 +849,20 @@ public:
 
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  OutputIterator finalize (OutputIterator dest) {
-    if (to_inter_.finalize (&inter_) != &inter_) {
+  OutputIterator end_cp (OutputIterator dest) {
+    if (to_inter_.end_cp (&inter_) != &inter_) {
       dest = to_out_ (inter_, dest);
     }
-    return to_out_.finalize (dest);
+    return to_out_.end_cp (dest);
   }
 
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder<From, To>, OutputIterator> finalize (
+  constexpr iterator<transcoder<From, To>, OutputIterator> end_cp (
       iterator<transcoder<From, To>, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
-    return {t, t->finalize (dest.base ())};
+    return {t, t->end_cp (dest.base ())};
   }
 
   bool good () const { return to_inter_.good () && to_out_.good (); }
@@ -917,17 +917,17 @@ public:
   /// \returns  The output iterator.
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr OutputIterator finalize (OutputIterator dest) const {
+  constexpr OutputIterator end_cp (OutputIterator dest) const {
     return dest;
   }
 
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder, OutputIterator> finalize (
+  constexpr iterator<transcoder, OutputIterator> end_cp (
       iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
-    return {t, t->finalize (dest.base ())};
+    return {t, t->end_cp (dest.base ())};
   }
 
   constexpr bool good () const { return good_; }
