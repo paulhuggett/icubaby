@@ -1,5 +1,7 @@
 # icubaby 
 
+[![CI Build & Test](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml)
+
 A C++ Baby Library to Immediately Convert Unicode. A header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32.
 
 ## API
