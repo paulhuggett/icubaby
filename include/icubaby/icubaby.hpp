@@ -79,7 +79,7 @@ constexpr bool is_surrogate (char32_t c) noexcept {
 }
 
 constexpr bool is_code_point_start (char8 c) noexcept {
-  return (c & 0xC0U) != 0x80U;
+  return (static_cast<std::make_unsigned_t<decltype (c)>> (c) & 0xC0U) != 0x80U;
 }
 constexpr bool is_code_point_start (char16_t c) noexcept {
   return !is_low_surrogate (c);
@@ -264,13 +264,14 @@ public:
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type code_unit, OutputIterator dest) {
-    assert (static_cast<std::make_unsigned_t<decltype (code_unit)>> (
-                code_unit) < utf8d_.size ());
-    auto const type = utf8d_[code_unit];
-    code_point_ = (state_ != accept)
-                      ? (code_unit & 0x3FU) |
-                            static_cast<uint_least32_t> (code_point_ << 6U)
-                      : (0xFF >> type) & code_unit;
+    // Prior to C++20, char8 might be signed.
+    auto const ucu = static_cast<std::make_unsigned_t<input_type>> (code_unit);
+    assert (ucu < utf8d_.size ());
+    auto const type = utf8d_[ucu];
+    code_point_ =
+        (state_ != accept)
+            ? (ucu & 0x3FU) | static_cast<uint_least32_t> (code_point_ << 6U)
+            : (0xFF >> type) & ucu;
     auto const idx = 256U + state_ + type;
     assert (idx < utf8d_.size ());
     state_ = utf8d_[idx];
