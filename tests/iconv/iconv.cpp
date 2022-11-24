@@ -93,11 +93,9 @@ std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
     if (iconv (cd, reinterpret_cast<char **> (const_cast<char32_t **> (&inbuf)),
                &in_bytes_left, &outbuf,
                &out_bytes_left) == static_cast<size_t> (-1)) {
-      int const erc = errno;
       // E2BIG tells us that the output buffer was too small.
-      if (erc != E2BIG) {
-        throw std::system_error{std::error_code{erc, std::generic_category ()},
-                                "iconv"};
+      if (int const erc = errno; erc != E2BIG) {
+        throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv"};
       }
       // The output buffer did not have enough space, so we increase it by 50%.
       out.resize (out_size + out_size / 2);
