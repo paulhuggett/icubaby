@@ -14,11 +14,9 @@ public:
   using output_type = To;
 
   template <typename OutputIterator>
-    requires std::output_iterator<OutputIterator, output_type>
   OutputIterator operator() (input_type c, OutputIterator dest);
 
   template <typename OutputIterator>
-    requires std::output_iterator<OutputIterator, output_type>
   OutputIterator finalize (OutputIterator dest);
 
   bool good () const;
