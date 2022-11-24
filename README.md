@@ -13,9 +13,9 @@ public:
   using input_type = From;
   using output_type = To;
 
-  template <typename OutputIt>
-    requires std::output_iterator<OutputIt, output_type>
-  OutputIt operator() (input_type c, OutputIt dest);
+  template <typename OutputIterator>
+    requires std::output_iterator<OutputIterator, output_type>
+  OutputIterator operator() (input_type c, OutputIterator dest);
 
   bool finalize ();
   bool good ();
