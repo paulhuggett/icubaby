@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.22)
 
 project (icubaby CXX)
+
+option (WERROR "Compiler warnings are errors")
+option (CXX17 "Use C++17 (rather than the default C++20")
 option (LIBCXX "Use libc++ rather than libstdc++ (clang only)")
-option (CXX17 "Use C++17 rather than C++20")
+option (COVERAGE "Generate LLVM Source-based Coverage")
 
 if (CXX17)
     set (standard 17)

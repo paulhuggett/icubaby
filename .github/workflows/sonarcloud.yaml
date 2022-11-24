@@ -69,6 +69,12 @@ jobs:
                 -D CMAKE_CXX_COMPILER=clang++-${{ env.CLANG_VERSION }}
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build/ --config Release
 
+      - name: Run test tools
+        run: |
+          ./build/unittests/icubaby-unittests && \
+          ./build/tests/exhaust &&               \
+          ./build/tests/iconv
+
       - name: Index the raw profile
         run: |
           llvm-profdata-${{ env.CLANG_VERSION }} merge -sparse build/default.profraw -o build/merged.profdata
