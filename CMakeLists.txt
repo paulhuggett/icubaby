@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.22)
 
 project (icubaby CXX)
 option (LIBCXX "Use libc++ rather than libstdc++ (clang only)")
+option (CXX17 "Use C++17 rather than C++20")
+
+if (CXX17)
+    set (standard 17)
+else ()
+    set (standard 20)
+endif ()
 
 function (setup_target target)
   set (clang_options
@@ -39,7 +46,7 @@ function (setup_target target)
   endif ()
 
   set_target_properties (${target} PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD ${standard}
     CXX_STANDARD_REQUIRED Yes
     CXX_EXTENSIONS No
   )
@@ -62,7 +69,7 @@ set (gtest_force_shared_crt ON CACHE BOOL "Always use msvcrt.dll")
 add_subdirectory (googletest)
 foreach (target gtest gmock gmock_main gtest_main)
   set_target_properties (${target} PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD ${standard}
     CXX_STANDARD_REQUIRED Yes
     CXX_EXTENSIONS No
   )

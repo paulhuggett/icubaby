@@ -12,12 +12,12 @@ namespace {
 // This test encodes every input code point and then decodes it to ensure that
 // we get back the character we started with.
 template <typename Encoder, typename Decoder>
-  requires (icubaby::is_transcoder<Encoder> &&
-            icubaby::is_transcoder<Decoder> &&
-            std::is_same_v<typename Encoder::output_type,
-                           typename Decoder::input_type> &&
-            std::is_same_v<typename Encoder::input_type, char32_t> &&
-            std::is_same_v<typename Decoder::output_type, char32_t>)
+ICUBABY_CXX20REQUIRES (
+    (icubaby::is_transcoder<Encoder> && icubaby::is_transcoder<Decoder> &&
+     std::is_same_v<typename Encoder::output_type,
+                    typename Decoder::input_type> &&
+     std::is_same_v<typename Encoder::input_type, char32_t> &&
+     std::is_same_v<typename Decoder::output_type, char32_t>))
 void check_each_code_point () {
   Encoder encode;
   Decoder decode;
@@ -61,10 +61,10 @@ std::vector<char32_t> all_code_points () {
 }
 
 template <typename Encoder, typename Decoder>
-  requires (icubaby::is_transcoder<Encoder> &&
-            icubaby::is_transcoder<Decoder> &&
-            std::is_same_v<typename Encoder::output_type,
-                           typename Decoder::input_type>)
+ICUBABY_CXX20REQUIRES ((icubaby::is_transcoder<Encoder> &&
+                        icubaby::is_transcoder<Decoder> &&
+                        std::is_same_v<typename Encoder::output_type,
+                                       typename Decoder::input_type>))
 void check_all_code_points () {
   Encoder encode;
   icubaby::transcoder<typename Encoder::output_type,
@@ -124,7 +124,7 @@ void check_utf8_to_16 () {
   std::vector<char32_t> const all = all_code_points ();
 
   // 2. Convert the complete set of code points to UTF-8.
-  std::vector<char8_t> all8a;
+  std::vector<char8> all8a;
   t32_8 convert32_8;
   convert32_8.finalize (
       std::copy (std::begin (all), std::end (all),
@@ -140,7 +140,7 @@ void check_utf8_to_16 () {
   assert (convert8_16.good ());
 
   // 4. Convert the UTF-16 collection from step 3 to UTF-8.
-  std::vector<char8_t> all8b;
+  std::vector<char8> all8b;
   t16_8 convert16_8;
   convert16_8.finalize (
       std::copy (std::begin (all16), std::end (all16),

@@ -7,7 +7,8 @@
 
 namespace {
 
-void show (std::ostream& os, auto const& str) {
+template <typename StringType>
+void show (std::ostream& os, StringType const& str) {
   os << std::setfill('0') << std::hex;
   auto separator = "";
   for (auto const c: str) {
@@ -17,7 +18,8 @@ void show (std::ostream& os, auto const& str) {
   os << '\n';
 }
 
-std::optional<std::u16string> convert (std::u8string_view const& src) {
+std::optional<std::u16string> convert (
+    std::basic_string_view<icubaby::char8> const& src) {
   std::u16string out;
 
   // t8_16 is the class which converts from UTF-8 to UTF-16.
@@ -32,12 +34,13 @@ std::optional<std::u16string> convert (std::u8string_view const& src) {
   }
   return out;
 }
-std::optional<std::u16string> convert2 (std::u8string_view const& src) {
+std::optional<std::u16string> convert2 (
+    std::basic_string_view<icubaby::char8> const& src) {
   // The UTF-16 code units are written to the 'out' string via the 'it' output iterator.
   std::u16string out;
   auto it = std::back_inserter (out);
   icubaby::t8_16 utf_8_to_16;
-  for (char8_t const c: src) {
+  for (icubaby::char8 const c : src) {
     // Pass this UTF-8 code-unit to the transcoder.
     it = utf_8_to_16(c, it);
     if (!utf_8_to_16.good()) {

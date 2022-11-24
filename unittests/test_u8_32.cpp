@@ -6,11 +6,11 @@
 
 #include "icubaby/icubaby.hpp"
 
-static_assert (std::is_same_v<icubaby::t8_8 ::input_type, char8_t> &&
-               std::is_same_v<icubaby::t8_8 ::output_type, char8_t>);
-static_assert (std::is_same_v<icubaby::t8_16::input_type, char8_t> &&
+static_assert (std::is_same_v<icubaby::t8_8 ::input_type, icubaby::char8> &&
+               std::is_same_v<icubaby::t8_8 ::output_type, icubaby::char8>);
+static_assert (std::is_same_v<icubaby::t8_16::input_type, icubaby::char8> &&
                std::is_same_v<icubaby::t8_16::output_type, char16_t>);
-static_assert (std::is_same_v<icubaby::t8_32::input_type, char8_t> &&
+static_assert (std::is_same_v<icubaby::t8_32::input_type, icubaby::char8> &&
                std::is_same_v<icubaby::t8_32::output_type, char32_t>);
 
 using testing::ElementsAre;
@@ -48,7 +48,9 @@ TEST (Utf8_32, Good) {
 
   {
     // 0xC2, 0xA2 => U+00A2  CENT SIGN
-    std::array<char8_t, 2> const cent_sign = {{0xC2, 0xA2}};
+    std::array<icubaby::char8, 2> const cent_sign = {
+        {static_cast<icubaby::char8> (0xC2),
+         static_cast<icubaby::char8> (0xA2)}};
     out = d (cent_sign[0], out);
     EXPECT_TRUE (d.good ());
     EXPECT_THAT (cu, matcher1);
@@ -58,7 +60,9 @@ TEST (Utf8_32, Good) {
   }
   {
     // 0xE0, 0xA4, 0xB9 => U+0939 DEVANAGARI LETTER HA
-    std::array<char8_t, 3> const devanagri_letter_ha{{0xE0, 0xA4, 0xB9}};
+    std::array<icubaby::char8, 3> const devanagri_letter_ha{
+        {static_cast<icubaby::char8> (0xE0), static_cast<icubaby::char8> (0xA4),
+         static_cast<icubaby::char8> (0xB9)}};
     out = d (devanagri_letter_ha[0], out);
     EXPECT_TRUE (d.good ());
     EXPECT_THAT (cu, matcher2);
@@ -71,7 +75,9 @@ TEST (Utf8_32, Good) {
   }
   {
     // 0xE2, 0x82, 0xAC => U+20AC EURO SIGN
-    std::array<char8_t, 3> const euro_sign{{0xE2, 0x82, 0xAC}};
+    std::array<icubaby::char8, 3> const euro_sign{
+        {static_cast<icubaby::char8> (0xE2), static_cast<icubaby::char8> (0x82),
+         static_cast<icubaby::char8> (0xAC)}};
     out = d (euro_sign[0], out);
     EXPECT_TRUE (d.good ());
     EXPECT_THAT (cu, matcher3);
@@ -84,7 +90,9 @@ TEST (Utf8_32, Good) {
   }
   {
     // 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN
-    std::array<char8_t, 3> const hangul_syllable_han{{0xED, 0x95, 0x9C}};
+    std::array<icubaby::char8, 3> const hangul_syllable_han{
+        {static_cast<icubaby::char8> (0xED), static_cast<icubaby::char8> (0x95),
+         static_cast<icubaby::char8> (0x9C)}};
     out = d (hangul_syllable_han[0], out);
     EXPECT_TRUE (d.good ());
     EXPECT_THAT (cu, matcher4);
@@ -97,7 +105,10 @@ TEST (Utf8_32, Good) {
   }
   {
     // 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR
-    std::array<char8_t, 4> const gothic_letter_hwair{{0xF0, 0x90, 0x8D, 0x88}};
+    std::array<icubaby::char8, 4> const gothic_letter_hwair{
+        {static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x90),
+         static_cast<icubaby::char8> (0x8D),
+         static_cast<icubaby::char8> (0x88)}};
     out = d (gothic_letter_hwair[0], out);
     EXPECT_TRUE (d.good ());
     EXPECT_THAT (cu, matcher5);
@@ -120,10 +131,10 @@ TEST (Utf8_32, Bad1) {
   icubaby::t8_32 d2;
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
-  it = d2 (char8_t{0x80}, it);
+  it = d2 (static_cast<icubaby::char8> (0x80), it);
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
   EXPECT_FALSE (d2.good ());
-  it = d2 (char8_t{0x24}, it);
+  it = d2 (icubaby::char8{0x24}, it);
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char, char32_t{0x24}));
   EXPECT_FALSE (d2.good ());
   it = d2.finalize (it);
@@ -134,7 +145,7 @@ TEST (Utf8_32, Bad2) {
   icubaby::t8_32 d2;
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
-  it = d2 (char8_t{0x80}, it);
+  it = d2 (static_cast<icubaby::char8> (0x80), it);
   EXPECT_FALSE (d2.good ());
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
   it = d2.finalize (it);
@@ -144,7 +155,7 @@ TEST (Utf8_32, Bad2) {
 
 TEST (Utf8_32, AssignBad) {
   icubaby::t32_8 t1;
-  std::vector<char8_t> out;
+  std::vector<icubaby::char8> out;
   // A code unit t1 will signal as an error (!good()).
   t1.finalize (t1 (icubaby::first_low_surrogate, std::back_inserter (out)));
   EXPECT_FALSE (t1.good ());

@@ -29,7 +29,7 @@ enum class endian {
 template <typename C>
 struct char_to_code;
 template <>
-struct char_to_code<char8_t> {
+struct char_to_code<icubaby::char8> {
   static constexpr auto code () { return "UTF-8"; }
 };
 template <>
@@ -161,7 +161,7 @@ int main () {
   try {
     auto const all = all_code_points ();
     // Compare iconv and icubaby conversion of UTF-32 to UTF-8 sequences
-    check<char8_t> (all);
+    check<icubaby::char8> (all);
     // Compare iconv and icubaby conversion of UTF-32 to UTF-16 sequences
     check<char16_t> (all);
     std::cout << "iconv tests passed\n";
