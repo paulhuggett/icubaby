@@ -1,6 +1,6 @@
 # icubaby 
 
-A header-only C++17 Baby Library to Immediately Convert Unicode. Fast, minimal, and easy to use for converting a sequence between any of UTF-8, UTF-16, or UTF-32. 
+A C++ Baby Library to Immediately Convert Unicode. A header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32.
 
 ## API
 
