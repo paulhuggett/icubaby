@@ -12,7 +12,7 @@ A C++ Baby Library to Immediately Convert Unicode. A header-only, dependency-fre
 Macro name            | Description
 --------------------- | -----------
 ICUBABY_CXX20         | Has value 1 when compiled with C++20 or later and 0 otherwise.
-ICUBABY_CXX20REQUIRES | used to enable use of the `require` keyword to state template constaints when compiled with C++20. An empty macro when compiled with C++\<20.
+ICUBABY_CXX20REQUIRES | Used to enable use of the `require` keyword to state template constaints when compiled with C++20. An empty macro when compiled with C++\<20.
 
 ### char8
 
@@ -54,18 +54,18 @@ It’s possible for `From` and `To` to be the same character type. This can be u
 
 Member type | Definition
 ----------- | -----------
-input_type  | the character type from which conversions will be performed. May be any of `icubaby::char8`, `char16_t` or `char32_t`
-output_type | the character type to which the transcoder will convert. May be any of `icubaby::char8`, `char16_t` or `char32_t`
+input_type  | The character type from which conversions will be performed. May be any of `icubaby::char8`, `char16_t` or `char32_t`.
+output_type | The character type to which the transcoder will convert. May be any of `icubaby::char8`, `char16_t` or `char32_t`.
 
 #### Member functions
 
 Member function | Description
 --------------- | -----------
-(constructor)   | constructs a new transcoder
-(destructor)    | destructs a transcoder
+(constructor)   | Constructs a new transcoder.
+(destructor)    | Destructs a transcoder.
 operator()      |  (input_type c, OutputIt dest)
-end_cp          | call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character
-well_formed     | returns true if the input was well formed, false otherwise
+end_cp          | Call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character.
+well_formed     | Returns true if the input was well formed, false otherwise.
 
 
 ### iterator
@@ -91,13 +91,13 @@ reference         | `void`
 
 Member function | Description
 --------------- | -----------
-(constructor)   | constructs a new iterator<br><small>(public member function)</small>
-operator=       | passes an individual character to the associated transcoder<br><small>(public member function)</small> 
+(constructor)   | Constructs a new iterator<br><small>(public member function)</small>.
+operator=       | Passes an individual character to the associated transcoder<br><small>(public member function)</small>.
 operator*       | no-op<br><small>(public member function)</small>
 operator++      | no-op<br><small>(public member function)</small>
 operator++(int) | no-op<br><small>(public member function)</small>
-base            | accesses the underlying iterator<br><small>(public member function)</small>
-transcoder      | accesses the underlying transcoder<br><small>(public member function)</small>
+base            | Accesses the underlying iterator<br><small>(public member function)</small>.
+transcoder      | Accesses the underlying transcoder<br><small>(public member function)</small>.
 
 # Examples
 
