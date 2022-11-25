@@ -3,7 +3,7 @@
 [![CI Build & Test](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=paulhuggett_icubaby&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=paulhuggett_icubaby)
 
-A C++ Baby Library to Immediately Convert Unicode. A header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32.
+A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32.
 
 ## API
 
@@ -11,8 +11,22 @@ A C++ Baby Library to Immediately Convert Unicode. A header-only, dependency-fre
 
 Macro name            | Description
 --------------------- | -----------
-ICUBABY_CXX20         | Has value 1 when compiled with C++20 or later and 0 otherwise.
-ICUBABY_CXX20REQUIRES | Used to enable use of the `require` keyword to state template constaints when compiled with C++20. An empty macro when compiled with C++\<20.
+ICUBABY_CXX20         | Has value 1 when compiled with C++ 20 or later and 0 otherwise.
+ICUBABY_CXX20REQUIRES | Used to enable use of the `require` keyword to state template constaints when compiled with C++ 20. An empty macro when compiled with versions of C++ prior to 20.
+
+### Helper types
+
+Name | Description
+------ | -------------------------------------------------
+t8_8   | A transcoder which converts from UTF-8 to UTF-8.<br>Equivalent to `using t8_8 = transcoder<char8_t, char8_t>`.
+t8_16  | A transcoder which converts from UTF-8 to UTF-16.<br>Equivalent to `using t8_16 = transcoder<char8_t, char16_t>`.
+t8_32  | A transcoder which converts from UTF-8 to UTF-32.<br>Equivalent to `using t8_32 = transcoder<char8_t, char32_t>`.
+t16_8  | A transcoder which converts from UTF-16 to UTF-8.<br>Equivalent to `using t16_8 = transcoder<char16_t, char8_t>`.
+t16_16 | A transcoder which converts from UTF-16 to UTF-16.<br>Equivalent to `using t16_16 = transcoder<char16_t, char16_t>`.
+t16_32 | A transcoder which converts from UTF-16 to UTF-32.<br>Equivalent to `using t16_32 = transcoder<char16_t, char32_t>`.
+t32_8  | A transcoder which converts from UTF-32 to UTF-8.<br>Equivalent to `using 32_8 = transcoder<char32_t, char8_t>`.
+t32_16 | A transcoder which converts from UTF-32 to UTF-16.<br>Equivalent to `using t32_16 = transcoder<char32_t, char16_t>`.
+t32_32 | A transcoder which converts from UTF-32 to UTF-32.<br>Equivalent to `using t32_32 = transcoder<char32_t, char32_t>`.
 
 ### char8
 
@@ -25,6 +39,7 @@ using char8 = char;
 #endif
 } // end namespace icubaby
 ~~~
+
 C++ 20 introduced `char8_t` as the type for UTF-8 character representation. Since this library needs to work with earlier versions of C++, we have `icubaby::char8` which is defined as either `char8_t` (for C++ 20 or later) or `char` to match the type of a u8 string literal.
 
 ### transcoder
