@@ -71,9 +71,10 @@ jobs:
 
       - name: Run test tools
         run: |
-          LLVM_PROFILE_FILE="build/icubaby-unittests.profraw" ./build/unittests/icubaby-unittests && \
-          LLVM_PROFILE_FILE="build/icubaby-exhaust.profraw" ./build/tests/exhaust/icubaby-exhaust-test && \
-          LLVM_PROFILE_FILE="build/iconv-test.profraw" ./build/tests/iconv/iconv-test
+          LLVM_PROFILE_FILE="build/icubaby-unittests.profraw" ./build/unittests/icubaby-unittests        && \
+          LLVM_PROFILE_FILE="build/icubaby-exhaust.profraw"   ./build/tests/exhaust/icubaby-exhaust-test && \
+          LLVM_PROFILE_FILE="build/iconv-test.profraw"        ./build/tests/iconv/iconv-test             && \
+          LLVM_PROFILE_FILE="build/demo8.profraw"             ./build/tests/demo8/demo8
 
       - name: Index the raw profile
         run: |
@@ -81,9 +82,10 @@ jobs:
 
       - name: Collect the coverage
         run: |
-           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/unittests/icubaby-unittests > coverage.txt
+           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/unittests/icubaby-unittests         > coverage.txt
            llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/tests/exhaust/icubaby-exhaust-test >> coverage.txt
-           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/tests/iconv/iconv-test >> coverage.txt
+           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/tests/iconv/iconv-test             >> coverage.txt
+           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/tests/demo8/demo8                  >> coverage.txt
 
       - name: Run sonar-scanner
         env:
