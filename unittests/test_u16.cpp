@@ -34,6 +34,10 @@ TEST (Utf16, Good1) {
   EXPECT_TRUE (d1.well_formed ());
   EXPECT_THAT (out, ElementsAre (char32_t{0x0001}, char32_t{0x0002},
                                  char32_t{0x0003}, char32_t{0x0004}));
+  d1.end_cp (it);
+  EXPECT_TRUE (d1.well_formed ());
+  EXPECT_THAT (out, ElementsAre (char32_t{0x0001}, char32_t{0x0002},
+                                 char32_t{0x0003}, char32_t{0x0004}));
 }
 
 TEST (Utf16, Good2) {
@@ -41,37 +45,37 @@ TEST (Utf16, Good2) {
   auto it = std::back_inserter (out);
   icubaby::t16_32 d2;
   auto const match1 = ElementsAre (char32_t{0xFFFF});
-  it = d2 (0xFFFF, it);
+  it = d2 (0xFFFF, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match1);
-  it = d2 (0xD800, it);
+  it = d2 (0xD800, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match1);
   auto const match2 = ElementsAre (char32_t{0xFFFF}, char32_t{0x10000});
-  it = d2 (0xDC00, it);
+  it = d2 (0xDC00, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match2);
-  it = d2 (0xD800, it);
+  it = d2 (0xD800, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match2);
   auto const match3 =
       ElementsAre (char32_t{0xFFFF}, char32_t{0x10000}, char32_t{0x10001});
-  it = d2 (0xDC01, it);
+  it = d2 (0xDC01, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match3);
-  it = d2 (0xD808, it);
+  it = d2 (0xD808, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match3);
   auto const match4 = ElementsAre (char32_t{0xFFFF}, char32_t{0x10000},
                                    char32_t{0x10001}, char32_t{0x12345});
-  it = d2 (0xDF45, it);
+  it = d2 (0xDF45, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match4);
 
-  it = d2 (0xDBFF, it);
+  it = d2 (0xDBFF, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match4);
-  it = d2 (0xDFFF, it);
+  it = d2 (0xDFFF, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
   EXPECT_TRUE (d2.well_formed ());
   auto const match5 =
       ElementsAre (char32_t{0xFFFF}, char32_t{0x10000}, char32_t{0x10001},
