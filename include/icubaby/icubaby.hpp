@@ -171,7 +171,7 @@ public:
   using pointer = void;
   using reference = void;
 
-  constexpr iterator (Transcoder* const transcoder, OutputIterator it)
+  constexpr iterator (Transcoder* transcoder, OutputIterator it)
       : transcoder_{transcoder}, it_{it} {}
   iterator (iterator const& rhs) = default;
 
@@ -187,10 +187,14 @@ public:
   constexpr iterator operator++ (int) noexcept { return *this; }
 
   /// Accesses the underlying iterator.
-  OutputIterator base () const noexcept { return it_; }
+  [[nodiscard]] constexpr OutputIterator base () const noexcept { return it_; }
   /// Accesses the underlying transcoder.
-  Transcoder* transcoder () noexcept { return transcoder_; }
-  Transcoder const* transcoder () const noexcept { return transcoder_; }
+  [[nodiscard]] constexpr Transcoder* transcoder () noexcept {
+    return transcoder_;
+  }
+  [[nodiscard]] constexpr Transcoder const* transcoder () const noexcept {
+    return transcoder_;
+  }
 
 private:
   Transcoder* transcoder_;
@@ -283,8 +287,11 @@ public:
 
   constexpr transcoder () noexcept : transcoder(true) {}
   explicit constexpr transcoder (bool well_formed) noexcept
-      : code_point_{0}, well_formed_{well_formed}, pad_{0}, state_{accept} {
-    pad_ = 0;
+      : code_point_{0},
+        well_formed_{uint_least32_t{well_formed}},
+        pad_{0},
+        state_{accept} {
+    pad_ = 0;  // Suppress warning about pad_ being unused.
   }
 
   /// \tparam OutputIterator  An output iterator type to which values of output_type can be written.
