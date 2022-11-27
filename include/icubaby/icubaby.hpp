@@ -183,8 +183,8 @@ public:
   iterator& operator= (iterator const& rhs) = default;
 
   constexpr iterator& operator* () noexcept { return *this; }
-  constexpr iterator const& operator++ () noexcept { return *this; }
-  constexpr iterator operator++ (int) noexcept { return *this; }
+  constexpr iterator & operator++ () noexcept { return *this; }
+  constexpr const iterator operator++ (int) noexcept { return *this; }
 
   /// Accesses the underlying iterator.
   [[nodiscard]] constexpr OutputIterator base () const noexcept { return it_; }
