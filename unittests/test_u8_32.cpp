@@ -24,6 +24,7 @@ using testing::ElementsAre;
 // | 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN  |
 // | 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR  |
 
+// NOLINTNEXTLINE
 TEST (Utf8To32, GoodDollarSign) {
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
@@ -38,6 +39,7 @@ TEST (Utf8To32, GoodDollarSign) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0024}));
 }
 
+// NOLINTNEXTLINE
 TEST (Utf8To32, GoodCentSign) {
   // 0xC2, 0xA2 => U+00A2  CENT SIGN
   std::array<icubaby::char8, 2> const cent_sign = {
@@ -58,6 +60,7 @@ TEST (Utf8To32, GoodCentSign) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0x00A2}));
 }
 
+// NOLINTNEXTLINE
 TEST (Utf8To32, GoodDevanagariLetterHa) {
   // 0xE0, 0xA4, 0xB9 => U+0939 DEVANAGARI LETTER HA
   std::array<icubaby::char8, 3> const devanagri_letter_ha{
@@ -82,6 +85,7 @@ TEST (Utf8To32, GoodDevanagariLetterHa) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0939}));
 }
 
+// NOLINTNEXTLINE
 TEST (Utf8To32, GoodEuroSign) {
   // 0xE2, 0x82, 0xAC => U+20AC EURO SIGN
   std::array<icubaby::char8, 3> const euro_sign{
@@ -106,6 +110,7 @@ TEST (Utf8To32, GoodEuroSign) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0x20AC}));
 }
 
+// NOLINTNEXTLINE
 TEST (Utf8To32, GoodHangulSyllableHan) {
   // 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN
   std::array<icubaby::char8, 3> const hangul_syllable_han{
@@ -130,6 +135,7 @@ TEST (Utf8To32, GoodHangulSyllableHan) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0xD55C}));
 }
 
+// NOLINTNEXTLINE
 TEST (Utf8To32, GoodGothicLetterHwair) {
   // 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR
   std::array<icubaby::char8, 4> const gothic_letter_hwair{
@@ -157,6 +163,7 @@ TEST (Utf8To32, GoodGothicLetterHwair) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0x10348}));
 }
 
+// NOLINTNEXTLINE
 TEST (Utf8To32, Bad1) {
   icubaby::t8_32 d2;
   std::vector<char32_t> out;
@@ -171,6 +178,7 @@ TEST (Utf8To32, Bad1) {
   EXPECT_FALSE (d2.well_formed ());
 }
 
+// NOLINTNEXTLINE
 TEST (Utf8To32, Bad2) {
   icubaby::t8_32 d2;
   std::vector<char32_t> out;
@@ -183,6 +191,7 @@ TEST (Utf8To32, Bad2) {
   EXPECT_FALSE (d2.well_formed ());
 }
 
+// NOLINTNEXTLINE
 TEST (Utf8To32, AssignBad) {
   icubaby::t32_8 t1;
   std::vector<icubaby::char8> out;
@@ -194,6 +203,7 @@ TEST (Utf8To32, AssignBad) {
   EXPECT_FALSE (t2.well_formed ()) << "The 'good' state should be transfered";
 }
 
+// NOLINTNEXTLINE
 TEST (Utf8To32, PartialEndCp) {
   // U+1F0A6 PLAYING CARD SIX OF SPADES
   // UTF-8: F0 9F 82 A6

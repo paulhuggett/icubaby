@@ -11,6 +11,7 @@ static_assert (std::is_same_v<icubaby::t32_16::input_type, char32_t> &&
 static_assert (std::is_same_v<icubaby::t32_32::input_type, char32_t> &&
                std::is_same_v<icubaby::t32_32::output_type, char32_t>);
 
+// NOLINTNEXTLINE
 TEST (Utf32To8, MaxPlus1) {
   std::vector<icubaby::char8> out;
   // This is the Unicode Replacement Character U+FFFD as UTF-8.
@@ -25,6 +26,7 @@ TEST (Utf32To8, MaxPlus1) {
   EXPECT_THAT (out, testing::ContainerEq (replacement));
 }
 
+// NOLINTNEXTLINE
 TEST (Utf32To8, FirstLowSurrogate) {
   std::vector<icubaby::char8> out;
   auto it = std::back_inserter (out);
