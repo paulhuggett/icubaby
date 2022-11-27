@@ -137,7 +137,6 @@ operator()      |  (input_type c, OutputIt dest)
 end_cp          | Call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character.
 well_formed     | Returns true if the input was well formed, false otherwise.
 
-
 ### iterator
 
 ~~~cpp
