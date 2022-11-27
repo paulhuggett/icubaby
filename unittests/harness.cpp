@@ -28,7 +28,11 @@
 
 #include <gmock/gmock.h>
 
-using namespace testing;
+using testing::TestEventListener;
+using testing::UnitTest;
+using testing::TestCase;
+using testing::TestInfo;
+using testing::TestPartResult;
 
 namespace {
 
@@ -91,7 +95,7 @@ int main (int argc, char **argv) {
     // Since Google Mock depends on Google Test, InitGoogleMock() is
     // also responsible for initializing Google Test. Therefore there's
     // no need for calling InitGoogleTest() separately.
-    InitGoogleMock (&argc, argv);
+    testing::InitGoogleMock (&argc, argv);
 
     // Unless the user enables "loud mode" by passing the appropriate switch, we
     // silence much of google test/mock's output so that we only see detailed
