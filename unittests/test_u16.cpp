@@ -49,36 +49,45 @@ TEST (Utf16, Good2) {
   auto it = std::back_inserter (out);
   icubaby::t16_32 d2;
   auto const match1 = ElementsAre (char32_t{0xFFFF});
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   it = d2 (0xFFFF, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match1);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   it = d2 (0xD800, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match1);
   auto const match2 = ElementsAre (char32_t{0xFFFF}, char32_t{0x10000});
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   it = d2 (0xDC00, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match2);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   it = d2 (0xD800, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match2);
   auto const match3 =
       ElementsAre (char32_t{0xFFFF}, char32_t{0x10000}, char32_t{0x10001});
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   it = d2 (0xDC01, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match3);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   it = d2 (0xD808, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match3);
   auto const match4 = ElementsAre (char32_t{0xFFFF}, char32_t{0x10000},
                                    char32_t{0x10001}, char32_t{0x12345});
-  it = d2 (0xDF45, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  it = d2 (0xDF45, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match4);
 
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   it = d2 (0xDBFF, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match4);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   it = d2 (0xDFFF, it);
   EXPECT_TRUE (d2.well_formed ());
   auto const match5 =
@@ -95,6 +104,7 @@ TEST (Utf16, HighSurrogateWithoutLow) {
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
   icubaby::t16_32 d2;
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   it = d2 (0xD800, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_TRUE (out.empty ());
