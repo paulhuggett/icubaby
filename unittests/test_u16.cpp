@@ -14,6 +14,9 @@ static_assert (std::is_same_v<icubaby::t16_32::input_type, char16_t> &&
 
 using testing::ElementsAre;
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+
+// NOLINTNEXTLINE
 TEST (Utf16, Good1) {
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
@@ -40,30 +43,31 @@ TEST (Utf16, Good1) {
                                  char32_t{0x0003}, char32_t{0x0004}));
 }
 
+// NOLINTNEXTLINE
 TEST (Utf16, Good2) {
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
   icubaby::t16_32 d2;
   auto const match1 = ElementsAre (char32_t{0xFFFF});
-  it = d2 (0xFFFF, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  it = d2 (0xFFFF, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match1);
-  it = d2 (0xD800, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  it = d2 (0xD800, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match1);
   auto const match2 = ElementsAre (char32_t{0xFFFF}, char32_t{0x10000});
-  it = d2 (0xDC00, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  it = d2 (0xDC00, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match2);
-  it = d2 (0xD800, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  it = d2 (0xD800, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match2);
   auto const match3 =
       ElementsAre (char32_t{0xFFFF}, char32_t{0x10000}, char32_t{0x10001});
-  it = d2 (0xDC01, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  it = d2 (0xDC01, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match3);
-  it = d2 (0xD808, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  it = d2 (0xD808, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match3);
   auto const match4 = ElementsAre (char32_t{0xFFFF}, char32_t{0x10000},
@@ -72,10 +76,10 @@ TEST (Utf16, Good2) {
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match4);
 
-  it = d2 (0xDBFF, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  it = d2 (0xDBFF, it);
   EXPECT_TRUE (d2.well_formed ());
   EXPECT_THAT (out, match4);
-  it = d2 (0xDFFF, it);  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+  it = d2 (0xDFFF, it);
   EXPECT_TRUE (d2.well_formed ());
   auto const match5 =
       ElementsAre (char32_t{0xFFFF}, char32_t{0x10000}, char32_t{0x10001},
@@ -86,6 +90,7 @@ TEST (Utf16, Good2) {
   EXPECT_TRUE (d2.well_formed ());
 }
 
+// NOLINTNEXTLINE
 TEST (Utf16, HighSurrogateWithoutLow) {
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
@@ -98,6 +103,7 @@ TEST (Utf16, HighSurrogateWithoutLow) {
   EXPECT_THAT (out, ElementsAre (icubaby::replacement_char, char32_t{0x0000}));
 }
 
+// NOLINTNEXTLINE
 TEST (Utf16, HighSurrogateFollowedbyAnotherHigh) {
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
@@ -111,6 +117,7 @@ TEST (Utf16, HighSurrogateFollowedbyAnotherHigh) {
       out, ElementsAre (icubaby::replacement_char, icubaby::replacement_char));
 }
 
+// NOLINTNEXTLINE
 TEST (Utf16, HighSurrogateAtEnd) {
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
