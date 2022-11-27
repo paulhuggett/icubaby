@@ -6,6 +6,7 @@
 
 #include "icubaby/icubaby.hpp"
 
+// NOLINTNEXTLINE(misc-redundant-expression)
 static_assert (std::is_same_v<icubaby::t8_8 ::input_type, icubaby::char8> &&
                std::is_same_v<icubaby::t8_8 ::output_type, icubaby::char8>);
 static_assert (std::is_same_v<icubaby::t8_16::input_type, icubaby::char8> &&

@@ -7,6 +7,7 @@
 
 static_assert (std::is_same_v<icubaby::t16_8 ::input_type, char16_t> &&
                std::is_same_v<icubaby::t16_8 ::output_type, icubaby::char8>);
+// NOLINTNEXTLINE(misc-redundant-expression)
 static_assert (std::is_same_v<icubaby::t16_16::input_type, char16_t> &&
                std::is_same_v<icubaby::t16_16::output_type, char16_t>);
 static_assert (std::is_same_v<icubaby::t16_32::input_type, char16_t> &&
