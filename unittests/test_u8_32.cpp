@@ -24,7 +24,7 @@ using testing::ElementsAre;
 // | 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN  |
 // | 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR  |
 
-TEST (Utf8_32, GoodDollarSign) {
+TEST (Utf8To32, GoodDollarSign) {
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
 
@@ -38,7 +38,7 @@ TEST (Utf8_32, GoodDollarSign) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0024}));
 }
 
-TEST (Utf8_32, GoodCentSign) {
+TEST (Utf8To32, GoodCentSign) {
   // 0xC2, 0xA2 => U+00A2  CENT SIGN
   std::array<icubaby::char8, 2> const cent_sign = {
       {static_cast<icubaby::char8> (0xC2), static_cast<icubaby::char8> (0xA2)}};
@@ -58,7 +58,7 @@ TEST (Utf8_32, GoodCentSign) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0x00A2}));
 }
 
-TEST (Utf8_32, GoodDevanagariLetterHa) {
+TEST (Utf8To32, GoodDevanagariLetterHa) {
   // 0xE0, 0xA4, 0xB9 => U+0939 DEVANAGARI LETTER HA
   std::array<icubaby::char8, 3> const devanagri_letter_ha{
       {static_cast<icubaby::char8> (0xE0), static_cast<icubaby::char8> (0xA4),
@@ -82,7 +82,7 @@ TEST (Utf8_32, GoodDevanagariLetterHa) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0939}));
 }
 
-TEST (Utf8_32, GoodEuroSign) {
+TEST (Utf8To32, GoodEuroSign) {
   // 0xE2, 0x82, 0xAC => U+20AC EURO SIGN
   std::array<icubaby::char8, 3> const euro_sign{
       {static_cast<icubaby::char8> (0xE2), static_cast<icubaby::char8> (0x82),
@@ -106,7 +106,7 @@ TEST (Utf8_32, GoodEuroSign) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0x20AC}));
 }
 
-TEST (Utf8_32, GoodHangulSyllableHan) {
+TEST (Utf8To32, GoodHangulSyllableHan) {
   // 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN
   std::array<icubaby::char8, 3> const hangul_syllable_han{
       {static_cast<icubaby::char8> (0xED), static_cast<icubaby::char8> (0x95),
@@ -130,7 +130,7 @@ TEST (Utf8_32, GoodHangulSyllableHan) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0xD55C}));
 }
 
-TEST (Utf8_32, GoodGothicLetterHwair) {
+TEST (Utf8To32, GoodGothicLetterHwair) {
   // 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR
   std::array<icubaby::char8, 4> const gothic_letter_hwair{
       {static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x90),
@@ -157,7 +157,7 @@ TEST (Utf8_32, GoodGothicLetterHwair) {
   EXPECT_THAT (cu, ElementsAre (char32_t{0x10348}));
 }
 
-TEST (Utf8_32, Bad1) {
+TEST (Utf8To32, Bad1) {
   icubaby::t8_32 d2;
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
@@ -171,7 +171,7 @@ TEST (Utf8_32, Bad1) {
   EXPECT_FALSE (d2.well_formed ());
 }
 
-TEST (Utf8_32, Bad2) {
+TEST (Utf8To32, Bad2) {
   icubaby::t8_32 d2;
   std::vector<char32_t> out;
   auto it = std::back_inserter (out);
@@ -183,7 +183,7 @@ TEST (Utf8_32, Bad2) {
   EXPECT_FALSE (d2.well_formed ());
 }
 
-TEST (Utf8_32, AssignBad) {
+TEST (Utf8To32, AssignBad) {
   icubaby::t32_8 t1;
   std::vector<icubaby::char8> out;
   // A code unit t1 will signal as an error (!good()).
@@ -194,7 +194,7 @@ TEST (Utf8_32, AssignBad) {
   EXPECT_FALSE (t2.well_formed ()) << "The 'good' state should be transfered";
 }
 
-TEST (Utf8_32, PartialEndCp) {
+TEST (Utf8To32, PartialEndCp) {
   // U+1F0A6 PLAYING CARD SIX OF SPADES
   // UTF-8: F0 9F 82 A6
 
