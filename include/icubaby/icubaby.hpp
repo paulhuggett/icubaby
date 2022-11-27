@@ -288,7 +288,7 @@ public:
   constexpr transcoder () noexcept : transcoder(true) {}
   explicit constexpr transcoder (bool well_formed) noexcept
       : code_point_{0},
-        well_formed_{uint_least32_t{well_formed}},
+        well_formed_{static_cast<uint_least32_t>(well_formed)},
         pad_{0},
         state_{accept} {
     pad_ = 0;  // Suppress warning about pad_ being unused.
