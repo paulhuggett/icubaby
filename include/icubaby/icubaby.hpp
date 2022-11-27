@@ -174,6 +174,9 @@ public:
   constexpr iterator (Transcoder* transcoder, OutputIterator it)
       : transcoder_{transcoder}, it_{it} {}
   iterator (iterator const& rhs) = default;
+  iterator (iterator&& rhs) = default;
+
+  ~iterator () noexcept = default;
 
   iterator& operator= (typename Transcoder::input_type const& value) {
     it_ = (*transcoder_) (value, it_);
@@ -181,6 +184,7 @@ public:
   }
 
   iterator& operator= (iterator const& rhs) = default;
+  iterator& operator= (iterator&& rhs) = default;
 
   constexpr iterator& operator* () noexcept { return *this; }
   constexpr iterator & operator++ () noexcept { return *this; }
@@ -225,8 +229,8 @@ public:
       return dest;
     }
     if (c < 0x800) {
-      *(dest++) = static_cast<output_type> ((c >> 6) | 0xC0);
-      *(dest++) = static_cast<output_type> ((c & 0x3F) | 0x80);
+      *(dest++) = static_cast<output_type> ((c >> 6U) | 0xC0U);
+      *(dest++) = static_cast<output_type> ((c & 0x3FU) | 0x80U);
       return dest;
     }
     if (is_surrogate (c)) {
@@ -235,16 +239,16 @@ public:
       return (*this) (replacement_char, dest);
     }
     if (c < 0x10000) {
-      *(dest++) = static_cast<output_type> ((c >> 12) | 0xE0);
-      *(dest++) = static_cast<output_type> (((c >> 6) & 0x3F) | 0x80);
-      *(dest++) = static_cast<output_type> ((c & 0x3F) | 0x80);
+      *(dest++) = static_cast<output_type> ((c >> 12U) | 0xE0U);
+      *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3FU) | 0x80U);
+      *(dest++) = static_cast<output_type> ((c & 0x3FU) | 0x80U);
       return dest;
     }
     if (c <= max_code_point) {
-      *(dest++) = static_cast<output_type> ((c >> 18) | 0xF0);
-      *(dest++) = static_cast<output_type> (((c >> 12) & 0x3F) | 0x80);
-      *(dest++) = static_cast<output_type> (((c >> 6) & 0x3F) | 0x80);
-      *(dest++) = static_cast<output_type> ((c & 0x3F) | 0x80);
+      *(dest++) = static_cast<output_type> ((c >> 18U) | 0xF0U);
+      *(dest++) = static_cast<output_type> (((c >> 12U) & 0x3FU) | 0x80U);
+      *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3FU) | 0x80U);
+      *(dest++) = static_cast<output_type> ((c & 0x3FU) | 0x80U);
       return dest;
     }
     well_formed_ = false;
