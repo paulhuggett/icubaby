@@ -1,5 +1,6 @@
 # icubaby 
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/08d695b6d7b24f57bd36431e6764fe59)](https://app.codacy.com/gh/paulhuggett/icubaby?utm_source=github.com&utm_medium=referral&utm_content=paulhuggett/icubaby&utm_campaign=Badge_Grade_Settings)
 [![CI Build & Test](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=paulhuggett_icubaby&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=paulhuggett_icubaby)
 
