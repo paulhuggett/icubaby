@@ -174,7 +174,7 @@ public:
   constexpr iterator (Transcoder* transcoder, OutputIterator it)
       : transcoder_{transcoder}, it_{it} {}
   iterator (iterator const& rhs) = default;
-  iterator (iterator&& rhs) = default;
+  iterator (iterator&& rhs) noexcept = default;
 
   ~iterator () noexcept = default;
 
@@ -184,11 +184,11 @@ public:
   }
 
   iterator& operator= (iterator const& rhs) = default;
-  iterator& operator= (iterator&& rhs) = default;
+  iterator& operator= (iterator&& rhs) noexcept = default;
 
   constexpr iterator& operator* () noexcept { return *this; }
   constexpr iterator & operator++ () noexcept { return *this; }
-  constexpr const iterator operator++ (int) noexcept { return *this; }
+  constexpr iterator operator++ (int) noexcept { return *this; }
 
   /// Accesses the underlying iterator.
   [[nodiscard]] constexpr OutputIterator base () const noexcept { return it_; }
@@ -308,13 +308,15 @@ public:
     // Prior to C++20, char8 might be signed.
     auto const ucu = static_cast<std::make_unsigned_t<input_type>> (code_unit);
     assert (ucu < utf8d_.size ());
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     auto const type = utf8d_[ucu];
     code_point_ =
         (state_ != accept)
             ? (ucu & 0x3FU) | static_cast<uint_least32_t> (code_point_ << 6U)
-            : (0xFF >> type) & ucu;
+            : (0xFFU >> type) & ucu;
     auto const idx = 256U + state_ + type;
     assert (idx < utf8d_.size ());
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     state_ = utf8d_[idx];
     switch (state_) {
     case accept: *(dest++) = code_point_; break;
@@ -407,9 +409,9 @@ public:
       dest = (*this) (replacement_char, dest);
       well_formed_ = false;
     } else {
-      *(dest++) = static_cast<output_type> (0xD7C0 + (code_point >> 10));
+      *(dest++) = static_cast<output_type> (0xD7C0U + (code_point >> 10U));
       *(dest++) =
-          static_cast<output_type> (first_low_surrogate + (code_point & 0x3FF));
+          static_cast<output_type> (first_low_surrogate + (code_point & 0x3FFU));
     }
     return dest;
   }
