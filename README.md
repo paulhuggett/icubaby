@@ -3,7 +3,60 @@
 [![CI Build & Test](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=paulhuggett_icubaby&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=paulhuggett_icubaby)
 
-A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32.
+A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32. It does not allocate dynamic memory and neither throws or catches exceptions.
+
+## Introduction
+
+C++ 17 deprecated the standard library's `<codecvt>` header file which contained its unicode conversion facets. 
+
+## Usage
+
+Let’s try converting a single Unicode emoji character 😀 (U+1F600 GRINNING FACE) which is expressed as four UTF-8 code units (0xF0, 0x9F, 0x98, 0x80) to UTF-16 (where it is the surrogate pair 0xD83D, 0xDE00).
+
+~~~cpp
+std::vector<char16_t> out;
+auto it = std::back_inserter (out);
+icubaby::t8_16 t;
+for (auto cu: {0xF0, 0x9F, 0x98, 0x80}) {
+  it = t (cu, it);
+}
+it = t.end_cp (it);
+~~~
+
+The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
+
+### Disecting this code 
+
+1. Define where and how the output should be written:
+
+    ~~~cpp
+    std::vector<char16_t> out;
+    auto it = std::back_inserter (out);
+    ~~~
+
+    For the purposes of this example, we write the encoded output to a `std::vector<char16_t>`. Use the container of your choice!
+
+2. Create the transcoder instance:
+
+    ~~~cpp
+    icubaby::t8_16 t;
+    ~~~
+
+3. Pass each code unit and the output iterator to the transcoder.
+
+    ~~~cpp
+    for (auto cu: {0xF0, 0x9F, 0x98, 0x80}) {
+      it = t (cu, it);
+    }
+    ~~~
+
+4. Tell the transcoder that we’ve reached the end of the input. This ensures that the sequence didn’t end part way through a code point.
+
+    ~~~cpp
+    it = t.end_cp (it);
+    ~~~
+
+    It’s only necessary to make a single call to `end_cp()` once *all* of the input has been fed to the transcoder.
 
 ## API
 
