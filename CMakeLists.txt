@@ -81,6 +81,7 @@ foreach (target gtest gmock gmock_main gtest_main)
     list (APPEND gclang_options -stdlib=libc++)
   endif ()
 
+  target_compile_definitions (${target} PUBLIC GTEST_REMOVE_LEGACY_TEST_CASEAPI_=1)
   target_compile_options (${target} PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${gclang_options}>
   )

@@ -30,7 +30,6 @@
 
 using testing::TestEventListener;
 using testing::UnitTest;
-using testing::TestCase;
 using testing::TestInfo;
 using testing::TestPartResult;
 
@@ -64,7 +63,6 @@ public:
   }
   void OnEnvironmentsSetUpStart (UnitTest const &) override {}
   void OnEnvironmentsSetUpEnd (UnitTest const &) override {}
-  void OnTestCaseStart (TestCase const &) override {}
   void OnTestStart (TestInfo const &) override {}
   void OnTestPartResult (TestPartResult const &result) override {
     listener_->OnTestPartResult (result);
@@ -74,7 +72,6 @@ public:
       listener_->OnTestEnd (test_info);
     }
   }
-  void OnTestCaseEnd (TestCase const &) override {}
   void OnEnvironmentsTearDownStart (UnitTest const &) override {}
   void OnEnvironmentsTearDownEnd (UnitTest const &) override {}
   void OnTestIterationEnd (UnitTest const &test, int iteration) override {
