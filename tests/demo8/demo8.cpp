@@ -10,7 +10,7 @@ namespace {
 template <typename StringType>
 void show (std::ostream& os, StringType const& str) {
   os << std::setfill('0') << std::hex;
-  auto separator = "";
+  auto const* separator = "";
   for (auto const c: str) {
     os << separator << std::setw (sizeof (c) * 2) << static_cast<std::uint16_t> (c);
     separator = " ";
