@@ -1,7 +1,7 @@
 #include <array>
 #include <bit>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <iterator>
 #include <vector>
 
