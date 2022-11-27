@@ -5,6 +5,8 @@
 
 A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32. It does not allocate dynamic memory and neither throws or catches exceptions.
 
+> icubaby is in no way related to the [International Components for Unicode](https://icu.unicode.org) library!
+
 ## Introduction
 
 C++ 17 deprecated the standard library's `<codecvt>` header file which contained its unicode conversion facets. 
@@ -27,7 +29,7 @@ The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
 
 ### Disecting this code 
 
-1. Define where and how the output should be written:
+1.  Define where and how the output should be written:
 
     ~~~cpp
     std::vector<char16_t> out;
@@ -36,13 +38,13 @@ The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
 
     For the purposes of this example, we write the encoded output to a `std::vector<char16_t>`. Use the container of your choice!
 
-2. Create the transcoder instance:
+2.  Create the transcoder instance:
 
     ~~~cpp
     icubaby::t8_16 t;
     ~~~
 
-3. Pass each code unit and the output iterator to the transcoder.
+3.  Pass each code unit and the output iterator to the transcoder.
 
     ~~~cpp
     for (auto cu: {0xF0, 0x9F, 0x98, 0x80}) {
@@ -50,7 +52,7 @@ The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
     }
     ~~~
 
-4. Tell the transcoder that we’ve reached the end of the input. This ensures that the sequence didn’t end part way through a code point.
+4.  Tell the transcoder that we’ve reached the end of the input. This ensures that the sequence didn’t end part way through a code point.
 
     ~~~cpp
     it = t.end_cp (it);
@@ -167,9 +169,9 @@ operator++(int) | no-op<br><small>(public member function)</small>
 base            | Accesses the underlying iterator<br><small>(public member function)</small>.
 transcoder      | Accesses the underlying transcoder<br><small>(public member function)</small>.
 
-# Examples
+## Examples
 
-## Convert using std::copy()
+### Convert using std::copy()
 
 The example code below converts from UTF-8 to UTF-16 using `icubaby::t8_16` (this name is just a shortened form of `icubaby::transcoder<icubaby::char8, char16_t>`). To convert from UTF-<i>x</i> to UTF-<i>y</i> just use t<i>x</i>\_<i>y</i> (UTF-16 to UTF-8 is `t16_8`, UTF-32 to UTF-8 is `t32_8`, and so on).
 
@@ -201,7 +203,7 @@ std::optional<std::u16string> convert (std::u8string_view const& src) {
 
 ~~~
 
-## Convert using an explicit loop
+### Convert using an explicit loop
 
 Whilst std::copy() provides a compact method of performing conversions, sometimes more control is needed. This example converts the code units using an explicit loop and exits as soon as malformed input is encountered.
 
@@ -229,4 +231,3 @@ convert2 (std::u8string const & src) {
   return out; // Conversion was successful.
 }
 ~~~
-
