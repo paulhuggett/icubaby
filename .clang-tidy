@@ -2,11 +2,11 @@
 Checks:            |-
   *,
   -altera-*,
-  -cppcoreguidelines-avoid-magic-numbers
+  -cppcoreguidelines-avoid-magic-numbers,
   -fuchsia-*,
   -llvmlibc-*,
   -modernize-use-trailing-return-type,
-  -readability-identifier-length
+  -readability-identifier-length,
   -readability-magic-numbers
 
 WarningsAsErrors:  ''
