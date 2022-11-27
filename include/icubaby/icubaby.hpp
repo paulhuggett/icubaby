@@ -269,7 +269,7 @@ public:
   }
 
   /// \returns True if the input represented well formed UTF-32.
-  constexpr bool well_formed () const { return well_formed_; }
+  [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
 
 private:
   bool well_formed_ = true;
@@ -344,7 +344,7 @@ public:
   }
 
   /// \returns True if the input represented well formed UTF-8.
-  constexpr bool well_formed () const { return well_formed_; }
+  [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
 
 private:
   static inline std::array<uint8_t, 364> const utf8d_ = {{
@@ -424,7 +424,7 @@ public:
   }
 
   /// \returns True if the input represented valid UTF-32.
-  constexpr bool well_formed () const { return well_formed_; }
+  [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
 
 private:
   bool well_formed_ = true;
@@ -500,7 +500,7 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
-  bool well_formed () const { return well_formed_; }
+  [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
 
 private:
   static constexpr int high_bits = 10;
@@ -544,7 +544,7 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
-  bool well_formed () const {
+  [[nodiscard]] constexpr bool well_formed () const {
     return to_inter_.well_formed () && to_out_.well_formed ();
   }
 
@@ -611,7 +611,7 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
-  constexpr bool well_formed () const { return well_formed_; }
+  [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
 
 private:
   bool well_formed_ = true;
