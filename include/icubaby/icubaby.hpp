@@ -287,9 +287,9 @@ public:
     pad_ = 0;
   }
 
-  /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of output_type can be written.
   /// \param code_unit  A UTF-8 code unit,
-  /// \param dest  An output iterator to which the output sequence is written.
+  /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
