@@ -183,7 +183,7 @@ public:
   iterator& operator= (iterator const& rhs) = default;
 
   constexpr iterator& operator* () noexcept { return *this; }
-  constexpr iterator& operator++ () noexcept { return *this; }
+  constexpr iterator const& operator++ () noexcept { return *this; }
   constexpr iterator operator++ (int) noexcept { return *this; }
 
   /// Accesses the underlying iterator.
@@ -374,7 +374,7 @@ private:
     12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
     12,36,12,12,12,12,12,12,12,12,12,12,
   }};
-  static constexpr auto code_point_bits = 21;
+  static constexpr auto code_point_bits = 21U;
   static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
   uint_least32_t code_point_ : code_point_bits;
   uint_least32_t well_formed_ : 1;
