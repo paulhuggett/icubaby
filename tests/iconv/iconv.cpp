@@ -89,7 +89,7 @@ std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
     auto const out_size = out.size ();
     auto const out_bytes_available = sizeof (C) * out_size - total_out_bytes;
     auto out_bytes_left = out_bytes_available;
-    auto outbuf = reinterpret_cast<char *> (out.data ()) + total_out_bytes;
+    auto * outbuf = reinterpret_cast<char *> (out.data ()) + total_out_bytes;
     if (iconv (cd, reinterpret_cast<char **> (const_cast<char32_t **> (&inbuf)),
                &in_bytes_left, &outbuf,
                &out_bytes_left) == static_cast<size_t> (-1)) {
