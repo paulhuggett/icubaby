@@ -114,7 +114,8 @@ constexpr bool is_code_point_start (char8 c) noexcept {
 constexpr bool is_code_point_start (char16_t c) noexcept {
   return !is_low_surrogate (c);
 }
-constexpr bool is_code_point_start (char32_t) noexcept {
+constexpr bool is_code_point_start (char32_t c) noexcept {
+  (void)c;
   return true;
 }
 
@@ -229,30 +230,18 @@ public:
       return dest;
     }
     if (c < 0x800) {
-      *(dest++) = static_cast<output_type> ((c >> 6U) | 0xC0U);
-      *(dest++) = static_cast<output_type> ((c & 0x3FU) | 0x80U);
-      return dest;
+      return write2 (c, dest);
     }
     if (is_surrogate (c)) {
-      well_formed_ = false;
-      static_assert (!is_surrogate (replacement_char));
-      return (*this) (replacement_char, dest);
+      return not_well_formed (dest);
     }
     if (c < 0x10000) {
-      *(dest++) = static_cast<output_type> ((c >> 12U) | 0xE0U);
-      *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3FU) | 0x80U);
-      *(dest++) = static_cast<output_type> ((c & 0x3FU) | 0x80U);
-      return dest;
+      return write3 (c, dest);
     }
     if (c <= max_code_point) {
-      *(dest++) = static_cast<output_type> ((c >> 18U) | 0xF0U);
-      *(dest++) = static_cast<output_type> (((c >> 12U) & 0x3FU) | 0x80U);
-      *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3FU) | 0x80U);
-      *(dest++) = static_cast<output_type> ((c & 0x3FU) | 0x80U);
-      return dest;
+      return write4 (c, dest);
     }
-    well_formed_ = false;
-    return (*this) (replacement_char, dest);
+    return not_well_formed (dest);
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
@@ -281,6 +270,30 @@ public:
 
 private:
   bool well_formed_ = true;
+
+  template <typename OutputIterator>
+  static OutputIterator write2 (input_type c, OutputIterator dest) {
+    *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3fU) | 0x80U);
+    *(dest++) = static_cast<output_type> ((c & 0x3fU) | 0x80U);
+    return dest;
+  }
+  template <typename OutputIterator>
+  static OutputIterator write3 (input_type c, OutputIterator dest) {
+    *(dest++) = static_cast<output_type> ((c >> 12U) | 0xe0U);
+    return write2 (c, dest);
+  }
+  template <typename OutputIterator>
+  static OutputIterator write4 (input_type c, OutputIterator dest) {
+    *(dest++) = static_cast<output_type> ((c >> 18U) | 0xf0U);
+    return write3 (c, dest);
+  }
+
+  template <typename OutputIterator>
+  OutputIterator not_well_formed (OutputIterator dest) {
+    well_formed_ = false;
+    static_assert (!is_surrogate (replacement_char));
+    return (*this) (replacement_char, dest);
+  }
 };
 
 template <>
