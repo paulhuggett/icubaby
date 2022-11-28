@@ -129,8 +129,8 @@ It’s possible for `From` and `To` to be the same character type. This can be u
 
 Member type | Definition
 ----------- | -----------
-input_type  | The character type from which conversions will be performed. May be any of `icubaby::char8`, `char16_t` or `char32_t`.
-output_type | The character type to which the transcoder will convert. May be any of `icubaby::char8`, `char16_t` or `char32_t`.
+input_type  | The character type from which conversions will be performed. May be any of [`icubaby::char8`](#char8), `char16_t` or `char32_t`.
+output_type | The character type to which the transcoder will convert. May be any of [`icubaby::char8`](#char8), `char16_t` or `char32_t`.
 
 #### Member functions
 
@@ -138,7 +138,7 @@ Member function | Description
 --------------- | -----------
 (constructor)   | Constructs a new transcoder.
 (destructor)    | Destructs a transcoder.
-operator()      |  (input_type c, OutputIt dest)
+operator()      | This member function is the heart of the transcoder. It accepts a single code unit in the input encoding and, once an entire code point has been consumed, produces the equivalent code point expressed in the output encoding. Malformed input is detected and be replaced with the Unicode [replacement character](https://unicode.org/glossary/#replacement_character) (U+FFFD REPLACEMENT CHARACTER).
 end_cp          | Call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character.
 well_formed     | Returns true if the input was well formed, false otherwise.
 
@@ -150,7 +150,7 @@ template <typename Transcoder, typename OutputIterator>
 class icubaby::iterator;
 ~~~
 
-`Transcoder` should be a type which implements the `transcoder<>` interface described above; `OutputIterator` should be an output-iterator which produces values of type `Transcoder::output_type`.
+`Transcoder` should be a type which implements the `transcoder<>` interface [described above](#transcoder); `OutputIterator` should be an [output iterator](https://en.cppreference.com/w/cpp/iterator/output_iterator) which produces values of type `Transcoder::output_type`.
 
 #### Member types
 
