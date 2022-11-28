@@ -16,8 +16,8 @@ TEST (Utf32To8, MaxPlus1) {
   std::vector<icubaby::char8> out;
   // This is the Unicode Replacement Character U+FFFD as UTF-8.
   std::vector<icubaby::char8> const replacement{
-      static_cast<icubaby::char8> (0xEF), static_cast<icubaby::char8> (0xBF),
-      static_cast<icubaby::char8> (0xBD)};
+      static_cast<icubaby::char8> (0xef), static_cast<icubaby::char8> (0xbf),
+      static_cast<icubaby::char8> (0xbd)};
   auto it = std::back_inserter (out);
   icubaby::t32_8 d1;
 
@@ -33,4 +33,17 @@ TEST (Utf32To8, FirstLowSurrogate) {
   icubaby::t32_8 d1;
   it = d1 (icubaby::first_low_surrogate, it);
   EXPECT_FALSE (d1.well_formed ());
+}
+
+// NOLINTNEXTLINE
+TEST (Utf32To8, LowestTwoByteSequence) {
+  std::vector<icubaby::char8> out;
+  auto it = std::back_inserter (out);
+  icubaby::t32_8 d1;
+  it = d1 (0x80, it);
+  EXPECT_TRUE (d1.well_formed ());
+  d1.end_cp (it);
+  EXPECT_TRUE (d1.well_formed ());
+  EXPECT_THAT (out, testing::ElementsAre (static_cast<icubaby::char8> (0xc2),
+                                          static_cast<icubaby::char8> (0x80)));
 }

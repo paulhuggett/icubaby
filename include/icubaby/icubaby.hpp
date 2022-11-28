@@ -230,18 +230,18 @@ public:
       return dest;
     }
     if (c < 0x800) {
-      return write2 (c, dest);
+      return transcoder::write2 (c, dest);
     }
     if (is_surrogate (c)) {
-      return not_well_formed (dest);
+      return transcoder::not_well_formed (dest);
     }
     if (c < 0x10000) {
-      return write3 (c, dest);
+      return transcoder::write3 (c, dest);
     }
     if (c <= max_code_point) {
-      return write4 (c, dest);
+      return transcoder::write4 (c, dest);
     }
-    return not_well_formed (dest);
+    return transcoder::not_well_formed (dest);
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
@@ -273,19 +273,24 @@ private:
 
   template <typename OutputIterator>
   static OutputIterator write2 (input_type c, OutputIterator dest) {
-    *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3fU) | 0x80U);
+    *(dest++) = static_cast<output_type> ((c >> 6U) | 0xc0U);
     *(dest++) = static_cast<output_type> ((c & 0x3fU) | 0x80U);
     return dest;
   }
   template <typename OutputIterator>
   static OutputIterator write3 (input_type c, OutputIterator dest) {
     *(dest++) = static_cast<output_type> ((c >> 12U) | 0xe0U);
-    return write2 (c, dest);
+    *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3fU) | 0x80U);
+    *(dest++) = static_cast<output_type> ((c & 0x3fU) | 0x80U);
+    return dest;
   }
   template <typename OutputIterator>
   static OutputIterator write4 (input_type c, OutputIterator dest) {
     *(dest++) = static_cast<output_type> ((c >> 18U) | 0xf0U);
-    return write3 (c, dest);
+    *(dest++) = static_cast<output_type> (((c >> 12U) & 0x3fU) | 0x80U);
+    *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3fU) | 0x80U);
+    *(dest++) = static_cast<output_type> ((c & 0x3fU) | 0x80U);
+    return dest;
   }
 
   template <typename OutputIterator>
