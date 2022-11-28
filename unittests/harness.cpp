@@ -1,18 +1,3 @@
-//===- unittests/harness.cpp ----------------------------------------------===//
-//*  _                                     *
-//* | |__   __ _ _ __ _ __   ___  ___ ___  *
-//* | '_ \ / _` | '__| '_ \ / _ \/ __/ __| *
-//* | | | | (_| | |  | | | |  __/\__ \__ \ *
-//* |_| |_|\__,_|_|  |_| |_|\___||___/___/ *
-//*                                        *
-//===----------------------------------------------------------------------===//
-//
-// Distributed under the Apache License v2.0.
-// See https://github.com/paulhuggett/peejay/blob/main/LICENSE.TXT
-// for license information.
-// SPDX-License-Identifier: Apache-2.0
-//
-//===----------------------------------------------------------------------===//
 #include <algorithm>
 #include <cstring>
 #include <memory>
