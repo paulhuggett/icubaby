@@ -2,7 +2,6 @@
 
 [![CI Build & Test](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=paulhuggett_icubaby&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=paulhuggett_icubaby)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d7aafd88d8ef4be7b03b568e957f0103)](https://www.codacy.com/gh/paulhuggett/icubaby/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=paulhuggett/icubaby&amp;utm_campaign=Badge_Grade)
 
 A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32. It does not allocate dynamic memory and neither throws or catches exceptions.
 
@@ -44,6 +43,10 @@ The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
     ~~~cpp
     icubaby::t8_16 t;
     ~~~
+
+    `transcoder<>` is a template class which requires two arguments to define the input and output encoding. You may use `char8_t` (in C++ 20, or icubaby::char8 in C++ 17 and later) for UTF-8, `char16_t` for UTF-16, and `char32_t` for UTF-32. For example, `icubaby::transcoder<char16_t, char32_t>` will convert from UTF-16 to UTF-32; `icubaby::transcoder<char8_t, char16_t>` will convert from UTF-8 to UTF-16.
+
+    There is a collection of nine typedefs to make this a little more compact. Each is named `icubaby::t_I_O` where I and O are 8, 16, or 32. For example, `icubaby::t16_32` is equivalent to `icubaby::transcoder<char16_t, char32_t>` and `icubaby::t8_16` means `icubaby::transcoder<char8_t, char16_t>`.
 
 3.  Pass each code unit and the output iterator to the transcoder.
 
@@ -138,6 +141,7 @@ operator()      |  (input_type c, OutputIt dest)
 end_cp          | Call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character.
 well_formed     | Returns true if the input was well formed, false otherwise.
 
+
 ### iterator
 
 ~~~cpp
@@ -231,3 +235,4 @@ convert2 (std::u8string const & src) {
   return out; // Conversion was successful.
 }
 ~~~
+
