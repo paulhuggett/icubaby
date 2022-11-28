@@ -47,13 +47,13 @@ bool loud_mode_enabled (int argc, char **argv) {
 class quiet_listener : public TestEventListener {
 public:
   explicit quiet_listener (TestEventListener *const listener)
-      : listener_ (listener) {}
+      : listener_{listener} {}
   quiet_listener (quiet_listener const &) = delete;
-  quiet_listener (quiet_listener &&) = delete;
-  ~quiet_listener () override = default;
+  quiet_listener (quiet_listener &&) noexcept = delete;
+  ~quiet_listener () noexcept override = default;
 
   quiet_listener &operator= (quiet_listener const &) = delete;
-  quiet_listener &operator= (quiet_listener &&) = delete;
+  quiet_listener &operator= (quiet_listener &&) noexcept = delete;
 
   void OnTestProgramStart (UnitTest const &test) override {
     listener_->OnTestProgramStart (test);
@@ -61,9 +61,9 @@ public:
   void OnTestIterationStart (UnitTest const &test, int iteration) override {
     listener_->OnTestIterationStart (test, iteration);
   }
-  void OnEnvironmentsSetUpStart (UnitTest const &) override {}
-  void OnEnvironmentsSetUpEnd (UnitTest const &) override {}
-  void OnTestStart (TestInfo const &) override {}
+  void OnEnvironmentsSetUpStart (UnitTest const &test) override { (void)test; }
+  void OnEnvironmentsSetUpEnd (UnitTest const &test) override { (void)test; }
+  void OnTestStart (TestInfo const &info) override { (void)info; }
   void OnTestPartResult (TestPartResult const &result) override {
     listener_->OnTestPartResult (result);
   }
@@ -72,8 +72,10 @@ public:
       listener_->OnTestEnd (test_info);
     }
   }
-  void OnEnvironmentsTearDownStart (UnitTest const &) override {}
-  void OnEnvironmentsTearDownEnd (UnitTest const &) override {}
+  void OnEnvironmentsTearDownStart (UnitTest const &test) override {
+    (void)test;
+  }
+  void OnEnvironmentsTearDownEnd (UnitTest const &test) override { (void)test; }
   void OnTestIterationEnd (UnitTest const &test, int iteration) override {
     listener_->OnTestIterationEnd (test, iteration);
   }
