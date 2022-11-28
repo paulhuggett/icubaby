@@ -10,7 +10,7 @@ A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, depe
 
 ## Introduction
 
-C++ 17 deprecated the standard library's `<codecvt>` header file which contained its unicode conversion facets. 
+C++ 17 [deprecated the standard library's `<codecvt>` header file](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0618r0.html) which contained its unicode conversion facets. Those features weren’t easy to use correctly but without them code is forced to look to other libraries. 
 
 ## Usage
 
