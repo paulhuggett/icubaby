@@ -65,6 +65,21 @@ The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
 
     It’s only necessary to make a single call to `end_cp()` once *all* of the input has been fed to the transcoder.
 
+### An alternative: using icubaby::iterator
+
+~~~cpp
+std::array<char8_t, 4> const in {0xF0, 0x9F, 0x98, 0x80};
+std::vector<char16_t> out;
+icubaby::t8_16 t;
+auto it = icubaby::iterator{&t, std::back_inserter (out)};
+for (auto cu: in) {
+  *(it++) = cu;
+}
+it = t.end_cp (it);
+~~~
+
+The `icubaby::iterator<>` class offers a familiar output iterator for using a transcoder. Each code unit from the input encoding is written to the iterator and this writes the output encoding to a second iterator. This enables use to use standard algorithms such as [`std::copy`](https://en.cppreference.com/w/cpp/algorithm/copy) with the library.
+
 ## API
 
 ### Macro constants
@@ -72,21 +87,21 @@ The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
 Macro name            | Description
 --------------------- | -----------
 ICUBABY_CXX20         | Has value 1 when compiled with C++ 20 or later and 0 otherwise.
-ICUBABY_CXX20REQUIRES | Used to enable use of the `require` keyword to state template constaints when compiled with C++ 20. An empty macro when compiled with versions of C++ prior to 20.
+ICUBABY_CXX20REQUIRES | Used to enable the `require` keyword to state template constraints when compiled with C++ 20. An empty macro when compiled with versions of C++ prior to 20.
 
 ### Helper types
 
-Name | Description
------- | -------------------------------------------------
-t8_8   | A transcoder which converts from UTF-8 to UTF-8.<br>Equivalent to `using t8_8 = transcoder<char8_t, char8_t>`.
-t8_16  | A transcoder which converts from UTF-8 to UTF-16.<br>Equivalent to `using t8_16 = transcoder<char8_t, char16_t>`.
-t8_32  | A transcoder which converts from UTF-8 to UTF-32.<br>Equivalent to `using t8_32 = transcoder<char8_t, char32_t>`.
-t16_8  | A transcoder which converts from UTF-16 to UTF-8.<br>Equivalent to `using t16_8 = transcoder<char16_t, char8_t>`.
-t16_16 | A transcoder which converts from UTF-16 to UTF-16.<br>Equivalent to `using t16_16 = transcoder<char16_t, char16_t>`.
-t16_32 | A transcoder which converts from UTF-16 to UTF-32.<br>Equivalent to `using t16_32 = transcoder<char16_t, char32_t>`.
-t32_8  | A transcoder which converts from UTF-32 to UTF-8.<br>Equivalent to `using 32_8 = transcoder<char32_t, char8_t>`.
-t32_16 | A transcoder which converts from UTF-32 to UTF-16.<br>Equivalent to `using t32_16 = transcoder<char32_t, char16_t>`.
-t32_32 | A transcoder which converts from UTF-32 to UTF-32.<br>Equivalent to `using t32_32 = transcoder<char32_t, char32_t>`.
+Type name | Description
+--------- | -------------------------------------------------
+t8_8      | A transcoder which converts from UTF-8 to UTF-8.<br>Equivalent to `using t8_8 = transcoder<char8_t, char8_t>`.
+t8_16     | A transcoder which converts from UTF-8 to UTF-16.<br>Equivalent to `using t8_16 = transcoder<char8_t, char16_t>`.
+t8_32     | A transcoder which converts from UTF-8 to UTF-32.<br>Equivalent to `using t8_32 = transcoder<char8_t, char32_t>`.
+t16_8     | A transcoder which converts from UTF-16 to UTF-8.<br>Equivalent to `using t16_8 = transcoder<char16_t, char8_t>`.
+t16_16    | A transcoder which converts from UTF-16 to UTF-16.<br>Equivalent to `using t16_16 = transcoder<char16_t, char16_t>`.
+t16_32    | A transcoder which converts from UTF-16 to UTF-32.<br>Equivalent to `using t16_32 = transcoder<char16_t, char32_t>`.
+t32_8     | A transcoder which converts from UTF-32 to UTF-8.<br>Equivalent to `using 32_8 = transcoder<char32_t, char8_t>`.
+t32_16    | A transcoder which converts from UTF-32 to UTF-16.<br>Equivalent to `using t32_16 = transcoder<char32_t, char16_t>`.
+t32_32    | A transcoder which converts from UTF-32 to UTF-32.<br>Equivalent to `using t32_32 = transcoder<char32_t, char32_t>`.
 
 ### char8
 
@@ -138,10 +153,65 @@ Member function | Description
 --------------- | -----------
 (constructor)   | Constructs a new transcoder.
 (destructor)    | Destructs a transcoder.
-operator()      | This member function is the heart of the transcoder. It accepts a single code unit in the input encoding and, once an entire code point has been consumed, produces the equivalent code point expressed in the output encoding. Malformed input is detected and be replaced with the Unicode [replacement character](https://unicode.org/glossary/#replacement_character) (U+FFFD REPLACEMENT CHARACTER).
+operator()      | Accepts a single code unit in the input encoding and, once an entire code point has been consumed, produces the equivalent code point expressed in the output encoding.
 end_cp          | Call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character.
 well_formed     | Returns true if the input was well formed, false otherwise.
 
+##### constructor
+
+~~~cpp
+transcoder ();
+explicit transcoder (bool well_formed);
+~~~
+
+##### operator()
+
+~~~cpp
+template <typename OutputIterator>
+  requires std::output_iterator<OutputIterator, output_type>
+OutputIterator operator() (input_type c, OutputIterator dest) noexcept;
+~~~
+
+This member function is the heart of the transcoder. It accepts a single code unit in the input encoding and, once an entire code point has been consumed, produces the equivalent code point expressed in the output encoding. Malformed input is detected and be replaced with the Unicode [replacement character](https://unicode.org/glossary/#replacement_character) (U+FFFD REPLACEMENT CHARACTER).
+
+###### Parameters
+
+Name | Description
+---- | -----------
+c    | A code unit in the input encoding.
+dest | An output iterator to which code units in the output encoding are written.
+
+###### Return value
+
+The `dest` iterator one past the last element assigned.
+
+##### end_cp
+
+~~~cpp
+template <typename OutputIterator>
+  requires std::output_iterator<OutputIterator, output_type>
+OutputIterator end_cp (OutputIterator dest);
+~~~
+
+Call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character.
+
+###### Parameters
+
+Name | Description
+---- | -----------
+dest | An output iterator to which code units in the output encoding are written.
+
+###### Return value
+
+The `dest` iterator one past the last element assigned.
+
+##### well_formed
+
+~~~cpp
+[[nodiscard]] constexpr bool well_formed () const;
+~~~
+
+Returns true if the input was well formed, false otherwise.
 
 ### iterator
 
@@ -149,6 +219,17 @@ well_formed     | Returns true if the input was well formed, false otherwise.
 template <typename Transcoder, typename OutputIterator>
 class icubaby::iterator;
 ~~~
+
+`icubaby::iterator<>` is an output iterator which can simplify use of transcoders with algorithms that take an iterator argument. When a value is written to the iterator, it calls the `transcoder<>::operator()` function. For example:
+
+~~~cpp
+icubaby::t8_16 t;
+std::vector<char16_t> out;
+auto it = icubaby::iterator{&t, std::back_inserter (out)};
+*(it++) = char8_t{'A'};
+~~~
+
+After writing to the `icubaby::iterator` instance `it`, the vector `out` contains 0x0041.
 
 `Transcoder` should be a type which implements the `transcoder<>` interface [described above](#transcoder); `OutputIterator` should be an [output iterator](https://en.cppreference.com/w/cpp/iterator/output_iterator) which produces values of type `Transcoder::output_type`.
 
