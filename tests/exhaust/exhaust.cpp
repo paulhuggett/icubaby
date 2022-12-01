@@ -34,12 +34,12 @@ namespace {
 // This test encodes every input code point and then decodes it to ensure that
 // we get back the character we started with.
 template <typename Encoder, typename Decoder>
-ICUBABY_CXX20REQUIRES (
-    (icubaby::is_transcoder<Encoder> && icubaby::is_transcoder<Decoder> &&
-     std::is_same_v<typename Encoder::output_type,
-                    typename Decoder::input_type> &&
-     std::is_same_v<typename Encoder::input_type, char32_t> &&
-     std::is_same_v<typename Decoder::output_type, char32_t>))
+ICUBABY_REQUIRES ((icubaby::is_transcoder<Encoder> &&
+                   icubaby::is_transcoder<Decoder> &&
+                   std::is_same_v<typename Encoder::output_type,
+                                  typename Decoder::input_type> &&
+                   std::is_same_v<typename Encoder::input_type, char32_t> &&
+                   std::is_same_v<typename Decoder::output_type, char32_t>))
 void check_each_code_point () {
   Encoder encode;
   Decoder decode;
@@ -83,10 +83,10 @@ std::vector<char32_t> all_code_points () {
 }
 
 template <typename Encoder, typename Decoder>
-ICUBABY_CXX20REQUIRES ((icubaby::is_transcoder<Encoder> &&
-                        icubaby::is_transcoder<Decoder> &&
-                        std::is_same_v<typename Encoder::output_type,
-                                       typename Decoder::input_type>))
+ICUBABY_REQUIRES ((icubaby::is_transcoder<Encoder> &&
+                   icubaby::is_transcoder<Decoder> &&
+                   std::is_same_v<typename Encoder::output_type,
+                                  typename Decoder::input_type>))
 void check_all_code_points () {
   Encoder encode;
   icubaby::transcoder<typename Encoder::output_type,
