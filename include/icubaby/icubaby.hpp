@@ -60,7 +60,10 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <version>
+#ifdef __cpp_lib_concepts
 #include <concepts>
+#endif
 #include <cstdint>
 #include <iterator>
 #include <limits>
@@ -77,7 +80,7 @@
 #define ICUBABY_CXX20 (0)
 #endif
 
-#if ICUBABY_CXX20
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
 #define ICUBABY_CXX20REQUIRES(x) requires x
 #else
 #define ICUBABY_CXX20REQUIRES(x)
@@ -85,7 +88,7 @@
 
 namespace icubaby {
 
-#if ICUBABY_CXX20
+#ifdef __cpp_char8_t
 using char8 = char8_t;
 #else
 using char8 = char;
@@ -144,7 +147,7 @@ InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
   });
 }
 
-#if ICUBABY_CXX20
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
 template <typename T>
 concept is_transcoder = requires (T t) {
                           typename T::input_type;
