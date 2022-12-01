@@ -108,7 +108,7 @@ t32_32    | A transcoder which converts from UTF-32 to UTF-32.<br>Equivalent to 
 
 ~~~cpp
 namespace icubaby {
-#if ICUBABY_CXX20
+#ifdef __cpp_char8_t
 using char8 = char8_t;
 #else
 using char8 = char;
@@ -121,8 +121,9 @@ C++ 20 introduced `char8_t` as the type for UTF-8 character representation. Sinc
 ### transcoder
 
 ~~~cpp
+namespace icubaby {
 template <typename From, typename To>
-class icubaby::transcoder {
+class transcoder {
 public:
   using input_type = From;
   using output_type = To;
@@ -135,6 +136,7 @@ public:
 
   bool well_formed () const;
 };
+} // end namespace icubaby
 ~~~
 
 Where `From` and `To` are each any of `icubaby::char8`, `char16_t`, or `char32_t`.
