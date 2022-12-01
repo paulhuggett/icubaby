@@ -60,31 +60,21 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <version>
-#ifdef __cpp_lib_concepts
-#include <concepts>
-#endif
 #include <cstdint>
 #include <iterator>
 #include <limits>
 #include <type_traits>
+#include <version>
 
-#if __cplusplus >= 202002L
-#define ICUBABY_CXX20 (1)
-#elif defined(_MSVC_LANG) && _MSVC_LANG >= 202002L
-// MSVC does not set the value of __cplusplus correctly unless the
-// /Zc:__cplusplus is supplied. We have to detect C++20 using its
-// compiler-specific macros instead.
-#define ICUBABY_CXX20 (1)
-#else
-#define ICUBABY_CXX20 (0)
+#ifdef __cpp_lib_concepts
+#include <concepts>
 #endif
 
-#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
-#define ICUBABY_CXX20REQUIRES(x) requires x
+#ifdef __cpp_concepts
+#define ICUBABY_REQUIRES(x) requires x
 #else
-#define ICUBABY_CXX20REQUIRES(x)
-#endif  // ICUBABY_CXX20
+#define ICUBABY_REQUIRES(x)
+#endif  // __cpp_concepts
 
 namespace icubaby {
 
@@ -124,7 +114,7 @@ constexpr bool is_code_point_start (char32_t c) noexcept {
 
 /// Returns the number of code points in a sequence.
 template <typename InputIterator>
-ICUBABY_CXX20REQUIRES (std::input_iterator<InputIterator>)
+ICUBABY_REQUIRES (std::input_iterator<InputIterator>)
 constexpr auto length (InputIterator first, InputIterator last) {
   return std::count_if (first, last,
                         [] (auto c) { return is_code_point_start (c); });
@@ -139,7 +129,7 @@ constexpr auto length (InputIterator first, InputIterator last) {
 /// \returns  An iterator that is 'pos' codepoints after the start of the range or
 ///           'last' if the end of the range was encountered.
 template <typename InputIterator>
-ICUBABY_CXX20REQUIRES (std::input_iterator<InputIterator>)
+ICUBABY_REQUIRES (std::input_iterator<InputIterator>)
 InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
   auto start_count = std::size_t{0};
   return std::find_if (first, last, [&start_count, pos] (auto c) {
@@ -156,7 +146,7 @@ concept is_transcoder = requires (T t) {
                           // both take template arguments.
                           { t.well_formed () } -> std::convertible_to<bool>;
                         };
-#endif  // ICUBABY_CXX20
+#endif  // __cpp_concepts
 
 /// An encoder takes a sequence of one of more code-units and converts it to an
 /// individual char32_t code-point.
@@ -164,7 +154,7 @@ template <typename From, typename To>
 class transcoder;
 
 template <typename Transcoder, typename OutputIterator>
-ICUBABY_CXX20REQUIRES (
+ICUBABY_REQUIRES (
     (is_transcoder<Transcoder> &&
      std::output_iterator<OutputIterator, typename Transcoder::output_type>))
 class iterator {
@@ -226,7 +216,7 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type c, OutputIterator dest) noexcept {
     if (c < 0x80) {
       *(dest++) = static_cast<output_type> (c);
@@ -254,13 +244,13 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr OutputIterator end_cp (OutputIterator dest) const {
     return dest;
   }
 
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (
       iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
@@ -324,7 +314,7 @@ public:
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     // Prior to C++20, char8 might be signed.
     auto const ucu = static_cast<std::make_unsigned_t<input_type>> (code_unit);
@@ -358,7 +348,7 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr OutputIterator end_cp (OutputIterator dest) {
     if (state_ != accept) {
       state_ = reject;
@@ -369,7 +359,7 @@ public:
   }
 
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (
       iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
@@ -422,7 +412,7 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type code_point, OutputIterator dest) {
     if (code_point <= 0xFFFF) {
       *(dest++) = static_cast<output_type> (code_point);
@@ -443,13 +433,13 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr OutputIterator end_cp (OutputIterator dest) {
     return dest;
   }
 
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (
       iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
@@ -474,7 +464,7 @@ public:
   explicit transcoder (bool well_formed) : well_formed_{well_formed} {}
 
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type c, OutputIterator dest) {
     if (!has_high_) {
       if (is_high_surrogate (c)) {
@@ -516,7 +506,7 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator end_cp (OutputIterator dest) {
     if (has_high_) {
       *(dest++) = replacement_char;
@@ -526,7 +516,7 @@ public:
   }
 
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (
       iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
@@ -552,7 +542,7 @@ public:
   using output_type = To;
 
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type c, OutputIterator dest) {
     if (to_inter_ (c, &inter_) != &inter_) {
       dest = to_out_ (inter_, dest);
@@ -561,7 +551,7 @@ public:
   }
 
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator end_cp (OutputIterator dest) {
     if (to_inter_.end_cp (&inter_) != &inter_) {
       dest = to_out_ (inter_, dest);
@@ -570,7 +560,7 @@ public:
   }
 
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder<From, To>, OutputIterator> end_cp (
       iterator<transcoder<From, To>, OutputIterator> dest) {
     auto t = dest.transcoder ();
@@ -609,7 +599,7 @@ public:
   using output_type = char32_t;
 
   template <typename OutputIt>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIt, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIt, output_type>))
   OutputIt operator() (input_type c, OutputIt dest) {
     // From D90 in Chapter 3 of Unicode 15.0.0
     // <https://www.unicode.org/versions/Unicode15.0.0/ch03.pdf>:
@@ -631,13 +621,13 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr OutputIterator end_cp (OutputIterator dest) const {
     return dest;
   }
 
   template <typename OutputIterator>
-  ICUBABY_CXX20REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (
       iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
