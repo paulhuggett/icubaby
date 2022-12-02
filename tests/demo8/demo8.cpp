@@ -24,6 +24,7 @@
 #include <iostream>
 #include <optional>
 #include <string_view>
+#include <vector>
 
 #include "icubaby/icubaby.hpp"
 
@@ -78,13 +79,38 @@ std::optional<std::u16string> convert2 (
   return out; // Conversion was successful.
 }
 
+void c3 () {
+  icubaby::t8_16 t;
+  std::vector<char16_t> out;
+  auto it = icubaby::iterator{&t, std::back_inserter (out)};
+  *(it++) = icubaby::char8{'A'};
+  t.end_cp (std::back_inserter (out));
+  show (std::cout, out);
+}
+
+void c4 () {
+  std::vector<char16_t> out;
+  icubaby::t8_16 t;
+  std::array<icubaby::char8, 4> const in{
+      static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
+      static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
+  auto it = icubaby::iterator{&t, std::back_inserter (out)};
+  for (auto cu : in) {
+    *(it++) = cu;
+  }
+  it = t.end_cp (it);
+  show (std::cout, out);
+}
+
 }  // namespace
 
 int main () {
   using namespace std::string_view_literals;
-  auto const in = u8"こんにちは世界\n"sv;
-  show (std::cout, in);
+  icubaby::char8 const* in = u8"こんにちは世界\n";
+  show (std::cout, std::basic_string_view<icubaby::char8> (in));
   show (std::cout, *convert (in));
   show (std::cout, *convert2 (in));
+  c3 ();
+  c4 ();
 }
 

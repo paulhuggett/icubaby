@@ -84,7 +84,12 @@ using char8 = char8_t;
 using char8 = char;
 #endif
 
+using u8string = std::basic_string<char8>;
+using u8string_view = std::basic_string_view<char8>;
+
+/// A constant for U+FFFD REPLACEMENT CHARACTER
 inline constexpr auto replacement_char = char32_t{0xFFFD};
+
 inline constexpr auto first_high_surrogate = char32_t{0xD800};
 inline constexpr auto last_high_surrogate = char32_t{0xDBFF};
 inline constexpr auto first_low_surrogate = char32_t{0xDC00};
@@ -460,8 +465,9 @@ public:
   using input_type = char16_t;
   using output_type = char32_t;
 
-  transcoder () = default;
-  explicit transcoder (bool well_formed) : well_formed_{well_formed} {}
+  transcoder () : transcoder (true) {}
+  explicit transcoder (bool well_formed)
+      : high_{0}, has_high_{false}, well_formed_{well_formed} {}
 
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
@@ -473,6 +479,7 @@ public:
         assert (c >= first_high_surrogate);
         auto const h = c - first_high_surrogate;
         assert (h < std::numeric_limits<decltype (high_)>::max ());
+        assert (h < (1U << high_bits));
         high_ = static_cast<uint_least16_t> (h);
         has_high_ = true;
         return dest;
@@ -485,17 +492,19 @@ public:
     if (is_low_surrogate (c)) {
       // We saw a high/low surrogate pair.
       has_high_ = false;
-      *(dest++) = (static_cast<char32_t> (high_) << 10) +
+      *(dest++) = (static_cast<char32_t> (high_) << high_bits) +
                   (c - first_low_surrogate) + 0x10000;
       return dest;
     }
     // There was a high surrogate followed by something other than a low
-    // surrogate.
-    if (is_high_surrogate (c)) {
-      c = replacement_char;
-    }
+    // surrogate. A high surrogate followed by a second high surrogate yields
+    // a single REPLACEMENT CHARACTER. A high followed by something other than
+    // a low surrogate gives REPLACEMENT CHARACTER followed by the second input
+    // character.
     *(dest++) = replacement_char;
-    *(dest++) = c;
+    if (!is_high_surrogate (c)) {
+      *(dest++) = c;
+    }
     well_formed_ = false;
     return dest;
   }
@@ -508,7 +517,7 @@ public:
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator end_cp (OutputIterator dest) {
-    if (has_high_) {
+    if (has_high ()) {
       *(dest++) = replacement_char;
       well_formed_ = false;
     }
@@ -524,13 +533,14 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
+  [[nodiscard]] constexpr bool has_high () const { return has_high_; }
   [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
 
 private:
-  static constexpr int high_bits = 10;
-  bool has_high_ = false;
-  bool well_formed_ = true;
-  uint_least16_t high_ = 0;
+  static constexpr auto high_bits = 10U;
+  uint_least16_t high_ : high_bits;
+  uint_least16_t has_high_ : 1;
+  uint_least16_t well_formed_ : 1;
 };
 
 namespace details {

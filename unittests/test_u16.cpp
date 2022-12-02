@@ -145,8 +145,7 @@ TEST (Utf16, HighSurrogateFollowedbyAnotherHigh) {
   EXPECT_TRUE (out.empty ());
   it = d2 (icubaby::first_high_surrogate, it);
   EXPECT_FALSE (d2.well_formed ());
-  EXPECT_THAT (
-      out, ElementsAre (icubaby::replacement_char, icubaby::replacement_char));
+  EXPECT_THAT (out, ElementsAre (icubaby::replacement_char));
 }
 
 // NOLINTNEXTLINE
