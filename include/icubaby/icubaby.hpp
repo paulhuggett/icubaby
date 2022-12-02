@@ -467,7 +467,9 @@ public:
 
   transcoder () : transcoder (true) {}
   explicit transcoder (bool well_formed)
-      : high_{0}, has_high_{false}, well_formed_{well_formed} {}
+      : high_{0},
+        has_high_{false},
+        well_formed_{static_cast<uint_least16_t> (well_formed)} {}
 
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
