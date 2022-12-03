@@ -150,6 +150,7 @@ concept is_transcoder = requires (T t) {
                           // we must also have operator() and end_cp() which
                           // both take template arguments.
                           { t.well_formed () } -> std::convertible_to<bool>;
+                          { t.partial () } -> std::convertible_to<bool>;
                         };
 #endif  // __cpp_concepts
 
@@ -243,7 +244,7 @@ public:
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial character.
+  /// function ensures that the sequence did not end with a partial code point.
   ///
   /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -265,6 +266,7 @@ public:
 
   /// \returns True if the input represented well formed UTF-32.
   [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
+  [[nodiscard]] constexpr bool partial () const { return false; }
 
 private:
   bool well_formed_ = true;
@@ -347,7 +349,7 @@ public:
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial character.
+  /// function ensures that the sequence did not end with a partial code point.
   ///
   /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -374,6 +376,7 @@ public:
 
   /// \returns True if the input represented well formed UTF-8.
   [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
+  [[nodiscard]] constexpr bool partial () const { return state_ != accept; }
 
 private:
   static inline std::array<uint8_t, 364> const utf8d_ = {{
@@ -433,7 +436,7 @@ public:
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial character.
+  /// function ensures that the sequence did not end with a partial code point.
   ///
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
@@ -454,6 +457,7 @@ public:
 
   /// \returns True if the input represented valid UTF-32.
   [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
+  [[nodiscard]] constexpr bool partial () const { return false; }
 
 private:
   bool well_formed_ = true;
@@ -476,7 +480,7 @@ public:
   OutputIterator operator() (input_type c, OutputIterator dest) {
     if (!has_high_) {
       if (is_high_surrogate (c)) {
-        // A high surrogate character indicates that this is the first of a
+        // A high surrogate code unit indicates that this is the first of a
         // high/low surrogate pair.
         assert (c >= first_high_surrogate);
         auto const h = c - first_high_surrogate;
@@ -487,40 +491,50 @@ public:
         return dest;
       }
 
+      // A low surrogate without a preceeding high surrogate.
+      if (is_low_surrogate (c)) {
+        well_formed_ = false;
+        c = replacement_char;
+      }
       *(dest++) = c;
       return dest;
     }
 
+    // A high surrogate followed by a low surrogate.
     if (is_low_surrogate (c)) {
-      // We saw a high/low surrogate pair.
-      has_high_ = false;
       *(dest++) = (static_cast<char32_t> (high_) << high_bits) +
                   (c - first_low_surrogate) + 0x10000;
+      high_ = 0;
+      has_high_ = false;
       return dest;
     }
     // There was a high surrogate followed by something other than a low
     // surrogate. A high surrogate followed by a second high surrogate yields
     // a single REPLACEMENT CHARACTER. A high followed by something other than
     // a low surrogate gives REPLACEMENT CHARACTER followed by the second input
-    // character.
+    // code point.
     *(dest++) = replacement_char;
     if (!is_high_surrogate (c)) {
       *(dest++) = c;
+      high_ = 0;
+      has_high_ = false;
     }
     well_formed_ = false;
     return dest;
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial character.
+  /// function ensures that the sequence did not end with a partial code point.
   ///
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator end_cp (OutputIterator dest) {
-    if (has_high ()) {
+    if (has_high_) {
       *(dest++) = replacement_char;
+      high_ = 0;
+      has_high_ = false;
       well_formed_ = false;
     }
     return dest;
@@ -535,13 +549,19 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
-  [[nodiscard]] constexpr bool has_high () const { return has_high_; }
   [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
+  [[nodiscard]] constexpr bool partial () const { return has_high_; }
 
 private:
   static constexpr auto high_bits = 10U;
+  /// The previous high surrogate that was passed to operator(). Valid if
+  /// has_high_ is true.
   uint_least16_t high_ : high_bits;
+  /// true if the previous code unit passed to operator() was a high surrogate,
+  /// false otherwise.
   uint_least16_t has_high_ : 1;
+  /// true if the code units passed to operator() represent well formed UTF-16
+  /// input, false otherwise.
   uint_least16_t well_formed_ : 1;
 };
 
@@ -583,6 +603,8 @@ public:
   [[nodiscard]] constexpr bool well_formed () const {
     return to_inter_.well_formed () && to_out_.well_formed ();
   }
+
+  [[nodiscard]] constexpr bool partial () const { return to_inter_.partial (); }
 
 private:
   char32_t inter_ = 0;
@@ -628,7 +650,7 @@ public:
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial character.
+  /// function ensures that the sequence did not end with a partial code point.
   ///
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
@@ -648,6 +670,7 @@ public:
   }
 
   [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
+  [[nodiscard]] constexpr bool partial () const { return false; }
 
 private:
   bool well_formed_ = true;

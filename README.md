@@ -157,8 +157,9 @@ Member function | Description
 (constructor)   | Constructs a new transcoder.
 (destructor)    | Destructs a transcoder.
 operator()      | Accepts a single code unit in the input encoding and, once an entire code point has been consumed, produces the equivalent code point expressed in the output encoding.
-end_cp          | Call once the entire input has been fed to operator() to ensures the sequence did not end with a partial character.
+end_cp          | Call once the entire input has been fed to `operator()` to ensure the sequence did not end with a partial character.
 well_formed     | Returns true if the input was well formed, false otherwise.
+partial         | Returns true if part of a multi code unit code point has been consumed, false otherwise.
 
 ##### constructor
 

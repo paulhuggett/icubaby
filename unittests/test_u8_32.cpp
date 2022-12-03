@@ -55,9 +55,11 @@ TEST (Utf8To32, GoodDollarSign) {
   EXPECT_TRUE (d.well_formed ());
   out = d (0x24, out);
   EXPECT_TRUE (d.well_formed ());
+  EXPECT_FALSE (d.partial ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0024}));
   d.end_cp (out);
   EXPECT_TRUE (d.well_formed ());
+  EXPECT_FALSE (d.partial ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0024}));
 }
 
@@ -73,12 +75,15 @@ TEST (Utf8To32, GoodCentSign) {
   icubaby::t8_32 d;
   out = d (cent_sign[0], out);
   EXPECT_TRUE (d.well_formed ());
+  EXPECT_TRUE (d.partial ());
   EXPECT_TRUE (cu.empty ());
   out = d (cent_sign[1], out);
   EXPECT_TRUE (d.well_formed ());
+  EXPECT_FALSE (d.partial ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x00A2}));
   out = d.end_cp (out);
   EXPECT_TRUE (d.well_formed ());
+  EXPECT_FALSE (d.partial ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x00A2}));
 }
 
@@ -95,15 +100,19 @@ TEST (Utf8To32, GoodDevanagariLetterHa) {
   icubaby::t8_32 d;
   out = d (devanagri_letter_ha[0], out);
   EXPECT_TRUE (d.well_formed ());
+  EXPECT_TRUE (d.partial ());
   EXPECT_TRUE (cu.empty ());
   out = d (devanagri_letter_ha[1], out);
   EXPECT_TRUE (d.well_formed ());
+  EXPECT_TRUE (d.partial ());
   EXPECT_TRUE (cu.empty ());
   out = d (devanagri_letter_ha[2], out);
   EXPECT_TRUE (d.well_formed ());
+  EXPECT_FALSE (d.partial ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0939}));
   out = d.end_cp (out);
   EXPECT_TRUE (d.well_formed ());
+  EXPECT_FALSE (d.partial ());
   EXPECT_THAT (cu, ElementsAre (char32_t{0x0939}));
 }
 
