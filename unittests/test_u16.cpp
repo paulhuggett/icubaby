@@ -186,7 +186,7 @@ TEST_F (Utf16To32, HighSurrogateWithoutLow) {
   EXPECT_TRUE (transcoder_.well_formed ());
   EXPECT_TRUE (transcoder_.partial ());
   EXPECT_TRUE (output_.empty ());
-  it = transcoder_ (char16_t{0x0000}, it);
+  transcoder_ (char16_t{0x0000}, it);
   EXPECT_FALSE (transcoder_.well_formed ());
   EXPECT_FALSE (transcoder_.partial ());
   EXPECT_THAT (output_,
@@ -206,6 +206,7 @@ TEST_F (Utf16To32, HighSurrogateFollowedbyAnotherHigh) {
   EXPECT_THAT (output_, ElementsAre (icubaby::replacement_char));
 }
 
+// NOLINTNEXTLINE
 TEST_F (Utf16To32, HighSurrogateFollowedByHighLowPair) {
   static constexpr std::array<char16_t, 3> code_units{
       char16_t{0xd800}, char16_t{0xd800}, char16_t{0xdc00}};
