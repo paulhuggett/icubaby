@@ -265,8 +265,10 @@ public:
   }
 
   /// \returns True if the input represented well formed UTF-32.
-  [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
-  [[nodiscard]] constexpr bool partial () const { return false; }
+  [[nodiscard]] constexpr bool well_formed () const noexcept {
+    return well_formed_;
+  }
+  [[nodiscard]] static constexpr bool partial () noexcept { return false; }
 
 private:
   bool well_formed_ = true;
@@ -375,8 +377,12 @@ public:
   }
 
   /// \returns True if the input represented well formed UTF-8.
-  [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
-  [[nodiscard]] constexpr bool partial () const { return state_ != accept; }
+  [[nodiscard]] constexpr bool well_formed () const noexcept {
+    return well_formed_;
+  }
+  [[nodiscard]] constexpr bool partial () const noexcept {
+    return state_ != accept;
+  }
 
 private:
   static inline std::array<uint8_t, 364> const utf8d_ = {{
@@ -456,8 +462,10 @@ public:
   }
 
   /// \returns True if the input represented valid UTF-32.
-  [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
-  [[nodiscard]] constexpr bool partial () const { return false; }
+  [[nodiscard]] constexpr bool well_formed () const noexcept {
+    return well_formed_;
+  }
+  [[nodiscard]] static constexpr bool partial () noexcept { return false; }
 
 private:
   bool well_formed_ = true;
@@ -549,8 +557,10 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
-  [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
-  [[nodiscard]] constexpr bool partial () const { return has_high_; }
+  [[nodiscard]] constexpr bool well_formed () const noexcept {
+    return well_formed_;
+  }
+  [[nodiscard]] constexpr bool partial () const noexcept { return has_high_; }
 
 private:
   static constexpr auto high_bits = 10U;
@@ -600,11 +610,13 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
-  [[nodiscard]] constexpr bool well_formed () const {
+  [[nodiscard]] constexpr bool well_formed () const noexcept {
     return to_inter_.well_formed () && to_out_.well_formed ();
   }
 
-  [[nodiscard]] constexpr bool partial () const { return to_inter_.partial (); }
+  [[nodiscard]] constexpr bool partial () const noexcept {
+    return to_inter_.partial ();
+  }
 
 private:
   char32_t inter_ = 0;
@@ -669,8 +681,10 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
-  [[nodiscard]] constexpr bool well_formed () const { return well_formed_; }
-  [[nodiscard]] constexpr bool partial () const { return false; }
+  [[nodiscard]] constexpr bool well_formed () const noexcept {
+    return well_formed_;
+  }
+  [[nodiscard]] constexpr bool partial () const noexcept { return false; }
 
 private:
   bool well_formed_ = true;
