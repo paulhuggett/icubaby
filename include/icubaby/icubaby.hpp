@@ -171,7 +171,7 @@ public:
   using pointer = void;
   using reference = void;
 
-  constexpr iterator (Transcoder* transcoder, OutputIterator it)
+  iterator (Transcoder* transcoder, OutputIterator it)
       : transcoder_{transcoder}, it_{it} {}
   iterator (iterator const& rhs) = default;
   iterator (iterator&& rhs) noexcept = default;
@@ -215,8 +215,9 @@ public:
   using input_type = char32_t;
   using output_type = char8;
 
-  transcoder () = default;
-  explicit transcoder (bool well_formed) : well_formed_{well_formed} {}
+  constexpr transcoder () noexcept = default;
+  explicit constexpr transcoder (bool well_formed) noexcept
+      : well_formed_{well_formed} {}
 
   /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -420,8 +421,9 @@ public:
   using input_type = char32_t;
   using output_type = char16_t;
 
-  transcoder () = default;
-  explicit transcoder (bool well_formed) : well_formed_{well_formed} {}
+  constexpr transcoder () noexcept = default;
+  explicit constexpr transcoder (bool well_formed) noexcept
+      : well_formed_{well_formed} {}
 
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
@@ -477,10 +479,10 @@ public:
   using input_type = char16_t;
   using output_type = char32_t;
 
-  transcoder () : transcoder (true) {}
-  explicit transcoder (bool well_formed)
+  constexpr transcoder () noexcept : transcoder (true) {}
+  explicit constexpr transcoder (bool well_formed) noexcept
       : high_{0},
-        has_high_{false},
+        has_high_{static_cast<uint_least16_t> (false)},
         well_formed_{static_cast<uint_least16_t> (well_formed)} {}
 
   template <typename OutputIterator>
