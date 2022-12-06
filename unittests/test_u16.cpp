@@ -52,6 +52,7 @@ std::string GetTypeName<char8_t> () {
 }  // end namespace testing
 #endif
 
+using namespace std::string_literals;
 using testing::ElementsAre;
 using testing::ElementsAreArray;
 
@@ -213,10 +214,28 @@ protected:
   icubaby::transcoder<char16_t, T> transcoder_;
 };
 
+class OutputTypeNames {
+public:
+  template <typename T>
+  static std::string GetName (int) {
+    if constexpr (std::is_same<T, icubaby::char8> ()) {
+      return "icubaby::char8"s;
+    }
+    if constexpr (std::is_same<T, char16_t> ()) {
+      return "char16_t"s;
+    }
+    if constexpr (std::is_same<T, char32_t> ()) {
+      return "char32_t"s;
+    }
+    assert (false && "Unreachable!");
+    return {};
+  }
+};
+
 }  // end anonymous namespace
 
-using output_types = testing::Types<icubaby::char8, char16_t, char32_t>;
-TYPED_TEST_SUITE (Utf16, output_types);
+using OutputTypes = testing::Types<icubaby::char8, char16_t, char32_t>;
+TYPED_TEST_SUITE (Utf16, OutputTypes, OutputTypeNames);
 // NOLINTNEXTLINE
 TYPED_TEST (Utf16, GoodDollarSign) {
   auto& transcoder = this->transcoder_;
