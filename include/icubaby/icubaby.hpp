@@ -78,7 +78,7 @@
 
 namespace icubaby {
 
-#ifdef __cpp_char8_t
+#if defined(__cpp_char8_t) && defined(__cpp_lib_char8_t)
 using char8 = char8_t;
 #else
 using char8 = char;
@@ -588,21 +588,20 @@ public:
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type c, OutputIterator dest) {
-    char32_t inter = 0;
-    if (to_inter_ (c, &inter) != &inter) {
-      dest = to_out_ (inter, dest);
-    }
-    return dest;
+    // The (intermediate) output from the conversion to UTF-32. It's possible
+    // for the transcoder to produce more than a single output code unit if the
+    // input is malformed.
+    std::array<char32_t, 2> intermediate;
+    auto begin = std::begin (intermediate);
+    return copy (begin, to_inter_ (c, begin), dest);
   }
 
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator end_cp (OutputIterator dest) {
-    char32_t inter = 0;
-    if (to_inter_.end_cp (&inter) != &inter) {
-      dest = to_out_ (inter, dest);
-    }
-    return to_out_.end_cp (dest);
+    std::array<char32_t, 2> intermediate;
+    auto begin = std::begin (intermediate);
+    return copy (begin, to_inter_.end_cp (begin), dest);
   }
 
   template <typename OutputIterator>
@@ -625,6 +624,14 @@ public:
 private:
   transcoder<input_type, char32_t> to_inter_;
   transcoder<char32_t, output_type> to_out_;
+
+  template <typename InputIterator, typename OutputIterator>
+  OutputIterator copy (InputIterator first, InputIterator last,
+                       OutputIterator dest) {
+    std::for_each (first, last,
+                   [this, &dest] (char32_t c) { dest = to_out_ (c, dest); });
+    return dest;
+  }
 };
 
 }  // end namespace details

@@ -35,6 +35,20 @@ static_assert (std::is_same_v<icubaby::t16_16::input_type, char16_t> &&
 static_assert (std::is_same_v<icubaby::t16_32::input_type, char16_t> &&
                std::is_same_v<icubaby::t16_32::output_type, char32_t>);
 
+// TODO: A specialization of the gtest GetTypeName<char8_t>() function. This is
+// required for compiling with Xcode 14.1 where we have a link error due to
+// missing typeinfo for char8_t.
+namespace testing {
+namespace internal {
+
+template <>
+std::string GetTypeName<char8_t> () {
+  return "char8_t";
+}
+
+}  // end namespace internal
+}  // end namespace testing
+
 using testing::ElementsAre;
 using testing::ElementsAreArray;
 
@@ -42,228 +56,401 @@ using testing::ElementsAreArray;
 
 namespace {
 
-class Utf16To32 : public testing::Test {
+constexpr auto start_of_heading = char32_t{0x001};
+constexpr auto start_of_text = char32_t{0x002};
+constexpr auto replacement_char = icubaby::replacement_char;
+constexpr auto dollar_sign = char32_t{0x0024};
+constexpr auto code_point_ffff = char32_t{0xffff};
+constexpr auto linear_b_syllable_b008_a = char32_t{0x10000};
+constexpr auto cuneiform_sign_uru_times_ki = char32_t{0x12345};
+constexpr auto last_valid_code_point = char32_t{0x10ffff};
+
+template <char32_t C, typename To>
+struct encoded_char;
+
+template <>
+struct encoded_char<start_of_heading, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {start_of_heading};
+};
+template <>
+struct encoded_char<start_of_heading, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {
+      static_cast<char16_t> (start_of_heading)};
+};
+template <>
+struct encoded_char<start_of_heading, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 1> value = {
+      static_cast<icubaby::char8> (start_of_heading)};
+};
+
+template <>
+struct encoded_char<start_of_text, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {start_of_text};
+};
+template <>
+struct encoded_char<start_of_text, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {
+      static_cast<char16_t> (start_of_text)};
+};
+template <>
+struct encoded_char<start_of_text, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 1> value = {
+      static_cast<icubaby::char8> (start_of_text)};
+};
+
+template <>
+struct encoded_char<dollar_sign, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {dollar_sign};
+};
+template <>
+struct encoded_char<dollar_sign, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {
+      static_cast<char16_t> (dollar_sign)};
+};
+template <>
+struct encoded_char<dollar_sign, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 1> value = {
+      static_cast<icubaby::char8> (dollar_sign)};
+};
+
+template <>
+struct encoded_char<replacement_char, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {replacement_char};
+};
+template <>
+struct encoded_char<replacement_char, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {
+      static_cast<char16_t> (replacement_char)};
+};
+template <>
+struct encoded_char<replacement_char, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value = {
+      static_cast<icubaby::char8> (0xEF), static_cast<icubaby::char8> (0xBF),
+      static_cast<icubaby::char8> (0xBD)};
+};
+
+template <>
+struct encoded_char<code_point_ffff, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {code_point_ffff};
+};
+template <>
+struct encoded_char<code_point_ffff, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {
+      static_cast<char16_t> (code_point_ffff)};
+};
+template <>
+struct encoded_char<code_point_ffff, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value{
+      static_cast<icubaby::char8> (0xef), static_cast<icubaby::char8> (0xbf),
+      static_cast<icubaby::char8> (0xbf)};
+};
+
+template <>
+struct encoded_char<linear_b_syllable_b008_a, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {linear_b_syllable_b008_a};
+};
+template <>
+struct encoded_char<linear_b_syllable_b008_a, char16_t> {
+  static constexpr std::array<char16_t, 2> value = {char16_t{0xd800},
+                                                    char16_t{0xdc00}};
+};
+template <>
+struct encoded_char<linear_b_syllable_b008_a, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 4> value{
+      static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x90),
+      static_cast<icubaby::char8> (0x80), static_cast<icubaby::char8> (0x80)};
+};
+
+template <>
+struct encoded_char<cuneiform_sign_uru_times_ki, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {
+      cuneiform_sign_uru_times_ki};
+};
+template <>
+struct encoded_char<cuneiform_sign_uru_times_ki, char16_t> {
+  static constexpr std::array<char16_t, 2> value = {char16_t{0xd808},
+                                                    char16_t{0xdf45}};
+};
+template <>
+struct encoded_char<cuneiform_sign_uru_times_ki, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 4> value = {
+      static_cast<icubaby::char8> (0xf0), static_cast<icubaby::char8> (0x92),
+      static_cast<icubaby::char8> (0x8d), static_cast<icubaby::char8> (0x85)};
+};
+
+template <>
+struct encoded_char<last_valid_code_point, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {last_valid_code_point};
+};
+template <>
+struct encoded_char<last_valid_code_point, char16_t> {
+  static constexpr std::array<char16_t, 2> value = {char16_t{0xdbff},
+                                                    char16_t{0xdfff}};
+};
+template <>
+struct encoded_char<last_valid_code_point, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 4> value = {
+      static_cast<icubaby::char8> (0xf4), static_cast<icubaby::char8> (0x8f),
+      static_cast<icubaby::char8> (0xbf), static_cast<icubaby::char8> (0xbf)};
+};
+
+template <char32_t C, typename To>
+inline constexpr auto encoded_char_v = encoded_char<C, To>::value;
+
+template <char32_t C, typename To, typename OutputIterator>
+OutputIterator append (OutputIterator out) {
+  constexpr auto& code_units = encoded_char_v<C, To>;
+  return std::copy (std::begin (code_units), std::end (code_units), out);
+}
+
+template <typename T>
+class Utf16 : public testing::Test {
 protected:
-  std::vector<char32_t> output_;
-  icubaby::t16_32 transcoder_;
+  std::vector<T> output_;
+  icubaby::transcoder<char16_t, T> transcoder_;
 };
 
 }  // end anonymous namespace
 
+using output_types = testing::Types<icubaby::char8, char16_t, char32_t>;
+TYPED_TEST_SUITE (Utf16, output_types);
 // NOLINTNEXTLINE
-TEST_F (Utf16To32, Char1) {
-  EXPECT_TRUE (transcoder_.well_formed ());
-
-  // Explicitly state the expected type of the operator() return value just this
-  // first time.
-  std::back_insert_iterator<decltype (output_)> it =
-      transcoder_ (char16_t{1}, std::back_inserter (output_));
-  EXPECT_TRUE (transcoder_.well_formed ()) << "input was well formed";
-  EXPECT_FALSE (transcoder_.partial ()) << "there were no surrogate code units";
-  EXPECT_THAT (output_, ElementsAre (char32_t{1}))
-      << "transcoder should have written a single char32_t{1} to the output "
-         "container";
-  transcoder_.end_cp (it);
-  EXPECT_TRUE (transcoder_.well_formed ()) << "input was well formed";
-  EXPECT_FALSE (transcoder_.partial ()) << "there were no surrogate code units";
-
-  *(it++) = char32_t{2};
-  EXPECT_THAT (output_, ElementsAre (char32_t{1}, char32_t{2}))
-      << "Check for operator() return iterator failed";
+TYPED_TEST (Utf16, GoodDollarSign) {
+  auto& transcoder = this->transcoder_;
+  auto& output = this->output_;
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  auto it = transcoder (static_cast<char16_t> (dollar_sign),
+                        std::back_inserter (output));
+  EXPECT_TRUE (transcoder.well_formed ()) << "input should be well formed";
+  EXPECT_FALSE (transcoder.partial ()) << "there were no surrogate code units";
+  transcoder.end_cp (it);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  EXPECT_THAT (output,
+               ElementsAreArray (encoded_char_v<dollar_sign, TypeParam>));
 }
-
 // NOLINTNEXTLINE
-TEST_F (Utf16To32, Char2) {
-  auto it = transcoder_ (char16_t{2}, std::back_inserter (output_));
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  transcoder_.end_cp (it);
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAre (char32_t{2}));
+TYPED_TEST (Utf16, StartOfHeadingAndText) {
+  auto& transcoder = this->transcoder_;
+  auto& output = this->output_;
+  auto it = transcoder (static_cast<char16_t> (start_of_heading),
+                        std::back_inserter (output));
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  it = transcoder (static_cast<char16_t> (start_of_text), it);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  transcoder.end_cp (it);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+
+  std::vector<TypeParam> expected;
+  append<start_of_heading, TypeParam> (std::back_inserter (expected));
+  append<start_of_text, TypeParam> (std::back_inserter (expected));
+  EXPECT_THAT (output, ElementsAreArray (expected));
 }
-
 // NOLINTNEXTLINE
-TEST_F (Utf16To32, Char1AndChar2) {
-  auto it = transcoder_ (char16_t{1}, std::back_inserter (output_));
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  it = transcoder_ (char16_t{2}, it);
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  transcoder_.end_cp (it);
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAre (char32_t{1}, char32_t{2}));
+TYPED_TEST (Utf16, CharFFFF) {
+  auto& transcoder = this->transcoder_;
+  auto& output = this->output_;
+  auto it = transcoder (static_cast<char16_t> (code_point_ffff),
+                        std::back_inserter (output));
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  transcoder.end_cp (it);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  EXPECT_THAT (output,
+               ElementsAreArray (encoded_char_v<code_point_ffff, TypeParam>));
 }
-
 // NOLINTNEXTLINE
-TEST_F (Utf16To32, CharFFFF) {
-  auto it = transcoder_ (char16_t{0xffff}, std::back_inserter (output_));
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  transcoder_.end_cp (it);
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAre (char32_t{0xffff}));
-}
+TYPED_TEST (Utf16, FirstHighLowSurrogatePair) {
+  auto& transcoder = this->transcoder_;
+  auto& output = this->output_;
 
-// NOLINTNEXTLINE
-TEST_F (Utf16To32, FirstHighLowSurrogatePair) {
   static constexpr auto code_units =
       std::make_pair (static_cast<char16_t> (icubaby::first_high_surrogate),
                       static_cast<char16_t> (icubaby::first_low_surrogate));
-  static constexpr auto expected_cp = char32_t{0x10000};
 
   static_assert (icubaby::is_high_surrogate (std::get<0> (code_units)));
   static_assert (icubaby::is_low_surrogate (std::get<1> (code_units)));
 
-  auto it =
-      transcoder_ (std::get<0> (code_units), std::back_inserter (output_));
-  EXPECT_TRUE (transcoder_.well_formed ())
+  auto it = transcoder (std::get<0> (code_units), std::back_inserter (output));
+  EXPECT_TRUE (transcoder.well_formed ())
       << "input is well formed after just a high surrogate";
-  EXPECT_TRUE (transcoder_.partial ())
+  EXPECT_TRUE (transcoder.partial ())
       << "partial() should be true after a high surrogate";
-  EXPECT_TRUE (output_.empty ())
+  EXPECT_TRUE (output.empty ())
       << "there should be no output after a high surrogate";
-  it = transcoder_ (std::get<1> (code_units), it);
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ())
+  it = transcoder (std::get<1> (code_units), it);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ())
       << "partial() should be false after a high/low surrogate pair";
-  EXPECT_THAT (output_, ElementsAre (expected_cp))
-      << "high/low surrogate pair should yield a single code point";
-  transcoder_.end_cp (it);
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAre (expected_cp));
+  EXPECT_THAT (
+      output,
+      ElementsAreArray (encoded_char_v<linear_b_syllable_b008_a, TypeParam>));
+  transcoder.end_cp (it);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  EXPECT_THAT (
+      output,
+      ElementsAreArray (encoded_char_v<linear_b_syllable_b008_a, TypeParam>));
 }
-
 // NOLINTNEXTLINE
-TEST_F (Utf16To32, HighLowSurrogatePairExample) {
-  static constexpr auto first =
-      std::make_pair (char16_t{0xd808}, char16_t{0xdf45});
-  static constexpr auto second =
-      std::make_pair (char16_t{0xdbff}, char16_t{0xdfff});
-  static constexpr std::array<char32_t, 2> expected{char32_t{0x12345},
-                                                    char32_t{0x10ffff}};
+TYPED_TEST (Utf16, HighLowSurrogatePairExample) {
+  auto& transcoder = this->transcoder_;
+  auto& output = this->output_;
 
-  static_assert (icubaby::is_high_surrogate (std::get<0> (first)));
-  static_assert (icubaby::is_low_surrogate (std::get<1> (first)));
-  static_assert (icubaby::is_high_surrogate (std::get<0> (second)));
-  static_assert (icubaby::is_low_surrogate (std::get<1> (second)));
+  constexpr auto const& char1 =
+      encoded_char_v<cuneiform_sign_uru_times_ki, char16_t>;
+  static_assert (char1.size () == 2U);
+  static_assert (icubaby::is_high_surrogate (std::get<0> (char1)));
+  static_assert (icubaby::is_low_surrogate (std::get<1> (char1)));
 
-  auto it = transcoder_ (std::get<0> (first), std::back_inserter (output_));
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_TRUE (transcoder_.partial ())
+  constexpr auto const& char2 = encoded_char_v<last_valid_code_point, char16_t>;
+  static_assert (char2.size () == 2U);
+  static_assert (icubaby::is_high_surrogate (std::get<0> (char2)));
+  static_assert (icubaby::is_low_surrogate (std::get<1> (char2)));
+
+  std::vector<TypeParam> expected;
+  auto it = transcoder (std::get<0> (char1), std::back_inserter (output));
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_TRUE (transcoder.partial ())
       << "a high surrogate means we have a partial code point";
-  EXPECT_TRUE (output_.empty ())
+  EXPECT_TRUE (output.empty ())
       << "there should be no output after a high surrogate";
 
-  it = transcoder_ (std::get<1> (first), it);
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAreArray (expected.data (), 1));
+  it = transcoder (std::get<1> (char1), it);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+
+  append<cuneiform_sign_uru_times_ki, TypeParam> (
+      std::back_inserter (expected));
+  EXPECT_THAT (output, ElementsAreArray (expected));
 
   // Repeat the pattern for the second CU pair.
-  it = transcoder_ (std::get<0> (second), it);
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_TRUE (transcoder_.partial ());
-  it = transcoder_ (std::get<1> (second), it);
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAreArray (expected));
+  it = transcoder (std::get<0> (char2), it);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_TRUE (transcoder.partial ());
+  it = transcoder (std::get<1> (char2), it);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  append<last_valid_code_point, TypeParam> (std::back_inserter (expected));
+  EXPECT_THAT (output, ElementsAreArray (expected));
 
   // End of input sequence.
-  transcoder_.end_cp (it);
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAreArray (expected));
+  transcoder.end_cp (it);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  EXPECT_THAT (output, ElementsAreArray (expected));
 }
-
 // NOLINTNEXTLINE
-TEST_F (Utf16To32, HighSurrogateWithoutLow) {
-  auto it = transcoder_ (char16_t{0xd800}, std::back_inserter (output_));
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_TRUE (transcoder_.partial ());
-  EXPECT_TRUE (output_.empty ());
-  transcoder_ (char16_t{0x0000}, it);
-  EXPECT_FALSE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_,
-               ElementsAre (icubaby::replacement_char, char32_t{0x0000}));
+TYPED_TEST (Utf16, HighSurrogateWithoutLow) {
+  auto& transcoder = this->transcoder_;
+  auto& output = this->output_;
+  auto it = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate),
+                        std::back_inserter (output));
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_TRUE (transcoder.partial ());
+  EXPECT_TRUE (output.empty ());
+  transcoder (static_cast<char16_t> (dollar_sign), it);
+  EXPECT_FALSE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+
+  std::vector<TypeParam> expected;
+  append<replacement_char, TypeParam> (std::back_inserter (expected));
+  append<dollar_sign, TypeParam> (std::back_inserter (expected));
+  EXPECT_THAT (output, ElementsAreArray (expected));
 }
-
 // NOLINTNEXTLINE
-TEST_F (Utf16To32, HighSurrogateFollowedbyAnotherHigh) {
-  auto it =
-      transcoder_ (icubaby::first_high_surrogate, std::back_inserter (output_));
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_TRUE (transcoder_.partial ());
-  EXPECT_TRUE (output_.empty ());
-  it = transcoder_ (icubaby::first_high_surrogate, it);
-  EXPECT_FALSE (transcoder_.well_formed ());
-  EXPECT_TRUE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAre (icubaby::replacement_char));
+TYPED_TEST (Utf16, HighSurrogateFollowedbyAnotherHigh) {
+  auto& transcoder = this->transcoder_;
+  auto& output = this->output_;
+  auto it = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate),
+                        std::back_inserter (output));
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_TRUE (transcoder.partial ());
+  EXPECT_TRUE (output.empty ());
+  it = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), it);
+  EXPECT_FALSE (transcoder.well_formed ());
+  EXPECT_TRUE (transcoder.partial ());
+  EXPECT_THAT (output,
+               ElementsAreArray (encoded_char_v<replacement_char, TypeParam>));
 }
-
 // NOLINTNEXTLINE
-TEST_F (Utf16To32, HighSurrogateFollowedByHighLowPair) {
-  static constexpr std::array<char16_t, 3> code_units{
-      char16_t{0xd800}, char16_t{0xd800}, char16_t{0xdc00}};
-  static constexpr auto expected_cp = char32_t{0x10000};
+TYPED_TEST (Utf16, HighSurrogateFollowedByHighLowPair) {
+  auto& transcoder = this->transcoder_;
+  auto& output = this->output_;
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  auto it = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate),
+                        std::back_inserter (output));
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_TRUE (transcoder.partial ());
+  EXPECT_TRUE (output.empty ());
 
-  static_assert (icubaby::is_high_surrogate (std::get<0> (code_units)));
-  auto it =
-      transcoder_ (std::get<0> (code_units), std::back_inserter (output_));
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_TRUE (transcoder_.partial ());
-  EXPECT_TRUE (output_.empty ());
-
-  static_assert (icubaby::is_high_surrogate (std::get<1> (code_units)));
-  it = transcoder_ (std::get<1> (code_units), it);
-  EXPECT_FALSE (transcoder_.well_formed ())
+  static_assert (icubaby::is_high_surrogate (
+      std::get<0> (encoded_char_v<linear_b_syllable_b008_a, char16_t>)));
+  it = transcoder (
+      std::get<0> (encoded_char_v<linear_b_syllable_b008_a, char16_t>), it);
+  EXPECT_FALSE (transcoder.well_formed ())
       << "high followed by high is not well formed input";
-  EXPECT_TRUE (transcoder_.partial ())
+  EXPECT_TRUE (transcoder.partial ())
       << "partial() should be true after a high surrogate";
-  EXPECT_THAT (output_, ElementsAre (icubaby::replacement_char));
+  EXPECT_THAT (output,
+               ElementsAreArray (encoded_char_v<replacement_char, TypeParam>));
 
-  static_assert (icubaby::is_low_surrogate (std::get<2> (code_units)));
-  it = transcoder_ (std::get<2> (code_units), it);
-  EXPECT_FALSE (transcoder_.well_formed ())
+  static_assert (icubaby::is_low_surrogate (
+      std::get<1> (encoded_char_v<linear_b_syllable_b008_a, char16_t>)));
+  it = transcoder (
+      std::get<1> (encoded_char_v<linear_b_syllable_b008_a, char16_t>), it);
+  EXPECT_FALSE (transcoder.well_formed ())
       << "high followed by high is not well formed input";
-  EXPECT_FALSE (transcoder_.partial ())
+  EXPECT_FALSE (transcoder.partial ())
       << "we saw high followed by low: a complete code point";
 
-  transcoder_.end_cp (it);
-  EXPECT_FALSE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAre (icubaby::replacement_char, expected_cp));
-}
+  transcoder.end_cp (it);
+  EXPECT_FALSE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
 
+  std::vector<TypeParam> expected;
+  append<replacement_char, TypeParam> (std::back_inserter (expected));
+  append<linear_b_syllable_b008_a, TypeParam> (std::back_inserter (expected));
+  EXPECT_THAT (output, ElementsAreArray (expected));
+}
 // NOLINTNEXTLINE
-TEST_F (Utf16To32, LonelyLowSurrogate) {
-  auto it = transcoder_ (static_cast<char16_t> (icubaby::first_low_surrogate),
-                         std::back_inserter (output_));
-  EXPECT_FALSE (transcoder_.well_formed ())
+TYPED_TEST (Utf16, LonelyLowSurrogate) {
+  auto& transcoder = this->transcoder_;
+  auto& output = this->output_;
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  auto it = transcoder (static_cast<char16_t> (icubaby::first_low_surrogate),
+                        std::back_inserter (output));
+  EXPECT_FALSE (transcoder.well_formed ())
       << "a low surrogate must be preceeded by a high";
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAre (icubaby::replacement_char));
-
-  transcoder_.end_cp (it);
-  EXPECT_FALSE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAre (icubaby::replacement_char));
+  EXPECT_FALSE (transcoder.partial ());
+  transcoder.end_cp (it);
+  EXPECT_FALSE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  EXPECT_THAT (output,
+               ElementsAreArray (encoded_char_v<replacement_char, TypeParam>));
 }
-
 // NOLINTNEXTLINE
-TEST_F (Utf16To32, LonelyHighSurrogate) {
-  auto it =
-      transcoder_ (icubaby::first_high_surrogate, std::back_inserter (output_));
-  EXPECT_TRUE (transcoder_.well_formed ());
-  EXPECT_TRUE (transcoder_.partial ());
-  EXPECT_TRUE (output_.empty ());
-  it = transcoder_.end_cp (it);
-  EXPECT_FALSE (transcoder_.well_formed ());
-  EXPECT_FALSE (transcoder_.partial ());
-  EXPECT_THAT (output_, ElementsAre (icubaby::replacement_char));
+TYPED_TEST (Utf16, LonelyHighSurrogate) {
+  auto& transcoder = this->transcoder_;
+  auto& output = this->output_;
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  auto it = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate),
+                        std::back_inserter (output));
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_TRUE (transcoder.partial ());
+  EXPECT_TRUE (output.empty ());
+  transcoder.end_cp (it);
+  EXPECT_FALSE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+
+  EXPECT_THAT (output,
+               ElementsAreArray (encoded_char_v<replacement_char, TypeParam>));
 }
