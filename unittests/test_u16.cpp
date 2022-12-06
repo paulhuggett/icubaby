@@ -35,9 +35,11 @@ static_assert (std::is_same_v<icubaby::t16_16::input_type, char16_t> &&
 static_assert (std::is_same_v<icubaby::t16_32::input_type, char16_t> &&
                std::is_same_v<icubaby::t16_32::output_type, char32_t>);
 
-// TODO: A specialization of the gtest GetTypeName<char8_t>() function. This is
+// TODO: Remove this code!
+// A specialization of the gtest GetTypeName<char8_t>() function. This is
 // required for compiling with Xcode 14.1 where we have a link error due to
 // missing typeinfo for char8_t.
+#if defined(__cpp_char8_t) && defined(__cpp_lib_char8_t)
 namespace testing {
 namespace internal {
 
@@ -48,6 +50,7 @@ std::string GetTypeName<char8_t> () {
 
 }  // end namespace internal
 }  // end namespace testing
+#endif
 
 using testing::ElementsAre;
 using testing::ElementsAreArray;
