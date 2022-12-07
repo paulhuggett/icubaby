@@ -314,9 +314,11 @@ public:
   constexpr transcoder () noexcept : transcoder(true) {}
   explicit constexpr transcoder (bool well_formed) noexcept
       : code_point_{0},
-        well_formed_{static_cast<uint_least32_t> (well_formed)},
+        well_formed_{static_cast<uint_least32_t>(well_formed)},
         pad_{0},
-        state_{accept} {}
+        state_{accept} {
+    pad_ = 0;  // Suppress warning about pad_ being unused.
+  }
 
   /// \tparam OutputIterator  An output iterator type to which values of output_type can be written.
   /// \param code_unit  A UTF-8 code unit,
@@ -409,7 +411,7 @@ private:
   static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
   uint_least32_t code_point_ : code_point_bits;
   uint_least32_t well_formed_ : 1;
-  [[maybe_unused]] uint_least32_t pad_ : 2;
+  uint_least32_t pad_ : 2;
   enum : std::uint8_t { accept, reject = 12 };
   uint_least32_t state_ : 8;
 };
