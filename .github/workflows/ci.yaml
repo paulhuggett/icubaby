@@ -88,9 +88,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ${{ matrix.apt_install }}
 
       - name: Create Build Environment
+        shell: bash
         run: cmake -E make_directory ${{ runner.workspace }}/build
 
       - name: Configure CMake
+        shell: bash
         run: |
           cmake -S "$GITHUB_WORKSPACE"                       \
                 -B "${{ runner.workspace }}/build"           \
@@ -101,6 +103,7 @@ jobs:
                 ${{ matrix.options }}
 
       - name: Build
+        shell: bash
         run: cmake --build "${{ runner.workspace }}/build" --config ${{ matrix.build_type }}
 
   intel-dpcpp:
