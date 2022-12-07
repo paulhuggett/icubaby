@@ -214,10 +214,23 @@ protected:
   icubaby::transcoder<char16_t, T> transcoder_;
 };
 
+[[noreturn]] inline void unreachable () {
+  // Uses compiler specific extensions if possible.
+  // Even if no extension is used, undefined behavior is still raised by
+  // an empty function body and the noreturn attribute.
+#ifdef __GNUC__  // GCC, Clang, ICC
+  __builtin_unreachable ();
+#elifdef _MSC_VER  // MSVC
+  __assume (false);
+#endif
+}
+
 class OutputTypeNames {
 public:
   template <typename T>
-  static std::string GetName (int) {
+  static std::string GetName (int index) {
+    (void)index;
+
     if constexpr (std::is_same<T, icubaby::char8> ()) {
       return "icubaby::char8"s;
     }
@@ -227,8 +240,7 @@ public:
     if constexpr (std::is_same<T, char32_t> ()) {
       return "char32_t"s;
     }
-    assert (false && "Unreachable!");
-    return {};
+    unreachable ();
   }
 };
 
