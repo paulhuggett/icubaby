@@ -225,22 +225,26 @@ protected:
 #endif
 }
 
+/// A type that is always false. Used to improve the failure mesages from
+/// static_assert().
+template <typename... T>
+constexpr bool always_false = false;
+
 class OutputTypeNames {
 public:
   template <typename T>
   static std::string GetName (int index) {
     (void)index;
-
     if constexpr (std::is_same<T, icubaby::char8> ()) {
       return "icubaby::char8"s;
-    }
-    if constexpr (std::is_same<T, char16_t> ()) {
+    } else if constexpr (std::is_same<T, char16_t> ()) {
       return "char16_t"s;
-    }
-    if constexpr (std::is_same<T, char32_t> ()) {
+    } else if constexpr (std::is_same<T, char32_t> ()) {
       return "char32_t"s;
+    } else {
+      static_assert (always_false<T>, "non-exhaustive visitor");
+      unreachable ();
     }
-    unreachable ();
   }
 };
 
