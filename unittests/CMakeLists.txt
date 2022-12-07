@@ -39,7 +39,7 @@ set (gcc_options
 set (msvc_options
 )
 target_compile_options (icubaby-unittests PRIVATE
-  $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${clang_options}>
+  $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:IntelLLVM>>:${clang_options}>
   $<$<CXX_COMPILER_ID:GNU>:${gcc_options}>
   $<$<CXX_COMPILER_ID:MSVC>:${msvc_options}>
 )

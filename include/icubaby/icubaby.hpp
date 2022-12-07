@@ -70,7 +70,7 @@
 #include <concepts>
 #endif
 
-#ifdef __cpp_concepts
+#if defined(__cpp_concepts) && defined(__cpp_lib_concepts)
 #define ICUBABY_REQUIRES(x) requires x
 #else
 #define ICUBABY_REQUIRES(x)
@@ -142,7 +142,8 @@ InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
   });
 }
 
-#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && \
+    defined(__cpp_lib_concepts)
 template <typename T>
 concept is_transcoder = requires (T t) {
                           typename T::input_type;

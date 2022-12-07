@@ -53,13 +53,16 @@ foreach (target gtest gmock gmock_main gtest_main)
   if (LIBCXX)
     list (APPEND gclang_options -stdlib=libc++)
   endif ()
+  set (gintelllvm_options ${gclang_options} -Wno-tautological-constant-compare)
 
   target_compile_definitions (${target} PUBLIC GTEST_REMOVE_LEGACY_TEST_CASEAPI_=1)
   target_compile_options (${target} PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${gclang_options}>
+    $<$<CXX_COMPILER_ID:IntelLLVM>:${gintelllvm_options}>
   )
   target_link_options (${target} PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${gclang_options}>
+    $<$<CXX_COMPILER_ID:IntelLLVM>:${gintelllvm_options}>
   )
 endforeach()
 
