@@ -214,7 +214,7 @@ protected:
   icubaby::transcoder<char16_t, T> transcoder_;
 };
 
-[[noreturn]] inline void unreachable () {
+[[noreturn, maybe_unused]] inline void unreachable () {
   // Uses compiler specific extensions if possible.
   // Even if no extension is used, undefined behavior is still raised by
   // an empty function body and the noreturn attribute.
@@ -228,7 +228,7 @@ protected:
 /// A type that is always false. Used to improve the failure mesages from
 /// static_assert().
 template <typename... T>
-constexpr bool always_false = false;
+[[maybe_unused]] constexpr bool always_false = false;
 
 class OutputTypeNames {
 public:

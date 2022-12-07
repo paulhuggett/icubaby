@@ -32,7 +32,6 @@ target_link_libraries (icubaby-unittests PRIVATE icubaby gtest gmock)
 
 set (clang_options
   -Wno-global-constructors
-  -Wno-unneeded-internal-declaration
   -Wno-used-but-marked-unused
 )
 set (gcc_options
