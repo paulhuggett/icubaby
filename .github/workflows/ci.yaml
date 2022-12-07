@@ -91,7 +91,6 @@ jobs:
         run: cmake -E make_directory ${{ runner.workspace }}/build
 
       - name: Configure CMake
-        shell: bash
         run: |
           cmake -S "$GITHUB_WORKSPACE"                       \
                 -B "${{ runner.workspace }}/build"           \
@@ -102,5 +101,24 @@ jobs:
                 ${{ matrix.options }}
 
       - name: Build
-        shell: bash
         run: cmake --build "${{ runner.workspace }}/build" --config ${{ matrix.build_type }}
+
+  intel-dpcpp:
+    runs-on: ubuntu-latest
+    container:
+      image: intel/oneapi-basekit:latest
+      options: -u 0
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: 'True'
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{ runner.workspace }}/build
+
+      - name: Configure CMake
+        run: cmake -S "$GITHUB_WORKSPACE" -B "${{ runner.workspace }}/build" -D CMAKE_CXX_COMPILER=dpcpp
+
+      - name: Build
+        run: cmake --build "${{ runner.workspace }}/build"
