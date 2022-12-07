@@ -40,16 +40,14 @@ static_assert (std::is_same_v<icubaby::t16_32::input_type, char16_t> &&
 // required for compiling with Xcode 14.1 where we have a link error due to
 // missing typeinfo for char8_t.
 #if defined(__cpp_char8_t) && defined(__cpp_lib_char8_t)
-namespace testing {
-namespace internal {
+namespace testing::internal {
 
 template <>
 std::string GetTypeName<char8_t> () {
   return "char8_t";
 }
 
-}  // end namespace internal
-}  // end namespace testing
+}  // end namespace testing::internal
 #endif
 
 using namespace std::string_literals;
