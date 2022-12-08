@@ -68,7 +68,23 @@
 #include <limits>
 #include <string_view>
 #include <type_traits>
+
+// Define ICUBABY_CXX20 which has value 1 when compiling with C++ 20 or later
+// and 0 otherwise.
+#if __cplusplus >= 202002L
+#define ICUBABY_CXX20 (1)
+#elif defined(_MSVC_LANG) && _MSVC_LANG >= 202002L
+// MSVC does not set the value of __cplusplus correctly unless the
+// /Zc:__cplusplus is supplied. We have to detect C++20 using its
+// compiler-specific macros instead.
+#define ICUBABY_CXX20 (1)
+#else
+#define ICUBABY_CXX20 (0)
+#endif
+
+#ifndef ICUBABY_CXX20
 #include <version>
+#endif
 
 #ifdef __cpp_lib_concepts
 #include <concepts>

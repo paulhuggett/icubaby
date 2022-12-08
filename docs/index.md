@@ -104,6 +104,54 @@ t32_8     | A transcoder which converts from UTF-32 to UTF-8.<br>Equivalent to `
 t32_16    | A transcoder which converts from UTF-32 to UTF-16.<br>Equivalent to `using t32_16 = transcoder<char32_t, char16_t>`.
 t32_32    | A transcoder which converts from UTF-32 to UTF-32.<br>Equivalent to `using t32_32 = transcoder<char32_t, char32_t>`.
 
+### Constants
+
+Name | Description
+---- | -----------
+`replacement_char` | A name for the code point U+FFFD REPLACEMENT CHARACTER.
+`code_point_bits` | The number of bits required to represent a code point. Starting with Unicode 2.0, characters are encoded in the range U+0000..U+10FFFF, which amounts to a 21-bit code space.
+
+inline constexpr auto first_high_surrogate = char32_t{0xD800};
+inline constexpr auto last_high_surrogate = char32_t{0xDBFF};
+inline constexpr auto first_low_surrogate = char32_t{0xDC00};
+inline constexpr auto last_low_surrogate = char32_t{0xDFFF};
+inline constexpr auto max_code_point = char32_t{0x10FFFF};
+static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
+
+constexpr bool is_high_surrogate (char32_t c) noexcept;
+constexpr bool is_low_surrogate (char32_t c) noexcept;
+constexpr bool is_surrogate (char32_t c) noexcept;
+
+constexpr bool is_code_point_start (char8 c) noexcept;
+constexpr bool is_code_point_start (char16_t c) noexcept;
+constexpr bool is_code_point_start (char32_t c) noexcept;
+
+/// Returns the number of code points in a sequence.
+
+template <typename InputIterator>
+  requires (std::input_iterator<InputIterator>)
+constexpr auto length (InputIterator first, InputIterator last);
+
+/// Returns an iterator to the beginning of the pos'th code-point in the UTF-8
+/// sequence [first, last].
+///
+/// \param first  The start of the range of elements to examine.
+/// \param last  The end of the range of elements to examine.
+/// \param pos  The number of code points to move.
+/// \returns  An iterator that is 'pos' codepoints after the start of the range or
+///           'last' if the end of the range was encountered.
+template <typename InputIterator>
+  requires (std::input_iterator<InputIterator>)
+InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
+  auto start_count = std::size_t{0};
+  return std::find_if (first, last, [&start_count, pos] (auto c) {
+    return is_code_point_start (c) ? (start_count++ == pos) : false;
+  });
+}
+
+
+
+
 ### char8
 
 ~~~cpp
