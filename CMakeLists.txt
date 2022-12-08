@@ -29,7 +29,8 @@ option (CXX17 "Use C++17 (rather than the default C++20")
 option (LIBCXX "Use libc++ rather than libstdc++ (clang only)")
 option (COVERAGE "Generate LLVM Source-based Coverage")
 
-list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set (icubaby_project_root "${CMAKE_CURRENT_SOURCE_DIR}")
+list (APPEND CMAKE_MODULE_PATH "${icubaby_project_root}/cmake")
 
 if (CXX17)
     set (standard 17)
@@ -38,35 +39,13 @@ else ()
 endif ()
 
 include (setup_target)
+include (setup_gtest)
 
-# Tell gtest to link against the "Multi-threaded Debug DLL runtime
-# library" on Windows.
-set (gtest_force_shared_crt ON CACHE BOOL "Always use msvcrt.dll")
-add_subdirectory (googletest)
-foreach (target gtest gmock gmock_main gtest_main)
-  set_target_properties (${target} PROPERTIES
-    CXX_STANDARD ${standard}
-    CXX_STANDARD_REQUIRED Yes
-    CXX_EXTENSIONS No
-  )
-  set (gclang_options -Wno-implicit-int-float-conversion)
-  if (LIBCXX)
-    list (APPEND gclang_options -stdlib=libc++)
-  endif ()
-  set (gintelllvm_options ${gclang_options} -Wno-tautological-constant-compare)
+setup_gtest ()
 
-  target_compile_definitions (${target} PUBLIC GTEST_REMOVE_LEGACY_TEST_CASEAPI_=1)
-  target_compile_options (${target} PRIVATE
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${gclang_options}>
-    $<$<CXX_COMPILER_ID:IntelLLVM>:${gintelllvm_options}>
-  )
-  target_link_options (${target} PRIVATE
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${gclang_options}>
-    $<$<CXX_COMPILER_ID:IntelLLVM>:${gintelllvm_options}>
-  )
-endforeach()
+add_library (icubaby INTERFACE "${icubaby_project_root}/include/icubaby/icubaby.hpp")
+target_include_directories (icubaby INTERFACE "${icubaby_project_root}/include")
 
-add_subdirectory (lib)
 add_subdirectory (tests)
 add_subdirectory (unittests)
 
