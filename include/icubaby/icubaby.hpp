@@ -66,6 +66,7 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <string_view>
 #include <type_traits>
 #include <version>
 
@@ -93,11 +94,17 @@ using u8string_view = std::basic_string_view<char8>;
 /// A constant for U+FFFD REPLACEMENT CHARACTER
 inline constexpr auto replacement_char = char32_t{0xFFFD};
 
+/// \brief The number of bits required to represent a code point.
+/// Starting with Unicode 2.0, characters are encoded in the range
+/// U+0000..U+10FFFF, which amounts to a 21-bit code space.
+inline constexpr auto code_point_bits = 21U;
+
 inline constexpr auto first_high_surrogate = char32_t{0xD800};
 inline constexpr auto last_high_surrogate = char32_t{0xDBFF};
 inline constexpr auto first_low_surrogate = char32_t{0xDC00};
 inline constexpr auto last_low_surrogate = char32_t{0xDFFF};
 inline constexpr auto max_code_point = char32_t{0x10FFFF};
+static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
 
 constexpr bool is_high_surrogate (char32_t c) noexcept {
   return c >= first_high_surrogate && c <= last_high_surrogate;
@@ -410,8 +417,6 @@ private:
     12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
     12,36,12,12,12,12,12,12,12,12,12,12,
   }};
-  static constexpr auto code_point_bits = 21U;
-  static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
   uint_least32_t code_point_ : code_point_bits;
   uint_least32_t well_formed_ : 1;
   uint_least32_t pad_ : 2;
