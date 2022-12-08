@@ -3,6 +3,9 @@
 //* | / _| || | '_ \/ _` | '_ \ || | *
 //* |_\__|\_,_|_.__/\__,_|_.__/\_, | *
 //*                            |__/  *
+// Home page:
+// https://paulhuggett.github.io/icubaby/
+//
 // MIT License
 //
 // Copyright (c) 2022 Paul Bowen-Huggett
