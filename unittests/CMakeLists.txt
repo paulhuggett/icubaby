@@ -25,6 +25,7 @@ add_executable (icubaby-unittests
   test_u8_32.cpp
   test_u16.cpp
   test_u32_8.cpp
+  test_utility.cpp
 )
 setup_target (icubaby-unittests)
 

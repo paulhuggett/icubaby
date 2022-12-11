@@ -98,6 +98,67 @@
 
 namespace icubaby {
 
+namespace details {
+template <typename... Types>
+struct type_list;
+template <>
+struct type_list<> {};
+
+/// An instance of type_list represents an element in a list. It is somewhat
+/// like a cons cell in Lisp: it has two slots, and each slot holds a type.
+///
+/// A list is formed when a series of type_list instances are chained together,
+/// so that each cell refers to the next one. There is one type_list instance
+/// for each list member. The 'first' member holds a member type and the 'rest'
+/// field is used to chain together type_list instances. The end of the list is
+/// represented by a type_list specialization which takes no arguments and
+/// contains no members.
+template <typename First, typename Rest>
+struct type_list<First, Rest> {
+  using first = First;
+  using rest = Rest;
+};
+
+/// An element in a type list must contain member types names 'first' and
+/// 'rest'. The end of the list is given by the type_list<> specialization.
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && \
+    defined(__cpp_lib_concepts)
+template <typename T>
+concept is_type_list = requires {
+                         typename T::first;
+                         typename T::rest;
+                       } || std::is_same_v<T, type_list<>>;
+#endif
+
+/// Constructs a type_list from a template parameter pack.
+template <typename... Types>
+struct make;
+template <>
+struct make<> {
+  using type = type_list<>;
+};
+template <typename T, typename... Ts>
+struct make<T, Ts...> {
+  using type = type_list<T, typename make<Ts...>::type>;
+};
+template <typename... Types>
+using make_t = typename make<Types...>::type;
+
+/// Yields true if the type list contains a type matching Element and false
+/// otherwise.
+template <typename TypeList, typename Element>
+ICUBABY_REQUIRES (is_type_list<TypeList>)
+struct contains
+    : std::bool_constant<std::is_same_v<Element, typename TypeList::first> ||
+                         contains<typename TypeList::rest, Element>::value> {};
+template <typename Element>
+struct contains<type_list<>, Element> : std::bool_constant<false> {};
+
+template <typename TypeList, typename Element>
+inline constexpr bool contains_v = contains<TypeList, Element>::value;
+
+}  // end namespace details
+
 #if defined(__cpp_char8_t) && defined(__cpp_lib_char8_t)
 using char8 = char8_t;
 #else
@@ -122,6 +183,10 @@ inline constexpr auto last_low_surrogate = char32_t{0xDFFF};
 inline constexpr auto max_code_point = char32_t{0x10FFFF};
 static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
 
+namespace details {
+using character_types = make_t<char8, char16_t, char32_t>;
+}  // end namespace details
+
 constexpr bool is_high_surrogate (char32_t c) noexcept {
   return c >= first_high_surrogate && c <= last_high_surrogate;
 }
@@ -139,31 +204,39 @@ constexpr bool is_code_point_start (char16_t c) noexcept {
   return !is_low_surrogate (c);
 }
 constexpr bool is_code_point_start (char32_t c) noexcept {
-  (void)c;
-  return true;
+  return !is_surrogate (c) && c <= max_code_point;
 }
 
 /// Returns the number of code points in a sequence.
+///
+/// \param first  The start of the range of code units to examine.
+/// \param last  The end of the range of code units to examine.
 template <typename InputIterator>
 ICUBABY_REQUIRES (std::input_iterator<InputIterator>)
 constexpr auto length (InputIterator first, InputIterator last) {
-  return std::count_if (first, last,
-                        [] (auto c) { return is_code_point_start (c); });
+  return std::count_if (first, last, [] (auto c) {
+    static_assert (details::contains_v<details::character_types,
+                                       std::decay_t<decltype (c)>>);
+    return is_code_point_start (c);
+  });
 }
 
-/// Returns an iterator to the beginning of the pos'th code-point in the UTF-8
-/// sequence [first, last].
+/// Returns an iterator to the beginning of the pos'th code point in the code
+/// unit sequence [first, last).
 ///
-/// \param first  The start of the range of elements to examine.
-/// \param last  The end of the range of elements to examine.
+/// \param first  The start of the range of code units to examine.
+/// \param last  The end of the range of code units to examine.
 /// \param pos  The number of code points to move.
-/// \returns  An iterator that is 'pos' codepoints after the start of the range or
+/// \returns  An iterator that is 'pos' code points after the start of the range or
 ///           'last' if the end of the range was encountered.
 template <typename InputIterator>
 ICUBABY_REQUIRES (std::input_iterator<InputIterator>)
-InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
-  auto start_count = std::size_t{0};
+constexpr InputIterator
+    index (InputIterator first, InputIterator last, size_t pos) {
+  auto start_count = size_t{0};
   return std::find_if (first, last, [&start_count, pos] (auto c) {
+    static_assert (details::contains_v<details::character_types,
+                                       std::decay_t<decltype (c)>>);
     return is_code_point_start (c) ? (start_count++ == pos) : false;
   });
 }
@@ -246,7 +319,8 @@ public:
   explicit constexpr transcoder (bool well_formed) noexcept
       : well_formed_{well_formed} {}
 
-  /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which value of type
+  ///   output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
@@ -274,7 +348,8 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which value of type
+  ///   output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
@@ -346,7 +421,8 @@ public:
     pad_ = 0;  // Suppress warning about pad_ being unused.
   }
 
-  /// \tparam OutputIterator  An output iterator type to which values of output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of
+  ///   output_type can be written.
   /// \param code_unit  A UTF-8 code unit,
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
