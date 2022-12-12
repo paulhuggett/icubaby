@@ -243,6 +243,65 @@ TEST_F (JapaneseUtf8, Index) {
 
 namespace {
 
+struct JapaneseUtf16 : testing::Test {
+  JapaneseUtf16 ()
+      : CUs{
+            // U+304A HIRAGANA LETTER O (UTF-8 E3 81 8A)
+            char16_t{0x304a},
+            // U+306F HIRAGANA LETTER HA (UTF-8 E3 81 AF)
+            char16_t{0x306f},
+            // U+3088 HIRAGANA LETTER YO (UTF-8 E3 82 88)
+            char16_t{0x3088},
+            // U+3046 HIRAGANA LETTER U (UTF-8 E3 81 86)
+            char16_t{0x3046},
+            // U+3054 HIRAGANA LETTER GO (UTF-8 E3 81 94)
+            char16_t{0x3054},
+            // U+3056 HIRAGANA LETTER ZA (UTF-8 E3 81 96)
+            char16_t{0x3056},
+            // U+3044 HIRAGANA LETTER I (UTF-8)
+            char16_t{0x3044},
+            // U+307E HIRAGANA LETTER MA (UTF-8 E3 81 BE)
+            char16_t{0x307E},
+            // U+3059 HIRAGANA LETTER SU (UTF-8 E3 81 99)
+            char16_t{0x3059},
+        } {}
+  std::vector<char16_t> const CUs;
+};
+
+}  // end anonymous namespace
+
+// NOLINTNEXTLINE
+TEST_F (JapaneseUtf16, Length) {
+  EXPECT_EQ (9U, icubaby::length (std::begin (CUs), std::end (CUs)));
+}
+// NOLINTNEXTLINE
+TEST_F (JapaneseUtf16, Index) {
+  auto begin = std::begin (CUs);
+  auto end = std::end (CUs);
+  auto it = begin;
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{0}));
+  std::advance (it, 1);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{1}));
+  std::advance (it, 1);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{2}));
+  std::advance (it, 1);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{3}));
+  std::advance (it, 1);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{4}));
+  std::advance (it, 1);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{5}));
+  std::advance (it, 1);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{6}));
+  std::advance (it, 1);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{7}));
+  std::advance (it, 1);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{8}));
+
+  EXPECT_EQ (end, icubaby::index (begin, end, size_t{9}));
+}
+
+namespace {
+
 struct ChineseCharactersUtf8 : testing::Test {
   ChineseCharactersUtf8 ()
       : CUs{
@@ -288,6 +347,50 @@ TEST_F (ChineseCharactersUtf8, Index) {
   std::advance (it, 4);
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{2}));
   std::advance (it, 4);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{3}));
+
+  EXPECT_EQ (end, icubaby::index (begin, end, size_t{4}));
+}
+
+namespace {
+
+struct ChineseCharactersUtf16 : testing::Test {
+  ChineseCharactersUtf16 ()
+      : CUs{
+            // U+2070E CJK UNIFIED IDEOGRAPH-2070E (UTF-16 D841 DF0E)
+            char16_t{0xd841},
+            char16_t{0xdf0e},
+            // U+20731 CJK UNIFIED IDEOGRAPH-20731 (UTF-16 D841 DF31)
+            char16_t{0xd841},
+            char16_t{0xdf31},
+            // U+20779 CJK UNIFIED IDEOGRAPH-20779 (UTF-16 D841 DF79)
+            char16_t{0xd841},
+            char16_t{0xdf79},
+            // U+20C53 CJK UNIFIED IDEOGRAPH-20C53 (UTF-16 D843 DC53)
+            char16_t{0xd843},
+            char16_t{0xdc53},
+        } {}
+
+  std::vector<char16_t> const CUs;
+};
+
+}  // end anonymous namespace
+
+// NOLINTNEXTLINE
+TEST_F (ChineseCharactersUtf16, Length) {
+  EXPECT_EQ (icubaby::length (std::begin (CUs), std::end (CUs)), 4U);
+}
+// NOLINTNEXTLINE
+TEST_F (ChineseCharactersUtf16, Index) {
+  auto begin = std::begin (CUs);
+  auto end = std::end (CUs);
+  auto it = begin;
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{0}));
+  std::advance (it, 2);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{1}));
+  std::advance (it, 2);
+  EXPECT_EQ (it, icubaby::index (begin, end, size_t{2}));
+  std::advance (it, 2);
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{3}));
 
   EXPECT_EQ (end, icubaby::index (begin, end, size_t{4}));
