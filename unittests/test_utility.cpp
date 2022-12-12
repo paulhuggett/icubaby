@@ -51,17 +51,17 @@ TEST (IsSurrogate, Any) {
 // NOLINTNEXTLINE
 TEST (IsCodePointStart, Utf8) {
   EXPECT_TRUE (
-      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b0'0000000)))
+      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b0000'0000)))
       << "Single byte code point";
   EXPECT_TRUE (
-      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b0'1111111)))
+      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b0111'1111)))
       << "Single byte code point";
 
   EXPECT_TRUE (
-      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b110'00000)))
+      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b1100'0000)))
       << "First byte of a two byte code point";
   EXPECT_TRUE (
-      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b110'11111)))
+      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b1101'1111)))
       << "First byte of a two byte code point";
 
   EXPECT_TRUE (
@@ -72,17 +72,17 @@ TEST (IsCodePointStart, Utf8) {
       << "First byte of a three byte code point";
 
   EXPECT_TRUE (
-      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b11110'000)))
+      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b1111'0000)))
       << "First byte of a four byte code point";
 
   EXPECT_TRUE (
-      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b11110'111)))
+      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b1111'0111)))
       << "First byte of a four byte code point";
 
   EXPECT_FALSE (
-      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b10'000000)));
+      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b1000'0000)));
   EXPECT_FALSE (
-      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b10'111111)));
+      icubaby::is_code_point_start (static_cast<icubaby::char8> (0b1011'1111)));
 }
 // NOLINTNEXTLINE
 TEST (IsCodePointStart, Utf16) {
@@ -114,7 +114,7 @@ TEST (IsCodePointStart, Utf32) {
   EXPECT_TRUE (icubaby::is_code_point_start (icubaby::max_code_point));
   EXPECT_FALSE (icubaby::is_code_point_start (
       static_cast<char32_t> (icubaby::max_code_point + 1)));
-  EXPECT_FALSE (icubaby::is_code_point_start (char32_t{0xFFFFFFFF}));
+  EXPECT_FALSE (icubaby::is_code_point_start (char32_t{0xFFFF'FFFF}));
 }
 
 namespace {
@@ -212,11 +212,11 @@ struct JapaneseUtf8 : testing::Test {
 }  // end anonymous namespace
 
 // NOLINTNEXTLINE
-TEST_F (JapaneseUtf8, LengthWithExplicitSize) {
+TEST_F (JapaneseUtf8, Length) {
   EXPECT_EQ (9U, icubaby::length (std::begin (CUs), std::end (CUs)));
 }
 // NOLINTNEXTLINE
-TEST_F (JapaneseUtf8, IndexStdString) {
+TEST_F (JapaneseUtf8, Index) {
   auto begin = std::begin (CUs);
   auto end = std::end (CUs);
   auto it = begin;
@@ -274,11 +274,11 @@ struct ChineseCharactersUtf8 : testing::Test {
 }  // end anonymous namespace
 
 // NOLINTNEXTLINE
-TEST_F (ChineseCharactersUtf8, LengthWithExplicitSize) {
+TEST_F (ChineseCharactersUtf8, Length) {
   EXPECT_EQ (icubaby::length (std::begin (CUs), std::end (CUs)), 4U);
 }
 // NOLINTNEXTLINE
-TEST_F (ChineseCharactersUtf8, IndexStdString) {
+TEST_F (ChineseCharactersUtf8, Index) {
   auto begin = std::begin (CUs);
   auto end = std::end (CUs);
   auto it = begin;
