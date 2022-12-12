@@ -39,6 +39,16 @@ constexpr auto cjk_unified_ideograph_20779 = char32_t{0x20779};
 constexpr auto cjk_unified_ideograph_20c53 = char32_t{0x20c53};
 constexpr auto last_valid_code_point = char32_t{0x10ffff};
 
+constexpr auto hiragana_letter_o = char32_t{0x304a};
+constexpr auto hiragana_letter_ha = char32_t{0x306f};
+constexpr auto hiragana_letter_yo = char32_t{0x3088};
+constexpr auto hiragana_letter_u = char32_t{0x3046};
+constexpr auto hiragana_letter_go = char32_t{0x3054};
+constexpr auto hiragana_letter_za = char32_t{0x3056};
+constexpr auto hiragana_letter_i = char32_t{0x3044};
+constexpr auto hiragana_letter_ma = char32_t{0x307e};
+constexpr auto hiragana_letter_su = char32_t{0x3059};
+
 template <char32_t C, typename To>
 struct encoded_char;
 
@@ -99,8 +109,149 @@ struct encoded_char<replacement_char, char16_t> {
 template <>
 struct encoded_char<replacement_char, icubaby::char8> {
   static constexpr std::array<icubaby::char8, 3> value = {
-      static_cast<icubaby::char8> (0xEF), static_cast<icubaby::char8> (0xBF),
-      static_cast<icubaby::char8> (0xBD)};
+      static_cast<icubaby::char8> (0xef), static_cast<icubaby::char8> (0xbf),
+      static_cast<icubaby::char8> (0xbd)};
+};
+
+template <>
+struct encoded_char<hiragana_letter_o, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {hiragana_letter_o};
+};
+template <>
+struct encoded_char<hiragana_letter_o, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {char16_t{0x304a}};
+};
+template <>
+struct encoded_char<hiragana_letter_o, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value = {
+      static_cast<icubaby::char8> (0xe3),
+      static_cast<icubaby::char8> (0x81),
+      static_cast<icubaby::char8> (0x8a),
+  };
+};
+
+template <>
+struct encoded_char<hiragana_letter_ha, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {hiragana_letter_ha};
+};
+template <>
+struct encoded_char<hiragana_letter_ha, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {char16_t{0x306f}};
+};
+template <>
+struct encoded_char<hiragana_letter_ha, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value = {
+      static_cast<icubaby::char8> (0xe3),
+      static_cast<icubaby::char8> (0x81),
+      static_cast<icubaby::char8> (0xaf),
+  };
+};
+
+template <>
+struct encoded_char<hiragana_letter_yo, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {hiragana_letter_yo};
+};
+template <>
+struct encoded_char<hiragana_letter_yo, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {char16_t{0x3088}};
+};
+template <>
+struct encoded_char<hiragana_letter_yo, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value = {
+      static_cast<icubaby::char8> (0xe3), static_cast<icubaby::char8> (0x82),
+      static_cast<icubaby::char8> (0x88)};
+};
+
+template <>
+struct encoded_char<hiragana_letter_u, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {hiragana_letter_u};
+};
+template <>
+struct encoded_char<hiragana_letter_u, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {char16_t{0x3046}};
+};
+template <>
+struct encoded_char<hiragana_letter_u, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value = {
+      static_cast<icubaby::char8> (0xe3), static_cast<icubaby::char8> (0x81),
+      static_cast<icubaby::char8> (0x86)};
+};
+
+template <>
+struct encoded_char<hiragana_letter_go, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {hiragana_letter_go};
+};
+template <>
+struct encoded_char<hiragana_letter_go, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {char16_t{0x3054}};
+};
+template <>
+struct encoded_char<hiragana_letter_go, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value = {
+      static_cast<icubaby::char8> (0xe3),
+      static_cast<icubaby::char8> (0x81),
+      static_cast<icubaby::char8> (0x94),
+  };
+};
+
+template <>
+struct encoded_char<hiragana_letter_za, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {hiragana_letter_za};
+};
+template <>
+struct encoded_char<hiragana_letter_za, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {char16_t{0x3056}};
+};
+template <>
+struct encoded_char<hiragana_letter_za, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value = {
+      static_cast<icubaby::char8> (0xe3), static_cast<icubaby::char8> (0x81),
+      static_cast<icubaby::char8> (0x96)};
+};
+
+template <>
+struct encoded_char<hiragana_letter_i, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {hiragana_letter_i};
+};
+template <>
+struct encoded_char<hiragana_letter_i, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {char16_t{0x3044}};
+};
+template <>
+struct encoded_char<hiragana_letter_i, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value = {
+      static_cast<icubaby::char8> (0xe3), static_cast<icubaby::char8> (0x81),
+      static_cast<icubaby::char8> (0x84)};
+};
+
+template <>
+struct encoded_char<hiragana_letter_ma, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {hiragana_letter_ma};
+};
+template <>
+struct encoded_char<hiragana_letter_ma, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {char16_t{0x307e}};
+};
+template <>
+struct encoded_char<hiragana_letter_ma, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value = {
+      static_cast<icubaby::char8> (0xe3), static_cast<icubaby::char8> (0x81),
+      static_cast<icubaby::char8> (0xbe)};
+};
+
+template <>
+struct encoded_char<hiragana_letter_su, char32_t> {
+  static constexpr std::array<char32_t, 1> value = {hiragana_letter_su};
+};
+template <>
+struct encoded_char<hiragana_letter_su, char16_t> {
+  static constexpr std::array<char16_t, 1> value = {char16_t{0x3059}};
+};
+template <>
+struct encoded_char<hiragana_letter_su, icubaby::char8> {
+  static constexpr std::array<icubaby::char8, 3> value = {
+      static_cast<icubaby::char8> (0xe3), static_cast<icubaby::char8> (0x81),
+      static_cast<icubaby::char8> (0x99)};
 };
 
 template <>
@@ -131,7 +282,7 @@ struct encoded_char<linear_b_syllable_b008_a, char16_t> {
 template <>
 struct encoded_char<linear_b_syllable_b008_a, icubaby::char8> {
   static constexpr std::array<icubaby::char8, 4> value{
-      static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x90),
+      static_cast<icubaby::char8> (0xf0), static_cast<icubaby::char8> (0x90),
       static_cast<icubaby::char8> (0x80), static_cast<icubaby::char8> (0x80)};
 };
 
@@ -185,8 +336,8 @@ struct encoded_char<cjk_unified_ideograph_20731, char16_t> {
 template <>
 struct encoded_char<cjk_unified_ideograph_20731, icubaby::char8> {
   static constexpr std::array<icubaby::char8, 4> value = {
-      static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0xA0),
-      static_cast<icubaby::char8> (0x9C), static_cast<icubaby::char8> (0xB1)};
+      static_cast<icubaby::char8> (0xf0), static_cast<icubaby::char8> (0xa0),
+      static_cast<icubaby::char8> (0x9c), static_cast<icubaby::char8> (0xb1)};
 };
 
 template <>
