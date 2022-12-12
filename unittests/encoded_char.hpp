@@ -164,7 +164,7 @@ struct encoded_char<cjk_unified_ideograph_2070e, char16_t> {
 };
 template <>
 struct encoded_char<cjk_unified_ideograph_2070e, icubaby::char8> {
-  static constexpr std::array<char8_t, 4> value = {
+  static constexpr std::array<icubaby::char8, 4> value = {
       static_cast<icubaby::char8> (0xf0),
       static_cast<icubaby::char8> (0xa0),
       static_cast<icubaby::char8> (0x9c),
@@ -201,7 +201,7 @@ struct encoded_char<cjk_unified_ideograph_20779, char16_t> {
 };
 template <>
 struct encoded_char<cjk_unified_ideograph_20779, icubaby::char8> {
-  static constexpr std::array<char8_t, 4> value = {
+  static constexpr std::array<icubaby::char8, 4> value = {
       static_cast<icubaby::char8> (0xf0), static_cast<icubaby::char8> (0xa0),
       static_cast<icubaby::char8> (0x9d), static_cast<icubaby::char8> (0xb9)};
 };
