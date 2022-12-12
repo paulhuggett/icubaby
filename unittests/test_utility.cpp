@@ -23,20 +23,21 @@
 
 #include "icubaby/icubaby.hpp"
 
+// NOLINTNEXTLINE
 TEST (IsSurrogate, High) {
   EXPECT_FALSE (icubaby::is_high_surrogate (icubaby::first_high_surrogate - 1));
   EXPECT_TRUE (icubaby::is_high_surrogate (icubaby::first_high_surrogate));
   EXPECT_TRUE (icubaby::is_high_surrogate (icubaby::last_high_surrogate));
   EXPECT_FALSE (icubaby::is_high_surrogate (icubaby::last_high_surrogate + 1));
 }
-
+// NOLINTNEXTLINE
 TEST (IsSurrogate, Low) {
   EXPECT_FALSE (icubaby::is_low_surrogate (icubaby::first_low_surrogate - 1));
   EXPECT_TRUE (icubaby::is_low_surrogate (icubaby::first_low_surrogate));
   EXPECT_TRUE (icubaby::is_low_surrogate (icubaby::last_low_surrogate));
   EXPECT_FALSE (icubaby::is_low_surrogate (icubaby::last_low_surrogate + 1));
 }
-
+// NOLINTNEXTLINE
 TEST (IsSurrogate, Any) {
   EXPECT_FALSE (icubaby::is_surrogate (icubaby::first_high_surrogate - 1));
   EXPECT_TRUE (icubaby::is_surrogate (icubaby::first_high_surrogate));
@@ -47,7 +48,7 @@ TEST (IsSurrogate, Any) {
   EXPECT_TRUE (icubaby::is_surrogate (icubaby::last_low_surrogate));
   EXPECT_FALSE (icubaby::is_surrogate (icubaby::last_low_surrogate + 1));
 }
-
+// NOLINTNEXTLINE
 TEST (IsCodePointStart, Utf8) {
   EXPECT_TRUE (
       icubaby::is_code_point_start (static_cast<icubaby::char8> (0b0'0000000)))
@@ -83,7 +84,7 @@ TEST (IsCodePointStart, Utf8) {
   EXPECT_FALSE (
       icubaby::is_code_point_start (static_cast<icubaby::char8> (0b10'111111)));
 }
-
+// NOLINTNEXTLINE
 TEST (IsCodePointStart, Utf16) {
   EXPECT_TRUE (icubaby::is_code_point_start (char16_t{0x0000}));
   EXPECT_TRUE (icubaby::is_code_point_start (char16_t{0x0000}));
@@ -101,7 +102,7 @@ TEST (IsCodePointStart, Utf16) {
       static_cast<char16_t> (icubaby::last_low_surrogate + 1)));
   EXPECT_TRUE (icubaby::is_code_point_start (char16_t{0xFFFF}));
 }
-
+// NOLINTNEXTLINE
 TEST (IsCodePointStart, Utf32) {
   EXPECT_TRUE (icubaby::is_code_point_start (char32_t{0}));
   EXPECT_TRUE (icubaby::is_code_point_start (
@@ -125,9 +126,11 @@ struct AsciiUtf8 : testing::Test {
 
 }  // end anonymous namespace
 
+// NOLINTNEXTLINE
 TEST_F (AsciiUtf8, Length) {
   EXPECT_EQ (11U, icubaby::length (std::begin (CUs), std::end (CUs)));
 }
+// NOLINTNEXTLINE
 TEST_F (AsciiUtf8, Index) {
   auto begin = std::begin (CUs);
   auto end = std::end (CUs);
@@ -208,9 +211,11 @@ struct JapaneseUtf8 : testing::Test {
 
 }  // end anonymous namespace
 
+// NOLINTNEXTLINE
 TEST_F (JapaneseUtf8, LengthWithExplicitSize) {
   EXPECT_EQ (9U, icubaby::length (std::begin (CUs), std::end (CUs)));
 }
+// NOLINTNEXTLINE
 TEST_F (JapaneseUtf8, IndexStdString) {
   auto begin = std::begin (CUs);
   auto end = std::end (CUs);
@@ -268,9 +273,11 @@ struct ChineseCharactersUtf8 : testing::Test {
 
 }  // end anonymous namespace
 
+// NOLINTNEXTLINE
 TEST_F (ChineseCharactersUtf8, LengthWithExplicitSize) {
   EXPECT_EQ (icubaby::length (std::begin (CUs), std::end (CUs)), 4U);
 }
+// NOLINTNEXTLINE
 TEST_F (ChineseCharactersUtf8, IndexStdString) {
   auto begin = std::begin (CUs);
   auto end = std::end (CUs);
