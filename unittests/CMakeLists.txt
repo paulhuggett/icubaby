@@ -21,11 +21,13 @@
 # SOFTWARE.
 
 add_executable (icubaby-unittests
+  encoded_char.hpp
   harness.cpp
   test_u8_32.cpp
   test_u16.cpp
   test_u32_8.cpp
   test_utility.cpp
+  typed_test.hpp
 )
 setup_target (icubaby-unittests)
 
