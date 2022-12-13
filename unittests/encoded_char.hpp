@@ -26,28 +26,30 @@
 
 #include "icubaby/icubaby.hpp"
 
-constexpr auto start_of_heading = char32_t{0x001};
-constexpr auto start_of_text = char32_t{0x002};
-constexpr auto replacement_char = icubaby::replacement_char;
-constexpr auto dollar_sign = char32_t{0x0024};
-constexpr auto code_point_ffff = char32_t{0xffff};
-constexpr auto linear_b_syllable_b008_a = char32_t{0x10000};
-constexpr auto cuneiform_sign_uru_times_ki = char32_t{0x12345};
-constexpr auto cjk_unified_ideograph_2070e = char32_t{0x2070e};
-constexpr auto cjk_unified_ideograph_20731 = char32_t{0x20731};
-constexpr auto cjk_unified_ideograph_20779 = char32_t{0x20779};
-constexpr auto cjk_unified_ideograph_20c53 = char32_t{0x20c53};
-constexpr auto last_valid_code_point = char32_t{0x10ffff};
+enum char_set : char32_t {
+  cjk_unified_ideograph_2070e = char32_t{0x2070e},
+  cjk_unified_ideograph_20731 = char32_t{0x20731},
+  cjk_unified_ideograph_20779 = char32_t{0x20779},
+  cjk_unified_ideograph_20c53 = char32_t{0x20c53},
+  code_point_ffff = char32_t{0xffff},
+  cuneiform_sign_uru_times_ki = char32_t{0x12345},
+  dollar_sign = char32_t{0x0024},
+  hiragana_letter_go = char32_t{0x3054},
+  hiragana_letter_ha = char32_t{0x306f},
+  hiragana_letter_i = char32_t{0x3044},
+  hiragana_letter_ma = char32_t{0x307e},
+  hiragana_letter_o = char32_t{0x304a},
+  hiragana_letter_su = char32_t{0x3059},
+  hiragana_letter_u = char32_t{0x3046},
+  hiragana_letter_yo = char32_t{0x3088},
+  hiragana_letter_za = char32_t{0x3056},
+  linear_b_syllable_b008_a = char32_t{0x10000},
+  replacement_char = icubaby::replacement_char,
+  start_of_heading = char32_t{0x001},
+  start_of_text = char32_t{0x002},
 
-constexpr auto hiragana_letter_o = char32_t{0x304a};
-constexpr auto hiragana_letter_ha = char32_t{0x306f};
-constexpr auto hiragana_letter_yo = char32_t{0x3088};
-constexpr auto hiragana_letter_u = char32_t{0x3046};
-constexpr auto hiragana_letter_go = char32_t{0x3054};
-constexpr auto hiragana_letter_za = char32_t{0x3056};
-constexpr auto hiragana_letter_i = char32_t{0x3044};
-constexpr auto hiragana_letter_ma = char32_t{0x307e};
-constexpr auto hiragana_letter_su = char32_t{0x3059};
+  last_valid_code_point = char32_t{0x10ffff},
+};
 
 template <char32_t C, typename To>
 struct encoded_char;
