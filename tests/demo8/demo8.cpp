@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <optional>
@@ -102,6 +103,21 @@ void c4 () {
   show (std::cout, out);
 }
 
+void c5 () {
+  std::array<char8_t, 4> const in{0xF0, 0x9F, 0x98, 0x80};
+  std::vector<char16_t> out;
+  icubaby::t8_16 t;
+#if __cpp_lib_ranges
+  auto it =
+      std::ranges::copy (in, icubaby::iterator{&t, std::back_inserter (out)})
+          .out;
+#else
+  auto it = std::copy (std::begin (in), std::end (in),
+                       icubaby::iterator{&t, std::back_inserter (out)});
+#endif
+  t.end_cp (it);
+}
+
 }  // namespace
 
 int main () {
@@ -112,5 +128,15 @@ int main () {
   show (std::cout, *convert2 (in));
   c3 ();
   c4 ();
+  c5 ();
+
+  icubaby::t32_16 t;
+  std::vector<char16_t> out;
+  auto it = std::back_inserter (out);
+  it = t (char32_t{0x2070E}, it);
+  it = t (char32_t{0x20731}, it);
+  it = t (char32_t{0x20779}, it);
+  it = t (char32_t{0x20C53}, it);
+  show (std::cout, out);
 }
 
