@@ -1,10 +1,5 @@
 # icubaby
 
-[![CI Build & Test](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=paulhuggett_icubaby&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=paulhuggett_icubaby)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d7aafd88d8ef4be7b03b568e957f0103)](https://www.codacy.com/gh/paulhuggett/icubaby/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=paulhuggett/icubaby&amp;utm_campaign=Badge_Grade)
-[![CodeQL](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml)
-
 A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32. It does not allocate dynamic memory and neither throws or catches exceptions.
 
 > icubaby is in no way related to the [International Components for Unicode](https://icu.unicode.org) library!
@@ -68,18 +63,32 @@ The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
 
 ### An alternative: using icubaby::iterator
 
+The `icubaby::iterator<>` class is an output iterator to which code units in the source encoding can be assigned. This will produce equivalent code units in the output encoding which are written to a second output iterator. This make it straightforward to use standard library algorithms such as [`std::copy()`](https://en.cppreference.com/w/cpp/algorithm/copy) or [`std::ranges::copy()`](https://en.cppreference.com/w/cpp/algorithm/ranges/copy) with the library.
+
+For example:
+
 ~~~cpp
-std::array<char8_t, 4> const in {0xF0, 0x9F, 0x98, 0x80};
 std::vector<char16_t> out;
 icubaby::t8_16 t;
 auto it = icubaby::iterator{&t, std::back_inserter (out)};
-for (auto cu: in) {
+for (auto cu: {0xF0, 0x9F, 0x98, 0x80}) {
   *(it++) = cu;
 }
 it = t.end_cp (it);
 ~~~
 
-The `icubaby::iterator<>` class offers a familiar output iterator for using a transcoder. Each code unit from the input encoding is written to the iterator and this writes the output encoding to a second iterator. This enables use to use standard algorithms such as [`std::copy`](https://en.cppreference.com/w/cpp/algorithm/copy) with the library.
+This code creates an instance of `icubaby::interator<>` named `it` which holds two values: a pointer to trancoder `t` and output interator (`std::back_insert_iterator` in this case). Assigning a series of code units from the input encoding to `it` result in the `out` vector being filled with equivalent code units in the output encoding.
+
+The above code snippet loops over the contents of the `in` array one code unit at a time. We can use `std::ranges::copy()` to achieve the same effect:
+
+~~~cpp
+std::array<char8_t, 4> const in {0xF0, 0x9F, 0x98, 0x80};
+std::vector<char16_t> out;
+icubaby::t8_16 t;
+auto it = std::ranges::copy (in, icubaby::iterator{&t, std::back_inserter (out)}).out;
+it = t.end_cp (it);
+~~~
+
 
 ## API
 
@@ -110,45 +119,58 @@ Name | Description
 ---- | -----------
 `replacement_char` | A name for the code point U+FFFD REPLACEMENT CHARACTER.
 `code_point_bits` | The number of bits required to represent a code point. Starting with Unicode 2.0, characters are encoded in the range U+0000..U+10FFFF, which amounts to a 21-bit code space.
+`first_high_surrogate ` | `inline constexpr auto first_high_surrogate = char32_t{0xD800};`
+`last_high_surrogate` | `inline constexpr auto last_high_surrogate = char32_t{0xDBFF};`
+`first_low_surrogate` | `inline constexpr auto first_low_surrogate = char32_t{0xDC00};`
+`last_low_surrogate` | `inline constexpr auto last_low_surrogate = char32_t{0xDFFF};`
+`max_code_point` | `inline constexpr auto max_code_point = char32_t{0x10FFFF};`
 
-inline constexpr auto first_high_surrogate = char32_t{0xD800};
-inline constexpr auto last_high_surrogate = char32_t{0xDBFF};
-inline constexpr auto first_low_surrogate = char32_t{0xDC00};
-inline constexpr auto last_low_surrogate = char32_t{0xDFFF};
-inline constexpr auto max_code_point = char32_t{0x10FFFF};
-static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
+### Utilities
 
+~~~cpp
 constexpr bool is_high_surrogate (char32_t c) noexcept;
 constexpr bool is_low_surrogate (char32_t c) noexcept;
 constexpr bool is_surrogate (char32_t c) noexcept;
+~~~
 
-constexpr bool is_code_point_start (char8 c) noexcept;
+~~~cpp
+constexpr bool is_code_point_start (char8_t c) noexcept;
 constexpr bool is_code_point_start (char16_t c) noexcept;
 constexpr bool is_code_point_start (char32_t c) noexcept;
+~~~
 
-/// Returns the number of code points in a sequence.
+#### length
+~~~cpp
 
 template <typename InputIterator>
   requires (std::input_iterator<InputIterator>)
 constexpr auto length (InputIterator first, InputIterator last);
+~~~
+Returns the number of code points in a sequence. Note that input sequence must be well formed for the result to be accurate.
 
-/// Returns an iterator to the beginning of the pos'th code-point in the UTF-8
-/// sequence [first, last].
-///
-/// \param first  The start of the range of elements to examine.
-/// \param last  The end of the range of elements to examine.
-/// \param pos  The number of code points to move.
-/// \returns  An iterator that is 'pos' codepoints after the start of the range or
-///           'last' if the end of the range was encountered.
+Parameter | Description
+--------- | -----------
+first     |  The start of the range of elements to examine.
+last      |  The end of the range of elements to examine.
+
+#### index
+~~~cpp
 template <typename InputIterator>
   requires (std::input_iterator<InputIterator>)
-InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
-  auto start_count = std::size_t{0};
-  return std::find_if (first, last, [&start_count, pos] (auto c) {
-    return is_code_point_start (c) ? (start_count++ == pos) : false;
-  });
-}
+constexpr InputIterator index (InputIterator first, InputIterator last, std::size_t pos);
+~~~
 
+Returns an iterator to the beginning of the pos'th code point in the sequence [first, last). Note that input sequence must be well formed for the result to be accurate.
+
+Parameter | Description
+--------- | -----------
+first     |  The start of the range of elements to examine.
+last      |  The end of the range of elements to examine.
+pos       |  The number of code points to move.
+
+##### Returns
+
+An iterator that is `pos` codepoints after the start of the range or `last` if the end of the range was encountered.
 
 
 
