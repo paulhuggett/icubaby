@@ -26,7 +26,7 @@
 
 #include "icubaby/icubaby.hpp"
 
-enum char_set : char32_t {
+enum code_point : char32_t {
   cjk_unified_ideograph_2070e = char32_t{0x2070e},
   cjk_unified_ideograph_20731 = char32_t{0x20731},
   cjk_unified_ideograph_20779 = char32_t{0x20779},
@@ -48,7 +48,7 @@ enum char_set : char32_t {
   start_of_heading = char32_t{0x001},
   start_of_text = char32_t{0x002},
 
-  last_valid_code_point = char32_t{0x10ffff},
+  last_valid_code_point = icubaby::max_code_point
 };
 
 template <char32_t C, typename To>
