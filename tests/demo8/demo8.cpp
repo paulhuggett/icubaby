@@ -104,7 +104,9 @@ void c4 () {
 }
 
 void c5 () {
-  std::array<char8_t, 4> const in{0xF0, 0x9F, 0x98, 0x80};
+  std::array<icubaby::char8, 4> const in{
+      static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
+      static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
   std::vector<char16_t> out;
   icubaby::t8_16 t;
 #if __cpp_lib_ranges
