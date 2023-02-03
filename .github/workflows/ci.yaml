@@ -121,9 +121,10 @@ jobs:
         run: cmake -E make_directory ${{ runner.workspace }}/build
 
       - name: Configure CMake
-        run: cmake -S "$GITHUB_WORKSPACE"             \
-                   -B "${{ runner.workspace }}/build" \
-                   -D CMAKE_CXX_COMPILER=icpx
+        run: |
+          cmake -S "$GITHUB_WORKSPACE"             \
+                -B "${{ runner.workspace }}/build" \
+                -D CMAKE_CXX_COMPILER=icpx
 
       - name: Build
         run: cmake --build "${{ runner.workspace }}/build"
