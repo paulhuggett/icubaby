@@ -104,7 +104,7 @@
 #endif
 
 #ifdef ICUBABY_INSIDE_NS
-namespace ICUBABY_INSIDE_NS
+namespace ICUBABY_INSIDE_NS {
 #endif
 
 namespace icubaby {
