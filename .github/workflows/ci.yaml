@@ -121,8 +121,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install cmake
+          apt-get update
+          apt-get install cmake
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{ github.workspace }}/build
