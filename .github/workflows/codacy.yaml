@@ -43,12 +43,12 @@ jobs:
                 -B build                             \
                 -D CMAKE_EXPORT_COMPILE_COMMANDS=Yes \
                 -D CMAKE_BUILD_TYPE=Release          \
-                -D CMAKE_C_COMPILER=clang-12         \
-                -D CMAKE_CXX_COMPILER=clang++-12
+                -D CMAKE_C_COMPILER=clang-15         \
+                -D CMAKE_CXX_COMPILER=clang++-15
 
       - name: Run clang-tidy
         run: |
-          clang-tidy-12 -p=build/compile_commands.json                  \
+          clang-tidy-15 -p=build/compile_commands.json                  \
                         $(find . -name "*.?pp" -not -path "./build*/*") \
                         | tee "${{ env.CLANG_TIDY_OUT }}"
 
