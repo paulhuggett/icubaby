@@ -171,15 +171,16 @@ namespace {
 template <typename T>
 struct Hiragana : testing::Test {
   Hiragana () {
-    auto it = append<hiragana_letter_o, T> (std::back_inserter (CUs));
-    it = append<hiragana_letter_ha, T> (it);
-    it = append<hiragana_letter_yo, T> (it);
-    it = append<hiragana_letter_u, T> (it);
-    it = append<hiragana_letter_go, T> (it);
-    it = append<hiragana_letter_za, T> (it);
-    it = append<hiragana_letter_i, T> (it);
-    it = append<hiragana_letter_ma, T> (it);
-    append<hiragana_letter_su, T> (it);
+    auto it =
+        append<code_point::hiragana_letter_o, T> (std::back_inserter (CUs));
+    it = append<code_point::hiragana_letter_ha, T> (it);
+    it = append<code_point::hiragana_letter_yo, T> (it);
+    it = append<code_point::hiragana_letter_u, T> (it);
+    it = append<code_point::hiragana_letter_go, T> (it);
+    it = append<code_point::hiragana_letter_za, T> (it);
+    it = append<code_point::hiragana_letter_i, T> (it);
+    it = append<code_point::hiragana_letter_ma, T> (it);
+    append<code_point::hiragana_letter_su, T> (it);
   }
   std::vector<T> CUs;
 };
@@ -198,21 +199,37 @@ TYPED_TEST (Hiragana, Index) {
   auto end = std::end (this->CUs);
   auto it = begin;
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{0}));
-  std::advance (it, encoded_char<hiragana_letter_o, TypeParam>::value.size ());
+  std::advance (
+      it,
+      encoded_char<code_point::hiragana_letter_o, TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{1}));
-  std::advance (it, encoded_char<hiragana_letter_ha, TypeParam>::value.size ());
+  std::advance (
+      it,
+      encoded_char<code_point::hiragana_letter_ha, TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{2}));
-  std::advance (it, encoded_char<hiragana_letter_yo, TypeParam>::value.size ());
+  std::advance (
+      it,
+      encoded_char<code_point::hiragana_letter_yo, TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{3}));
-  std::advance (it, encoded_char<hiragana_letter_u, TypeParam>::value.size ());
+  std::advance (
+      it,
+      encoded_char<code_point::hiragana_letter_u, TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{4}));
-  std::advance (it, encoded_char<hiragana_letter_go, TypeParam>::value.size ());
+  std::advance (
+      it,
+      encoded_char<code_point::hiragana_letter_go, TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{5}));
-  std::advance (it, encoded_char<hiragana_letter_za, TypeParam>::value.size ());
+  std::advance (
+      it,
+      encoded_char<code_point::hiragana_letter_za, TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{6}));
-  std::advance (it, encoded_char<hiragana_letter_i, TypeParam>::value.size ());
+  std::advance (
+      it,
+      encoded_char<code_point::hiragana_letter_i, TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{7}));
-  std::advance (it, encoded_char<hiragana_letter_ma, TypeParam>::value.size ());
+  std::advance (
+      it,
+      encoded_char<code_point::hiragana_letter_ma, TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{8}));
 
   EXPECT_EQ (end, icubaby::index (begin, end, size_t{9}));
@@ -223,10 +240,11 @@ namespace {
 template <typename T>
 struct CjkUnifiedIdeographCodePoints : testing::Test {
   CjkUnifiedIdeographCodePoints () {
-    auto it = append<cjk_unified_ideograph_2070e, T> (std::back_inserter (CUs));
-    it = append<cjk_unified_ideograph_20731, T> (it);
-    it = append<cjk_unified_ideograph_20779, T> (it);
-    append<cjk_unified_ideograph_20c53, T> (it);
+    auto it = append<code_point::cjk_unified_ideograph_2070e, T> (
+        std::back_inserter (CUs));
+    it = append<code_point::cjk_unified_ideograph_20731, T> (it);
+    it = append<code_point::cjk_unified_ideograph_20779, T> (it);
+    append<code_point::cjk_unified_ideograph_20c53, T> (it);
   }
 
   std::vector<T> CUs;
@@ -246,14 +264,14 @@ TYPED_TEST (CjkUnifiedIdeographCodePoints, Index) {
   auto end = std::end (this->CUs);
   auto it = begin;
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{0}));
-  std::advance (
-      it, encoded_char<cjk_unified_ideograph_2070e, TypeParam>::value.size ());
+  std::advance (it, encoded_char<code_point::cjk_unified_ideograph_2070e,
+                                 TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{1}));
-  std::advance (
-      it, encoded_char<cjk_unified_ideograph_20731, TypeParam>::value.size ());
+  std::advance (it, encoded_char<code_point::cjk_unified_ideograph_20731,
+                                 TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{2}));
-  std::advance (
-      it, encoded_char<cjk_unified_ideograph_20779, TypeParam>::value.size ());
+  std::advance (it, encoded_char<code_point::cjk_unified_ideograph_20779,
+                                 TypeParam>::value.size ());
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{3}));
 
   EXPECT_EQ (end, icubaby::index (begin, end, size_t{4}));
