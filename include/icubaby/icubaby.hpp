@@ -1124,7 +1124,7 @@ private:
     std::ranges::iterator_t<View> next_{};
     transcoder<FromEncoding, ToEncoding> transcoder_;
     /// The container into which the transcoder's output will be written.
-    out_type out_;
+    out_type out_{};
     /// The next code-unit to be produced when the view is dereferenced. This always lies between
     /// std::begin(out_) and out_end_.
     typename out_type::iterator out_it_;
