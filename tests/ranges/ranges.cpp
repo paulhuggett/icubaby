@@ -1,10 +1,13 @@
-#include <array>
+#include <algorithm>
 #include <cassert>
-#include <concepts>
+#include <cstdint>
+#include <functional>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <ranges>
 #include <vector>
+#include <version>
 
 #include "icubaby/icubaby.hpp"
 
