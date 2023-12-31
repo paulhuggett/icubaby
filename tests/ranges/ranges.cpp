@@ -40,6 +40,64 @@ void dump_vector (std::vector<CharType> const& v) {
   std::cout << '\n';
 }
 
+std::vector<char16_t> convert_8_to_16 (std::vector<char8_t> const& in) {
+  std::vector<char16_t> out16;
+  std::cout << "Convert the UTF-8 stream to UTF-16:\n";
+  std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char16_t>,
+                     std::back_inserter (out16));
+  dump_vector (out16);
+  assert ((out16 ==
+           std::vector{{char16_t{0x3053}, char16_t{0x3093}, char16_t{0x306B}, char16_t{0x3061},
+                        char16_t{0x306F}, char16_t{0x4E16}, char16_t{0x754C}, char16_t{0x000A}}}));
+  return out16;
+}
+
+std::vector<char32_t> convert_8_to_32 (std::vector<char8_t> const& in) {
+  std::vector<char32_t> out32;
+  std::cout << "Convert the UTF-8 stream to UTF-32:\n";
+  std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char32_t>,
+                     std::back_inserter (out32));
+  dump_vector (out32);
+  assert ((out32 ==
+           std::vector{{char32_t{0x3053}, char32_t{0x3093}, char32_t{0x306B},
+                        char32_t{0x3061}, char32_t{0x306F}, char32_t{0x4E16},
+                        char32_t{0x754C}, char32_t{0x000A}}}));
+  return out32;
+}
+
+std::vector<char16_t> convert_32_to_16 (std::vector<char32_t> const& out32) {
+  std::vector<char16_t> out16;
+  std::cout << "Convert the UTF-32 stream to UTF-16:\n";
+  std::ranges::copy (out32 | icubaby::ranges::transcode<char32_t, char16_t>,
+                     std::back_inserter (out16));
+  dump_vector (out16);
+  assert ((out16 ==
+           std::vector{{char16_t{0x3053}, char16_t{0x3093}, char16_t{0x306B}, char16_t{0x3061},
+                        char16_t{0x306F}, char16_t{0x4E16}, char16_t{0x754C}, char16_t{0x000A}}}));
+  return out16;
+}
+
+std::vector<char32_t> convert_16_to_32 (std::vector<char16_t> const& out16) {
+  std::vector<char32_t> out32;
+  std::cout << "Convert the UTF-16 stream to UTF-32:\n";
+  std::ranges::copy (out16 | icubaby::ranges::transcode<char16_t, char32_t>,
+                     std::back_inserter (out32));
+  dump_vector (out32);
+  assert ((out32 ==
+           std::vector{{char32_t{0x3053}, char32_t{0x3093}, char32_t{0x306B}, char32_t{0x3061},
+                        char32_t{0x306F}, char32_t{0x4E16}, char32_t{0x754C}, char32_t{0x000A}}}));
+  return out32;
+}
+
+std::vector<char8_t> convert_16_to_8 (std::vector<char16_t> const& out16) {
+  std::vector<char8_t> out8;
+  std::cout << "Convert the UTF-16 stream to UTF-8:\n";
+  std::ranges::copy (out16 | icubaby::ranges::transcode<char16_t, char8_t>,
+                     std::back_inserter (out8));
+  dump_vector (out8);
+  return out8;
+}
+
 int main () {
   // clang-format off
   std::vector const in{
@@ -53,57 +111,11 @@ int main () {
       char8_t{0x0A}   // U+000A LINE FEED
   };
   // clang-format on
-  {
-    std::cout << "Convert the UTF-8 stream to UTF-16:\n";
-    std::vector<char16_t> out16;
-    std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char16_t>,
-                       std::back_inserter (out16));
-    dump_vector (out16);
-    assert ((out16 ==
-             std::vector{{char16_t{0x3053}, char16_t{0x3093}, char16_t{0x306B},
-                          char16_t{0x3061}, char16_t{0x306F}, char16_t{0x4E16},
-                          char16_t{0x754C}, char16_t{0x000A}}}));
-  }
-
-  std::cout << "Convert the UTF-8 stream to UTF-32:\n";
-  std::vector<char32_t> out32;
-  std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char32_t>,
-                     std::back_inserter (out32));
-  dump_vector (out32);
-  assert ((out32 ==
-           std::vector{{char32_t{0x3053}, char32_t{0x3093}, char32_t{0x306B},
-                        char32_t{0x3061}, char32_t{0x306F}, char32_t{0x4E16},
-                        char32_t{0x754C}, char32_t{0x000A}}}));
-
-  std::vector<char16_t> out16;
-  {
-    std::cout << "Convert the UTF-32 stream to UTF-16:\n";
-    std::ranges::copy (out32 | icubaby::ranges::transcode<char32_t, char16_t>,
-                       std::back_inserter (out16));
-    dump_vector (out16);
-    assert ((out16 ==
-             std::vector{{char16_t{0x3053}, char16_t{0x3093}, char16_t{0x306B},
-                          char16_t{0x3061}, char16_t{0x306F}, char16_t{0x4E16},
-                          char16_t{0x754C}, char16_t{0x000A}}}));
-  }
-
-  {
-    std::cout << "Convert the UTF-16 stream to UTF-32:\n";
-    std::vector<char32_t> out32;
-    std::ranges::copy (out16 | icubaby::ranges::transcode<char16_t, char32_t>,
-                       std::back_inserter (out32));
-    dump_vector (out32);
-    assert ((out32 ==
-             std::vector{{char32_t{0x3053}, char32_t{0x3093}, char32_t{0x306B},
-                          char32_t{0x3061}, char32_t{0x306F}, char32_t{0x4E16},
-                          char32_t{0x754C}, char32_t{0x000A}}}));
-  }
-
-  std::cout << "Convert the UTF-16 stream to UTF-8:\n";
-  std::vector<char8_t> out8;
-  std::ranges::copy (out16 | icubaby::ranges::transcode<char16_t, char8_t>,
-                     std::back_inserter (out8));
-  dump_vector (out8);
+  std::vector<char16_t> out16 = convert_8_to_16 (in);
+  std::vector<char32_t> out32 = convert_8_to_32 (in);
+  convert_32_to_16 (out32);
+  convert_16_to_32 (out16);
+  std::vector<char8_t> out8 = convert_16_to_8 (out16);
   assert (std::ranges::equal (in, out8));
 }
 
