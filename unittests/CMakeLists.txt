@@ -31,7 +31,7 @@ add_executable (icubaby-unittests
 )
 setup_target (icubaby-unittests)
 
-target_link_libraries (icubaby-unittests PRIVATE icubaby gtest gmock)
+target_link_libraries (icubaby-unittests PRIVATE icubaby gmock)
 
 set (clang_options
   -Wno-global-constructors
