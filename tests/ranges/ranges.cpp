@@ -13,8 +13,9 @@
 
 #if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L
 
-template <typename CharType>
-struct char_to_output_type {};
+namespace {
+
+template <typename CharType> struct char_to_output_type {};
 template <>
 struct char_to_output_type<char8_t> {
   using type = unsigned;
@@ -97,6 +98,8 @@ std::vector<char8_t> convert_16_to_8 (std::vector<char16_t> const& out16) {
   dump_vector (out8);
   return out8;
 }
+
+}  // end anonymous namespace
 
 int main () {
   // clang-format off
