@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+include (CheckCXXCompilerFlag)
+
 function (setup_target target)
   set (clang_options
     -Weverything
@@ -42,6 +44,12 @@ function (setup_target target)
     -wd4324 # 4324: structure was padded due to alignment specifier
     -wd4068 # 4068: unknown pragma
   )
+
+  # Some clang warning switches are available in all versions of the compiler.
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang$")
+    check_cxx_compiler_flag (-Wno-unsafe-buffer-usage CLANG_W_UNSAFE_BUFFER_USAGE)
+    list (APPEND clang_options $<$<BOOL:${CLANG_W_UNSAFE_BUFFER_USAGE}>:-Wno-unsafe-buffer-usage>)
+  endif ()
 
   if (WERROR)
     list (APPEND clang_options -Werror)

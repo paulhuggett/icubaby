@@ -1003,8 +1003,8 @@ public:
   }
   constexpr View base () && { return std::move (base_); }
 
-  constexpr iterator begin () { return iterator{*this, std::begin (base_)}; }
-  constexpr auto end () {
+  constexpr auto begin () const { return iterator{*this, std::ranges::begin (base_)}; }
+  constexpr auto end () const {
     if constexpr (std::ranges::common_range<View>) {
       return iterator{*this, std::ranges::end (base_)};
     } else {
@@ -1023,7 +1023,7 @@ template <typename FromEncoding, typename ToEncoding,
 class transcode_view<FromEncoding, ToEncoding, View>::iterator {
 public:
   using iterator_category = std::forward_iterator_tag;
-  using iterator_concept = std::input_iterator_tag;
+  using iterator_concept = std::forward_iterator_tag;
 
   using value_type = ToEncoding;
   using difference_type = std::ranges::range_difference_t<View>;
@@ -1032,7 +1032,7 @@ public:
     requires std::default_initializable<std::ranges::iterator_t<View>>
   = default;
 
-  constexpr iterator (transcode_view& parent, std::ranges::iterator_t<View> current)
+  constexpr iterator (transcode_view const& parent, std::ranges::iterator_t<View> current)
       : current_{current}, parent_{&parent} {
     state_.next_ = current;
     assert (state_.empty ());
@@ -1044,12 +1044,8 @@ public:
     return state_.transcoder_.well_formed ();
   }
 
-  constexpr std::ranges::iterator_t<View> const& base () const& noexcept {
-    return current_;
-  }
-  constexpr std::ranges::iterator_t<View> base () && {
-    return std::move (current_);
-  }
+  constexpr std::ranges::iterator_t<View> const& base () const& noexcept { return current_; }
+  constexpr std::ranges::iterator_t<View> base () && { return std::move (current_); }
 
   constexpr value_type const& operator* () const { return *state_.out_it_; }
   constexpr std::ranges::iterator_t<View> operator->() const { return *state_.out_it_; }
@@ -1094,7 +1090,7 @@ public:
 
 private:
   std::ranges::iterator_t<View> current_{};
-  transcode_view* parent_ = nullptr;
+  transcode_view const* parent_ = nullptr;
 
   struct state {
     constexpr state () noexcept : out_it_{out_.end ()}, out_end_{out_.end ()} {}
@@ -1131,10 +1127,10 @@ private:
     out_type out_;
     /// The next code-unit to be produced when the view is dereferenced. This always lies between
     /// std::begin(out_) and out_end_.
-    out_type::iterator out_it_;
+    typename out_type::iterator out_it_;
     /// The valid range of code-units in the out_ container is given by [b,out_end_) where b is
     /// std::begin(out_).
-    out_type::iterator out_end_;
+    typename out_type::iterator out_end_;
   };
   mutable state state_{};
 };
@@ -1146,8 +1142,7 @@ template <typename FromEncoding, typename ToEncoding,
 class transcode_view<FromEncoding, ToEncoding, View>::sentinel {
 public:
   sentinel () = default;
-  constexpr explicit sentinel (transcode_view& parent)
-      : end_ (std::ranges::end (parent.base_)) {}
+  constexpr explicit sentinel (transcode_view& parent) : end_{std::ranges::end (parent.base_)} {}
   constexpr std::ranges::sentinel_t<View> base () const { return end_; }
   friend constexpr bool operator== (iterator const& x, sentinel const& y) {
     return x.current_ == y.end_;
@@ -1160,33 +1155,27 @@ private:
 namespace views::transcode {
 
 template <typename FromEncoding, typename ToEncoding>
-  requires is_unicode_char_type<FromEncoding> &&
-           is_unicode_char_type<ToEncoding>
+  requires is_unicode_char_type<FromEncoding> && is_unicode_char_type<ToEncoding>
 class transcode_range_adaptor {
 public:
   template <std::ranges::viewable_range Range>
   constexpr auto operator() (Range&& range) const {
-    return transcode_view<FromEncoding, ToEncoding,
-                          std::ranges::views::all_t<Range>> (
-        std::forward<Range> (range));
+    return transcode_view<FromEncoding, ToEncoding, std::ranges::views::all_t<Range>>{
+        std::forward<Range> (range)};
   }
 };
 
-template <typename FromEncoding, typename ToEncoding,
-          std::ranges::viewable_range Range>
-  requires is_unicode_char_type<FromEncoding> &&
-           is_unicode_char_type<ToEncoding>
-constexpr auto operator| (
-    Range&& r,
-    transcode_range_adaptor<FromEncoding, ToEncoding> const& adaptor) {
+template <typename FromEncoding, typename ToEncoding, std::ranges::viewable_range Range>
+  requires is_unicode_char_type<FromEncoding> && is_unicode_char_type<ToEncoding>
+constexpr auto operator| (Range&& r,
+                          transcode_range_adaptor<FromEncoding, ToEncoding> const& adaptor) {
   return adaptor (std::forward<Range> (r));
 }
 
 }  // end namespace views::transcode
 
 template <typename FromEncoding, typename ToEncoding>
-  requires is_unicode_char_type<FromEncoding> &&
-               is_unicode_char_type<ToEncoding>
+  requires is_unicode_char_type<FromEncoding> && is_unicode_char_type<ToEncoding>
 inline constexpr auto transcode =
     views::transcode::transcode_range_adaptor<FromEncoding, ToEncoding>{};
 

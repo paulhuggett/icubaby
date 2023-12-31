@@ -30,9 +30,8 @@ void dump_vector (std::vector<CharType> const& v) {
   constexpr auto width = std::is_same_v<CharType, char8_t> ? 2 : 4;
   auto const* separator = "";
   for (auto c : v) {
-    std::cout << separator << "0x" << std::setw (width) << std::setfill ('0')
-              << std::uppercase << std::hex
-              << static_cast<char_to_output_type<CharType>::type> (c);
+    std::cout << separator << "0x" << std::setw (width) << std::setfill ('0') << std::uppercase
+              << std::hex << static_cast<typename char_to_output_type<CharType>::type> (c);
     separator = " ";
   }
   std::cout << '\n';
