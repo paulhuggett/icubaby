@@ -69,7 +69,7 @@ The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
 ### An alternative: using icubaby::iterator
 
 ~~~cpp
-std::array<char8_t, 4> const in {0xF0, 0x9F, 0x98, 0x80};
+auto const in = std::vector{char8_t{0xF0}, char8_t{0x9F}, char8_t{0x98}, char8_t{0x80}};
 std::vector<char16_t> out;
 icubaby::t8_16 t;
 auto it = icubaby::iterator{&t, std::back_inserter (out)};
@@ -80,6 +80,19 @@ it = t.end_cp (it);
 ~~~
 
 The `icubaby::iterator<>` class offers a familiar output iterator for using a transcoder. Each code unit from the input encoding is written to the iterator and this writes the output encoding to a second iterator. This enables use to use standard algorithms such as [`std::copy`](https://en.cppreference.com/w/cpp/algorithm/copy) with the library.
+
+### C++ 20 Ranges
+
+C++ 20 introduces the ranges library which introduces new ways to interact with iterators and containers. In icubaby, we can transform a range of input values from one Unicode encoding to another in a single step of a ranges pipeline:
+
+~~~cpp
+std::vector<char16_t> out;
+auto const in = std::vector{char8_t{0xF0}, char8_t{0x9F}, char8_t{0x98}, char8_t{0x80}};
+auto r = in | icubaby::ranges::transcode<char8_t, char16_t>;
+std::ranges::copy (r, std::back_inserter (out));
+~~~
+As in the previous examples, the `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
+
 
 ## API
 
