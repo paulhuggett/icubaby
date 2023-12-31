@@ -63,9 +63,11 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <string>
 #include <string_view>
 #include <type_traits>
 
@@ -1030,14 +1032,16 @@ public:
     requires std::default_initializable<std::ranges::iterator_t<View>>
   = default;
 
-  constexpr iterator (transcode_view& parent,
-                      std::ranges::iterator_t<View> current)
-      : current_{current},
-        parent_{&parent},
-        next_{current},
-        out_it_{std::end (out_)},
-        out_end_{std::end (out_)} {
-    this->prime ();
+  constexpr iterator (transcode_view& parent, std::ranges::iterator_t<View> current)
+      : current_{current}, parent_{&parent} {
+    state_.next_ = current;
+    assert (state_.empty ());
+    current_ = state_.fill (parent_->base_);
+  }
+
+  /// \returns True if the input encoding was well-formed.
+  [[nodiscard]] constexpr bool well_formed () const noexcept {
+    return state_.transcoder_.well_formed ();
   }
 
   constexpr std::ranges::iterator_t<View> const& base () const& noexcept {
@@ -1047,18 +1051,15 @@ public:
     return std::move (current_);
   }
 
-  constexpr value_type const& operator* () const { return *out_it_; }
-  constexpr std::ranges::iterator_t<View> operator->() const {
-    return *out_it_;
-  }
+  constexpr value_type const& operator* () const { return *state_.out_it_; }
+  constexpr std::ranges::iterator_t<View> operator->() const { return *state_.out_it_; }
 
   constexpr iterator& operator++ () {
-    ++out_it_;
-    if (out_it_ == out_end_) {
+    ++state_.out_it_;
+    if (state_.empty ()) {
       // We've exhausted the code units in the out_ container. Refill it and
       // reset.
-      current_ = next_;
-      this->prime ();
+      current_ = state_.fill (parent_->base_);
     }
     return *this;
   }
@@ -1092,27 +1093,50 @@ public:
   }
 
 private:
-  constexpr void prime () const {
-    out_it_ = std::begin (out_);
-    out_end_ = out_it_;
-    // Loop until we've produced a code-point's worth of code-units in the out_
-    // container or we've run out of input.
-    while (out_end_ == out_it_ && next_ != std::ranges::end (parent_->base_)) {
-      out_end_ = transcoder_ (*next_, out_end_);
-      assert (out_end_ <= std::end (out_));
-      ++next_;
-    }
-  }
-
   std::ranges::iterator_t<View> current_{};
   transcode_view* parent_ = nullptr;
 
-  using out_type = std::array<ToEncoding, longest_sequence_v<ToEncoding>>;
-  mutable std::ranges::iterator_t<View> next_{};
-  mutable transcoder<FromEncoding, ToEncoding> transcoder_;
-  mutable out_type out_;
-  mutable out_type::iterator out_it_{};
-  mutable out_type::iterator out_end_{};
+  struct state {
+    constexpr state () noexcept : out_it_{out_.end ()}, out_end_{out_.end ()} {}
+
+    constexpr bool empty () const noexcept { return out_it_ == out_end_; }
+
+    constexpr std::ranges::iterator_t<View> fill (View const& base) {
+      auto result = next_;
+      assert (this->empty () && "out_ was not empty when fill called ");
+
+      out_it_ = out_.begin ();
+      out_end_ = out_it_;
+
+      if (auto const end = std::ranges::end (base); next_ == end) {
+        // We've consumed th entire input so tell the transcoder and get any
+        out_end_ = transcoder_.end_cp (out_end_);
+      } else {
+        // Loop until we've produced a code-point's worth of code-units in the out
+        // container or we've run out of input.
+        while (out_end_ == out_it_ && next_ != end) {
+          out_end_ = transcoder_ (*next_, out_end_);
+          assert (out_end_ <= out_.end ());
+          ++next_;
+        }
+      }
+      assert (out_end_ <= out_.end ());
+      return result;
+    }
+
+    using out_type = std::array<ToEncoding, longest_sequence_v<ToEncoding>>;
+    std::ranges::iterator_t<View> next_{};
+    transcoder<FromEncoding, ToEncoding> transcoder_;
+    /// The container into which the transcoder's output will be written.
+    out_type out_;
+    /// The next code-unit to be produced when the view is dereferenced. This always lies between
+    /// std::begin(out_) and out_end_.
+    out_type::iterator out_it_;
+    /// The valid range of code-units in the out_ container is given by [b,out_end_) where b is
+    /// std::begin(out_).
+    out_type::iterator out_end_;
+  };
+  mutable state state_{};
 };
 
 template <typename FromEncoding, typename ToEncoding,
