@@ -47,18 +47,14 @@ enum class endian {
 };
 #endif  // __cpp_lib_endian
 
-template <typename C>
-struct char_to_code;
-template <>
-struct char_to_code<icubaby::char8> {
+template <typename C> struct char_to_code;
+template <> struct char_to_code<icubaby::char8> {
   static constexpr auto code () { return "UTF-8"; }
 };
-template <>
-struct char_to_code<char16_t> {
+template <> struct char_to_code<char16_t> {
   static constexpr auto code () {
-    static_assert (
-        endian::native == endian::little || endian::native == endian::big,
-        "Don't know the iconv encoding name for a mixed endian system");
+    static_assert (endian::native == endian::little || endian::native == endian::big,
+                   "Don't know the iconv encoding name for a mixed endian system");
     if constexpr (endian::native == endian::little) {
       return "UTF16LE";
     } else {
@@ -66,12 +62,10 @@ struct char_to_code<char16_t> {
     }
   }
 };
-template <>
-struct char_to_code<char32_t> {
+template <> struct char_to_code<char32_t> {
   static constexpr auto code () {
-    static_assert (
-        endian::native == endian::little || endian::native == endian::big,
-        "Don't know the iconv encoding name for a mixed endian system");
+    static_assert (endian::native == endian::little || endian::native == endian::big,
+                   "Don't know the iconv encoding name for a mixed endian system");
     if constexpr (endian::native == endian::little) {
       return "UTF32LE";
     } else {
@@ -82,8 +76,7 @@ struct char_to_code<char32_t> {
 
 class unsupported_conversion : public std::system_error {
 public:
-  explicit unsupported_conversion (int erc)
-      : std::system_error{std::error_code{erc, std::generic_category ()}} {}
+  explicit unsupported_conversion (int erc) : std::system_error{std::error_code{erc, std::generic_category ()}} {}
 };
 
 template <typename C> void convert_using_iconv (std::vector<char32_t> const &in, std::vector<C> &out) {
@@ -94,8 +87,7 @@ template <typename C> void convert_using_iconv (std::vector<char32_t> const &in,
     if (erc == EINVAL) {
       throw unsupported_conversion{EINVAL};
     }
-    throw std::system_error{std::error_code{erc, std::generic_category ()},
-                            "iconv_open"};
+    throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv_open"};
   }
 
   out.clear ();
@@ -110,7 +102,7 @@ template <typename C> void convert_using_iconv (std::vector<char32_t> const &in,
     auto const out_bytes_available = sizeof (C) * out_size - total_out_bytes;
     auto out_bytes_left = out_bytes_available;
     // NOLINTNEXTLINE
-    auto * outbuf = reinterpret_cast<char *> (out.data ()) + total_out_bytes;
+    auto *outbuf = reinterpret_cast<char *> (out.data ()) + total_out_bytes;
     // NOLINTNEXTLINE
     if (iconv (cd, reinterpret_cast<char **> (const_cast<from_encoding **> (&inbuf)), &in_bytes_left, &outbuf,
                &out_bytes_left) == static_cast<size_t> (-1)) {
@@ -147,9 +139,8 @@ template <typename T, typename = std::enable_if_t<icubaby::is_unicode_char_type_
     std::vector<T> baby_out;
     baby_out.reserve (all.size () * icubaby::longest_sequence_v<T>);
     icubaby::transcoder<char32_t, T> convert_32_8;
-    auto it = std::copy (
-        std::begin (all), std::end (all),
-        icubaby::iterator{&convert_32_8, std::back_inserter (baby_out)});
+    auto it =
+        std::copy (std::begin (all), std::end (all), icubaby::iterator{&convert_32_8, std::back_inserter (baby_out)});
     it = convert_32_8.end_cp (it);
     assert (convert_32_8.well_formed ());
 
@@ -178,8 +169,7 @@ template <typename T, typename = std::enable_if_t<icubaby::is_unicode_char_type_
     }
 
   } catch (unsupported_conversion const &) {
-    std::cout << "Skipping " << char_to_code<T>::code ()
-              << " iconv test: conversion not supported\n";
+    std::cout << "Skipping " << char_to_code<T>::code () << " iconv test: conversion not supported\n";
   }
   return true;
 }

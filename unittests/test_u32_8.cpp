@@ -37,9 +37,8 @@ static_assert (std::is_same_v<icubaby::t32_32::input_type, char32_t> &&
 TEST (Utf32To8, MaxPlus1) {
   std::vector<icubaby::char8> out;
   // This is the Unicode Replacement Character U+FFFD as UTF-8.
-  std::vector<icubaby::char8> const replacement{
-      static_cast<icubaby::char8> (0xef), static_cast<icubaby::char8> (0xbf),
-      static_cast<icubaby::char8> (0xbd)};
+  std::vector<icubaby::char8> const replacement{static_cast<icubaby::char8> (0xef), static_cast<icubaby::char8> (0xbf),
+                                                static_cast<icubaby::char8> (0xbd)};
   auto it = std::back_inserter (out);
   icubaby::t32_8 d1;
 
@@ -66,20 +65,17 @@ TEST (Utf32To8, LowestTwoByteSequence) {
   EXPECT_TRUE (d1.well_formed ());
   d1.end_cp (it);
   EXPECT_TRUE (d1.well_formed ());
-  EXPECT_THAT (out, testing::ElementsAre (static_cast<icubaby::char8> (0xc2),
-                                          static_cast<icubaby::char8> (0x80)));
+  EXPECT_THAT (out, testing::ElementsAre (static_cast<icubaby::char8> (0xc2), static_cast<icubaby::char8> (0x80)));
 }
 
 #if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L
 // NOLINTNEXTLINE
 TEST (Utf32To8, RangesCopy) {
-  std::vector const in{char32_t{0x3053}, char32_t{0x3093}, char32_t{0x306B},
-                       char32_t{0x3061}, char32_t{0x306F}, char32_t{0x4E16},
-                       char32_t{0x754C}, char32_t{0x000A}};
+  std::vector const in{char32_t{0x3053}, char32_t{0x3093}, char32_t{0x306B}, char32_t{0x3061},
+                       char32_t{0x306F}, char32_t{0x4E16}, char32_t{0x754C}, char32_t{0x000A}};
 
   std::vector<char8_t> out8;
-  std::ranges::copy (in | icubaby::ranges::transcode<char32_t, char8_t>,
-                     std::back_inserter (out8));
+  std::ranges::copy (in | icubaby::ranges::transcode<char32_t, char8_t>, std::back_inserter (out8));
   // clang-format off
   EXPECT_THAT (out8, testing::ElementsAre (
     char8_t{0xE3}, char8_t{0x81}, char8_t{0x93}, // U+3053 HIRAGANA LETTER KO

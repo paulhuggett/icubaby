@@ -35,9 +35,9 @@
 #include <gmock/gmock.h>
 
 using testing::TestEventListener;
-using testing::UnitTest;
 using testing::TestInfo;
 using testing::TestPartResult;
+using testing::UnitTest;
 
 namespace {
 
@@ -45,15 +45,12 @@ bool loud_mode_enabled (int argc, char **argv) {
   if (argc < 2) {
     return false;
   }
-  return std::any_of (&argv[1], &argv[argc], [] (char const *a) {
-    return std::strcmp (a, "--loud") == 0;
-  });
+  return std::any_of (&argv[1], &argv[argc], [] (char const *a) { return std::strcmp (a, "--loud") == 0; });
 }
 
 class quiet_listener : public TestEventListener {
 public:
-  explicit quiet_listener (TestEventListener *const listener)
-      : listener_{listener} {}
+  explicit quiet_listener (TestEventListener *const listener) : listener_{listener} {}
   quiet_listener (quiet_listener const &) = delete;
   quiet_listener (quiet_listener &&) noexcept = delete;
   ~quiet_listener () noexcept override = default;
@@ -61,33 +58,25 @@ public:
   quiet_listener &operator= (quiet_listener const &) = delete;
   quiet_listener &operator= (quiet_listener &&) noexcept = delete;
 
-  void OnTestProgramStart (UnitTest const &test) override {
-    listener_->OnTestProgramStart (test);
-  }
+  void OnTestProgramStart (UnitTest const &test) override { listener_->OnTestProgramStart (test); }
   void OnTestIterationStart (UnitTest const &test, int iteration) override {
     listener_->OnTestIterationStart (test, iteration);
   }
   void OnEnvironmentsSetUpStart (UnitTest const &test) override { (void)test; }
   void OnEnvironmentsSetUpEnd (UnitTest const &test) override { (void)test; }
   void OnTestStart (TestInfo const &info) override { (void)info; }
-  void OnTestPartResult (TestPartResult const &result) override {
-    listener_->OnTestPartResult (result);
-  }
+  void OnTestPartResult (TestPartResult const &result) override { listener_->OnTestPartResult (result); }
   void OnTestEnd (TestInfo const &test_info) override {
     if (test_info.result ()->Failed ()) {
       listener_->OnTestEnd (test_info);
     }
   }
-  void OnEnvironmentsTearDownStart (UnitTest const &test) override {
-    (void)test;
-  }
+  void OnEnvironmentsTearDownStart (UnitTest const &test) override { (void)test; }
   void OnEnvironmentsTearDownEnd (UnitTest const &test) override { (void)test; }
   void OnTestIterationEnd (UnitTest const &test, int iteration) override {
     listener_->OnTestIterationEnd (test, iteration);
   }
-  void OnTestProgramEnd (UnitTest const &test) override {
-    listener_->OnTestProgramEnd (test);
-  }
+  void OnTestProgramEnd (UnitTest const &test) override { listener_->OnTestProgramEnd (test); }
 
 private:
   std::unique_ptr<TestEventListener> listener_;
@@ -108,8 +97,7 @@ int main (int argc, char **argv) {
     if (!loud_mode_enabled (argc, argv)) {
       // Remove the default listener
       auto &listeners = UnitTest::GetInstance ()->listeners ();
-      auto *const default_printer =
-          listeners.Release (listeners.default_result_printer ());
+      auto *const default_printer = listeners.Release (listeners.default_result_printer ());
 
       // Add our listener. By default everything is on (as when using the
       // default listener) but here we turn everything off so we only see the 3

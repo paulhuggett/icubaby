@@ -91,8 +91,7 @@ TEST (Utf8To32, GoodCentSign) {
 TEST (Utf8To32, GoodDevanagariLetterHa) {
   // 0xE0, 0xA4, 0xB9 => U+0939 DEVANAGARI LETTER HA
   std::array<icubaby::char8, 3> const devanagri_letter_ha{
-      {static_cast<icubaby::char8> (0xE0), static_cast<icubaby::char8> (0xA4),
-       static_cast<icubaby::char8> (0xB9)}};
+      {static_cast<icubaby::char8> (0xE0), static_cast<icubaby::char8> (0xA4), static_cast<icubaby::char8> (0xB9)}};
 
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
@@ -120,8 +119,7 @@ TEST (Utf8To32, GoodDevanagariLetterHa) {
 TEST (Utf8To32, GoodEuroSign) {
   // 0xE2, 0x82, 0xAC => U+20AC EURO SIGN
   std::array<icubaby::char8, 3> const euro_sign{
-      {static_cast<icubaby::char8> (0xE2), static_cast<icubaby::char8> (0x82),
-       static_cast<icubaby::char8> (0xAC)}};
+      {static_cast<icubaby::char8> (0xE2), static_cast<icubaby::char8> (0x82), static_cast<icubaby::char8> (0xAC)}};
 
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
@@ -145,8 +143,7 @@ TEST (Utf8To32, GoodEuroSign) {
 TEST (Utf8To32, GoodHangulSyllableHan) {
   // 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN
   std::array<icubaby::char8, 3> const hangul_syllable_han{
-      {static_cast<icubaby::char8> (0xED), static_cast<icubaby::char8> (0x95),
-       static_cast<icubaby::char8> (0x9C)}};
+      {static_cast<icubaby::char8> (0xED), static_cast<icubaby::char8> (0x95), static_cast<icubaby::char8> (0x9C)}};
 
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
@@ -170,8 +167,8 @@ TEST (Utf8To32, GoodHangulSyllableHan) {
 TEST (Utf8To32, GoodGothicLetterHwair) {
   // 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR
   std::array<icubaby::char8, 4> const gothic_letter_hwair{
-      {static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x90),
-       static_cast<icubaby::char8> (0x8D), static_cast<icubaby::char8> (0x88)}};
+      {static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x90), static_cast<icubaby::char8> (0x8D),
+       static_cast<icubaby::char8> (0x88)}};
 
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
@@ -273,11 +270,8 @@ TEST (Utf8To32, RangesCopy) {
   };
   // clang-format on
   std::vector<char32_t> out32;
-  std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char32_t>,
-                     std::back_inserter (out32));
-  EXPECT_THAT (out32, testing::ElementsAre (
-                          char32_t{0x3053}, char32_t{0x3093}, char32_t{0x306B},
-                          char32_t{0x3061}, char32_t{0x306F}, char32_t{0x4E16},
-                          char32_t{0x754C}, char32_t{0x000A}));
+  std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char32_t>, std::back_inserter (out32));
+  EXPECT_THAT (out32, testing::ElementsAre (char32_t{0x3053}, char32_t{0x3093}, char32_t{0x306B}, char32_t{0x3061},
+                                            char32_t{0x306F}, char32_t{0x4E16}, char32_t{0x754C}, char32_t{0x000A}));
 }
 #endif  // __cpp_lib_ranges

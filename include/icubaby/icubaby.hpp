@@ -122,14 +122,12 @@ namespace ICUBABY_INSIDE_NS {
 namespace icubaby {
 
 namespace details {
-template <typename... Types>
-struct type_list;
+template <typename... Types> struct type_list;
 
 /// \brief A compile-time list of types.
 ///
 /// This specialization defines the end of the list.
-template <>
-struct type_list<> {};
+template <> struct type_list<> {};
 
 /// \brief A compile-time list of types.
 ///
@@ -142,8 +140,7 @@ struct type_list<> {};
 /// field is used to chain together type_list instances. The end of the list is
 /// represented by a type_list specialization which takes no arguments and
 /// contains no members.
-template <typename First, typename Rest>
-struct type_list<First, Rest> {
+template <typename First, typename Rest> struct type_list<First, Rest> {
   using first = First;  ///< The first member of a list of types.
   using rest = Rest;    ///< The remaining members of the list of types.
 };
@@ -153,21 +150,18 @@ struct type_list<First, Rest> {
 #if defined(__cpp_concepts) && __cpp_concepts >= 201907L && defined(__cpp_lib_concepts)
 template <typename T>
 concept is_type_list = requires {
-                         typename T::first;
-                         typename T::rest;
-                       } || std::is_same_v<T, type_list<>>;
+  typename T::first;
+  typename T::rest;
+} || std::is_same_v<T, type_list<>>;
 #endif
 
-template <typename... Types>
-struct make;
+template <typename... Types> struct make;
 /// Constructs an empty icubaby::type_list.
-template <>
-struct make<> {
+template <> struct make<> {
   using type = type_list<>;  ///< An empty type list.
 };
 /// Constructs a icubaby::type_list from a template parameter pack.
-template <typename T, typename... Ts>
-struct make<T, Ts...> {
+template <typename T, typename... Ts> struct make<T, Ts...> {
   /// A list of types.
   ///
   /// The first element of the list is type \p T: the remaining members
@@ -175,24 +169,20 @@ struct make<T, Ts...> {
   using type = type_list<T, typename make<Ts...>::type>;
 };
 /// A helper template for icubaby::make.
-template <typename... Types>
-using make_t = typename make<Types...>::type;
+template <typename... Types> using make_t = typename make<Types...>::type;
 
 /// \brief Yields true if the type list contains a type matching \p Element
 ///   and false otherwise.
 template <typename TypeList, typename Element>
 ICUBABY_REQUIRES (is_type_list<TypeList>)
-struct contains
-    : std::bool_constant<std::is_same_v<Element, typename TypeList::first> ||
-                         contains<typename TypeList::rest, Element>::value> {};
+struct contains : std::bool_constant<std::is_same_v<Element, typename TypeList::first> ||
+                                     contains<typename TypeList::rest, Element>::value> {};
 /// \brief Yields false: the empty type list does not contains a type matching
 ///   \p Element.
-template <typename Element>
-struct contains<type_list<>, Element> : std::bool_constant<false> {};
+template <typename Element> struct contains<type_list<>, Element> : std::bool_constant<false> {};
 
 /// A helper variable template for icubaby::contains.
-template <typename TypeList, typename Element>
-inline constexpr bool contains_v = contains<TypeList, Element>::value;
+template <typename TypeList, typename Element> inline constexpr bool contains_v = contains<TypeList, Element>::value;
 
 }  // end namespace details
 
@@ -236,19 +226,13 @@ static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
 
 /// The number of code-units in the longest legal representation of a code-point
 /// for the various encodings.
-template <typename Encoding>
-struct longest_sequence {};
-template <>
-struct longest_sequence<char8> : std::integral_constant<std::size_t, 4> {};
-template <>
-struct longest_sequence<char16_t> : std::integral_constant<std::size_t, 2> {};
-template <>
-struct longest_sequence<char32_t> : std::integral_constant<std::size_t, 1> {};
+template <typename Encoding> struct longest_sequence {};
+template <> struct longest_sequence<char8> : std::integral_constant<std::size_t, 4> {};
+template <> struct longest_sequence<char16_t> : std::integral_constant<std::size_t, 2> {};
+template <> struct longest_sequence<char32_t> : std::integral_constant<std::size_t, 1> {};
 
 /// A helper variable template to simplify use of longest_sequence<>.
-template <typename Encoding>
-inline constexpr std::size_t longest_sequence_v =
-    longest_sequence<Encoding>::value;
+template <typename Encoding> inline constexpr std::size_t longest_sequence_v = longest_sequence<Encoding>::value;
 
 /// A list of the character types used for UTF-8 UTF-16, and UTF-32 encoded
 /// text.
@@ -397,13 +381,13 @@ constexpr InputIterator index (InputIterator first, InputIterator last, std::siz
 
 template <typename T>
 concept is_transcoder = requires (T t) {
-                          typename T::input_type;
-                          typename T::output_type;
-                          // we must also have operator() and end_cp() which
-                          // both take template arguments.
-                          { t.well_formed () } -> std::convertible_to<bool>;
-                          { t.partial () } -> std::convertible_to<bool>;
-                        };
+  typename T::input_type;
+  typename T::output_type;
+  // we must also have operator() and end_cp() which
+  // both take template arguments.
+  { t.well_formed () } -> std::convertible_to<bool>;
+  { t.partial () } -> std::convertible_to<bool>;
+};
 
 #endif  // __cpp_concepts
 
@@ -414,8 +398,7 @@ template <unicode_char_type From, unicode_char_type To> class transcoder;
 #else
 /// An encoder takes a sequence of one of more code-units in one Unicode
 /// encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another.
-template <typename From, typename To>
-class transcoder;
+template <typename From, typename To> class transcoder;
 #endif
 
 /// An output iterator which passes code units being output through a
@@ -441,9 +424,7 @@ class transcoder;
 /// \tparam Transcoder  A transcoder type.
 /// \tparam OutputIterator  An output iterator type.
 template <typename Transcoder, typename OutputIterator>
-ICUBABY_REQUIRES (
-    (is_transcoder<Transcoder> &&
-     std::output_iterator<OutputIterator, typename Transcoder::output_type>))
+ICUBABY_REQUIRES ((is_transcoder<Transcoder> && std::output_iterator<OutputIterator, typename Transcoder::output_type>))
 class iterator {
 public:
   using iterator_category = std::output_iterator_tag;
@@ -452,8 +433,7 @@ public:
   using pointer = void;
   using reference = void;
 
-  iterator (Transcoder* transcoder, OutputIterator it)
-      : transcoder_{transcoder}, it_{it} {}
+  iterator (Transcoder* transcoder, OutputIterator it) : transcoder_{transcoder}, it_{it} {}
   iterator (iterator const& rhs) = default;
   iterator (iterator&& rhs) noexcept = default;
 
@@ -468,19 +448,15 @@ public:
   iterator& operator= (iterator&& rhs) noexcept = default;
 
   constexpr iterator& operator* () noexcept { return *this; }
-  constexpr iterator & operator++ () noexcept { return *this; }
+  constexpr iterator& operator++ () noexcept { return *this; }
   constexpr iterator operator++ (int) noexcept { return *this; }
 
   /// Accesses the underlying iterator.
   [[nodiscard]] constexpr OutputIterator base () const noexcept { return it_; }
   /// Accesses the underlying transcoder.
-  [[nodiscard]] constexpr Transcoder* transcoder () noexcept {
-    return transcoder_;
-  }
+  [[nodiscard]] constexpr Transcoder* transcoder () noexcept { return transcoder_; }
   /// Accesses the underlying transcoder.
-  [[nodiscard]] constexpr Transcoder const* transcoder () const noexcept {
-    return transcoder_;
-  }
+  [[nodiscard]] constexpr Transcoder const* transcoder () const noexcept { return transcoder_; }
 
 private:
   Transcoder* transcoder_;
@@ -488,19 +464,16 @@ private:
 };
 
 template <typename Transcoder, typename OutputIterator>
-iterator (Transcoder& t, OutputIterator it)
-    -> iterator<Transcoder, OutputIterator>;
+iterator (Transcoder& t, OutputIterator it) -> iterator<Transcoder, OutputIterator>;
 
 /// Takes a sequence of UTF-32 code units and converts them to UTF-8.
-template <>
-class transcoder<char32_t, char8> {
+template <> class transcoder<char32_t, char8> {
 public:
   using input_type = char32_t;
   using output_type = char8;
 
   constexpr transcoder () noexcept = default;
-  explicit constexpr transcoder (bool well_formed) noexcept
-      : well_formed_{well_formed} {}
+  explicit constexpr transcoder (bool well_formed) noexcept : well_formed_{well_formed} {}
 
   /// \tparam OutputIterator  An output iterator type to which value of type
   ///   output_type can be written.
@@ -543,37 +516,31 @@ public:
 
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder, OutputIterator> end_cp (
-      iterator<transcoder, OutputIterator> dest) {
+  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
     return {t, t->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-32.
-  [[nodiscard]] constexpr bool well_formed () const noexcept {
-    return well_formed_;
-  }
+  [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   [[nodiscard]] static constexpr bool partial () noexcept { return false; }
 
 private:
   bool well_formed_ = true;
 
-  template <typename OutputIterator>
-  static OutputIterator write2 (input_type c, OutputIterator dest) {
+  template <typename OutputIterator> static OutputIterator write2 (input_type c, OutputIterator dest) {
     *(dest++) = static_cast<output_type> ((c >> 6U) | 0xc0U);
     *(dest++) = static_cast<output_type> ((c & 0x3fU) | 0x80U);
     return dest;
   }
-  template <typename OutputIterator>
-  static OutputIterator write3 (input_type c, OutputIterator dest) {
+  template <typename OutputIterator> static OutputIterator write3 (input_type c, OutputIterator dest) {
     *(dest++) = static_cast<output_type> ((c >> 12U) | 0xe0U);
     *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3fU) | 0x80U);
     *(dest++) = static_cast<output_type> ((c & 0x3fU) | 0x80U);
     return dest;
   }
-  template <typename OutputIterator>
-  static OutputIterator write4 (input_type c, OutputIterator dest) {
+  template <typename OutputIterator> static OutputIterator write4 (input_type c, OutputIterator dest) {
     *(dest++) = static_cast<output_type> ((c >> 18U) | 0xf0U);
     *(dest++) = static_cast<output_type> (((c >> 12U) & 0x3fU) | 0x80U);
     *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3fU) | 0x80U);
@@ -581,8 +548,7 @@ private:
     return dest;
   }
 
-  template <typename OutputIterator>
-  OutputIterator not_well_formed (OutputIterator dest) {
+  template <typename OutputIterator> OutputIterator not_well_formed (OutputIterator dest) {
     well_formed_ = false;
     static_assert (!is_surrogate (replacement_char));
     return (*this) (replacement_char, dest);
@@ -590,18 +556,14 @@ private:
 };
 
 /// Takes a sequence of UTF-8 code units and converts them to UTF-32.
-template <>
-class transcoder<char8, char32_t> {
+template <> class transcoder<char8, char32_t> {
 public:
   using input_type = char8;
   using output_type = char32_t;
 
-  constexpr transcoder () noexcept : transcoder(true) {}
+  constexpr transcoder () noexcept : transcoder (true) {}
   explicit constexpr transcoder (bool well_formed) noexcept
-      : code_point_{0},
-        well_formed_{static_cast<uint_least32_t>(well_formed)},
-        pad_{0},
-        state_{accept} {
+      : code_point_{0}, well_formed_{static_cast<uint_least32_t> (well_formed)}, pad_{0}, state_{accept} {
     pad_ = 0;  // Suppress warning about pad_ being unused.
   }
 
@@ -615,15 +577,11 @@ public:
   OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     // Prior to C++20, char8 might be signed.
     auto const ucu = static_cast<std::make_unsigned_t<input_type>> (code_unit);
-    static_assert (std::is_unsigned_v<decltype (ucu)> &&
-                   std::numeric_limits<decltype (ucu)>::max () <=
-                       utf8d_.size ());
+    static_assert (std::is_unsigned_v<decltype (ucu)> && std::numeric_limits<decltype (ucu)>::max () <= utf8d_.size ());
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     auto const type = utf8d_[ucu];
     code_point_ =
-        (state_ != accept)
-            ? (ucu & 0x3FU) | static_cast<uint_least32_t> (code_point_ << 6U)
-            : (0xFFU >> type) & ucu;
+        (state_ != accept) ? (ucu & 0x3FU) | static_cast<uint_least32_t> (code_point_ << 6U) : (0xFFU >> type) & ucu;
     auto const idx = 256U + state_ + type;
     assert (idx < utf8d_.size ());
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
@@ -659,23 +617,19 @@ public:
 
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder, OutputIterator> end_cp (
-      iterator<transcoder, OutputIterator> dest) {
+  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
     return {t, t->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-8.
-  [[nodiscard]] constexpr bool well_formed () const noexcept {
-    return well_formed_;
-  }
-  [[nodiscard]] constexpr bool partial () const noexcept {
-    return state_ != accept;
-  }
+  [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
+  [[nodiscard]] constexpr bool partial () const noexcept { return state_ != accept; }
 
 private:
   static inline std::array<uint8_t, 364> const utf8d_ = {{
+    // clang-format off
     // The first part of the table maps bytes to character classes that
     // to reduce the size of the transition table and create bitmasks.
      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -694,6 +648,7 @@ private:
     12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
     12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
     12,36,12,12,12,12,12,12,12,12,12,12,
+    // clang-format on
   }};
   uint_least32_t code_point_ : code_point_bits;
   uint_least32_t well_formed_ : 1;
@@ -703,15 +658,13 @@ private:
 };
 
 /// Takes a sequence of UTF-32 code units and converts them to UTF-16.
-template <>
-class transcoder<char32_t, char16_t> {
+template <> class transcoder<char32_t, char16_t> {
 public:
   using input_type = char32_t;
   using output_type = char16_t;
 
   constexpr transcoder () noexcept = default;
-  explicit constexpr transcoder (bool well_formed) noexcept
-      : well_formed_{well_formed} {}
+  explicit constexpr transcoder (bool well_formed) noexcept : well_formed_{well_formed} {}
 
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
@@ -725,8 +678,7 @@ public:
       well_formed_ = false;
     } else {
       *(dest++) = static_cast<output_type> (0xD7C0U + (code_point >> 10U));
-      *(dest++) =
-          static_cast<output_type> (first_low_surrogate + (code_point & 0x3FFU));
+      *(dest++) = static_cast<output_type> (first_low_surrogate + (code_point & 0x3FFU));
     }
     return dest;
   }
@@ -744,17 +696,14 @@ public:
 
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder, OutputIterator> end_cp (
-      iterator<transcoder, OutputIterator> dest) {
+  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
     return {t, t->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented valid UTF-32.
-  [[nodiscard]] constexpr bool well_formed () const noexcept {
-    return well_formed_;
-  }
+  [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   [[nodiscard]] static constexpr bool partial () noexcept { return false; }
 
 private:
@@ -762,8 +711,7 @@ private:
 };
 
 /// Takes a sequence of UTF-16 code units and converts them to UTF-32.
-template <>
-class transcoder<char16_t, char32_t> {
+template <> class transcoder<char16_t, char32_t> {
 public:
   using input_type = char16_t;
   using output_type = char32_t;
@@ -801,8 +749,7 @@ public:
 
     // A high surrogate followed by a low surrogate.
     if (is_low_surrogate (c)) {
-      *(dest++) = (static_cast<char32_t> (high_) << high_bits) +
-                  (c - first_low_surrogate) + 0x10000;
+      *(dest++) = (static_cast<char32_t> (high_) << high_bits) + (c - first_low_surrogate) + 0x10000;
       high_ = 0;
       has_high_ = false;
       return dest;
@@ -841,16 +788,13 @@ public:
 
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder, OutputIterator> end_cp (
-      iterator<transcoder, OutputIterator> dest) {
+  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
     return {t, t->end_cp (dest.base ())};
   }
 
-  [[nodiscard]] constexpr bool well_formed () const noexcept {
-    return well_formed_;
-  }
+  [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   [[nodiscard]] constexpr bool partial () const noexcept { return has_high_; }
 
 private:
@@ -868,8 +812,7 @@ private:
 
 namespace details {
 
-template <typename From, typename To>
-class double_transcoder {
+template <typename From, typename To> class double_transcoder {
 public:
   using input_type = From;
   using output_type = To;
@@ -925,19 +868,15 @@ public:
 
   /// Returns true if a partial code-unit has been passed to operator() and
   /// false otherwise.
-  [[nodiscard]] constexpr bool partial () const noexcept {
-    return to_inter_.partial ();
-  }
+  [[nodiscard]] constexpr bool partial () const noexcept { return to_inter_.partial (); }
 
 private:
   transcoder<input_type, char32_t> to_inter_;
   transcoder<char32_t, output_type> to_out_;
 
   template <typename InputIterator, typename OutputIterator>
-  OutputIterator copy (InputIterator first, InputIterator last,
-                       OutputIterator dest) {
-    std::for_each (first, last,
-                   [this, &dest] (char32_t c) { dest = to_out_ (c, dest); });
+  OutputIterator copy (InputIterator first, InputIterator last, OutputIterator dest) {
+    std::for_each (first, last, [this, &dest] (char32_t c) { dest = to_out_ (c, dest); });
     return dest;
   }
 };
@@ -945,24 +884,15 @@ private:
 }  // end namespace details
 
 /// Takes a sequence of UTF-8 code units and converts them to UTF-16.
-template <>
-class transcoder<char8, char16_t>
-    : public details::double_transcoder<char8, char16_t> {};
+template <> class transcoder<char8, char16_t> : public details::double_transcoder<char8, char16_t> {};
 /// Takes a sequence of UTF-16 code units and converts them to UTF-8.
-template <>
-class transcoder<char16_t, char8>
-    : public details::double_transcoder<char16_t, char8> {};
+template <> class transcoder<char16_t, char8> : public details::double_transcoder<char16_t, char8> {};
 /// Takes a sequence of UTF-8 code units and converts them to UTF-8.
-template <>
-class transcoder<char8, char8>
-    : public details::double_transcoder<char8, char8> {};
+template <> class transcoder<char8, char8> : public details::double_transcoder<char8, char8> {};
 /// Takes a sequence of UTF-16 code units and converts them to UTF-16.
-template <>
-class transcoder<char16_t, char16_t>
-    : public details::double_transcoder<char16_t, char16_t> {};
+template <> class transcoder<char16_t, char16_t> : public details::double_transcoder<char16_t, char16_t> {};
 /// Takes a sequence of UTF-32 code units and converts them to UTF-32.
-template <>
-class transcoder<char32_t, char32_t> {
+template <> class transcoder<char32_t, char32_t> {
 public:
   using input_type = char32_t;
   using output_type = char32_t;
@@ -997,16 +927,13 @@ public:
 
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  constexpr iterator<transcoder, OutputIterator> end_cp (
-      iterator<transcoder, OutputIterator> dest) {
+  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto t = dest.transcoder ();
     assert (t == this);
     return {t, t->end_cp (dest.base ())};
   }
 
-  [[nodiscard]] constexpr bool well_formed () const noexcept {
-    return well_formed_;
-  }
+  [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   [[nodiscard]] static constexpr bool partial () noexcept { return false; }
 
 private:
@@ -1037,8 +964,7 @@ using t32_16 = transcoder<char32_t, char16_t>;
 /// represents no change and is included for completeness.
 using t32_32 = transcoder<char32_t, char32_t>;
 
-#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L && \
-    defined(__cpp_concepts) && defined(__cpp_lib_concepts)
+#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L && defined(__cpp_concepts) && defined(__cpp_lib_concepts)
 
 namespace ranges {
 
@@ -1088,9 +1014,7 @@ public:
   }
 
   /// \returns True if the input encoding was well-formed.
-  [[nodiscard]] constexpr bool well_formed () const noexcept {
-    return state_.transcoder_.well_formed ();
-  }
+  [[nodiscard]] constexpr bool well_formed () const noexcept { return state_.transcoder_.well_formed (); }
 
   constexpr std::ranges::iterator_t<View> const& base () const& noexcept { return current_; }
   constexpr std::ranges::iterator_t<View> base () && { return std::move (current_); }
@@ -1124,9 +1048,9 @@ public:
     return std::ranges::iter_move (it.current_);
   }
 
-  friend constexpr void
-  iter_swap (iterator const& x, iterator const& y) noexcept (
-      noexcept (std::ranges::iter_swap (x.current_, y.current_)))
+  friend constexpr void iter_swap (iterator const& x,
+                                   iterator const& y) noexcept (noexcept (std::ranges::iter_swap (x.current_,
+                                                                                                  y.current_)))
     requires std::indirectly_swappable<std::ranges::iterator_t<View>>
   {
     return std::ranges::iter_swap (x.current_, y.current_);
@@ -1199,9 +1123,7 @@ public:
   sentinel () = default;
   constexpr explicit sentinel (transcode_view& parent) : end_{std::ranges::end (parent.base_)} {}
   constexpr std::ranges::sentinel_t<View> base () const { return end_; }
-  friend constexpr bool operator== (iterator const& x, sentinel const& y) {
-    return x.current_ == y.end_;
-  }
+  friend constexpr bool operator== (iterator const& x, sentinel const& y) { return x.current_ == y.end_; }
 
 private:
   std::ranges::sentinel_t<View> end_{};
@@ -1211,10 +1133,8 @@ namespace views::transcode {
 
 template <unicode_char_type FromEncoding, unicode_char_type ToEncoding> class transcode_range_adaptor {
 public:
-  template <std::ranges::viewable_range Range>
-  constexpr auto operator() (Range&& range) const {
-    return transcode_view<FromEncoding, ToEncoding, std::ranges::views::all_t<Range>>{
-        std::forward<Range> (range)};
+  template <std::ranges::viewable_range Range> constexpr auto operator() (Range&& range) const {
+    return transcode_view<FromEncoding, ToEncoding, std::ranges::views::all_t<Range>>{std::forward<Range> (range)};
   }
 };
 
@@ -1235,7 +1155,7 @@ inline constexpr auto transcode = views::transcode::transcode_range_adaptor<From
 }  // end namespace icubaby
 
 #ifdef ICUBABY_INSIDE_NS
-} // end namespace ICUBABY_INSIDE_NS
+}  // end namespace ICUBABY_INSIDE_NS
 #endif
 
 #endif  // ICUBABY_ICUBABY_HPP

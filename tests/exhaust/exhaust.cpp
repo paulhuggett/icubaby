@@ -34,10 +34,8 @@ namespace {
 // This test encodes every input code point and then decodes it to ensure that
 // we get back the character we started with.
 template <typename Encoder, typename Decoder>
-ICUBABY_REQUIRES ((icubaby::is_transcoder<Encoder> &&
-                   icubaby::is_transcoder<Decoder> &&
-                   std::is_same_v<typename Encoder::output_type,
-                                  typename Decoder::input_type> &&
+ICUBABY_REQUIRES ((icubaby::is_transcoder<Encoder> && icubaby::is_transcoder<Decoder> &&
+                   std::is_same_v<typename Encoder::output_type, typename Decoder::input_type> &&
                    std::is_same_v<typename Encoder::input_type, char32_t> &&
                    std::is_same_v<typename Decoder::output_type, char32_t>))
 void check_each_code_point () {
@@ -83,15 +81,11 @@ std::vector<char32_t> all_code_points () {
 }
 
 template <typename Encoder, typename Decoder>
-ICUBABY_REQUIRES ((icubaby::is_transcoder<Encoder> &&
-                   icubaby::is_transcoder<Decoder> &&
-                   std::is_same_v<typename Encoder::output_type,
-                                  typename Decoder::input_type>))
+ICUBABY_REQUIRES ((icubaby::is_transcoder<Encoder> && icubaby::is_transcoder<Decoder> &&
+                   std::is_same_v<typename Encoder::output_type, typename Decoder::input_type>))
 void check_all_code_points () {
   Encoder encode;
-  icubaby::transcoder<typename Encoder::output_type,
-                      typename Decoder::input_type>
-      midcode;
+  icubaby::transcoder<typename Encoder::output_type, typename Decoder::input_type> midcode;
   Decoder decode;
 
   // 1. Start with the set of all valid UTF-32 code points.
@@ -100,41 +94,35 @@ void check_all_code_points () {
   // 2. Run the complete set of code points through the encoder.
   std::vector<typename Decoder::input_type> encoded;
   auto encoded_it =
-      std::copy (std::begin (all), std::end (all),
-                 icubaby::iterator{&encode, std::back_inserter (encoded)});
+      std::copy (std::begin (all), std::end (all), icubaby::iterator{&encode, std::back_inserter (encoded)});
   encode.end_cp (encoded_it);
   assert (encode.well_formed ());
 
   // 2a. Pass the output from step 2 through the mid-coder.
   std::vector<typename Decoder::input_type> midcoded;
   auto midcoded_it =
-      std::copy (std::begin (encoded), std::end (encoded),
-                 icubaby::iterator{&midcode, std::back_inserter (midcoded)});
+      std::copy (std::begin (encoded), std::end (encoded), icubaby::iterator{&midcode, std::back_inserter (midcoded)});
   midcode.end_cp (midcoded_it);
   assert (midcode.well_formed ());
 
   // 3. Run the encoded stream from step 2 through the decoder.
   std::vector<typename Decoder::output_type> decoded;
   auto decoded_it =
-      std::copy (std::begin (midcoded), std::end (midcoded),
-                 icubaby::iterator{&decode, std::back_inserter (decoded)});
+      std::copy (std::begin (midcoded), std::end (midcoded), icubaby::iterator{&decode, std::back_inserter (decoded)});
   decode.end_cp (decoded_it);
   assert (decode.well_formed ());
 
   // 4. Ensure that the result matches the initial UTF-32 collection from
   // step 1.
-  if (!std::equal (std::begin (all), std::end (all), std::begin (decoded),
-                   std::end (decoded))) {
+  if (!std::equal (std::begin (all), std::end (all), std::begin (decoded), std::end (decoded))) {
     std::cout << all.size () << '\n';
     std::cout << decoded.size () << '\n';
 
-    for (size_t ctr = 0, end = std::min (all.size (), decoded.size ());
-         ctr < end; ++ctr) {
+    for (size_t ctr = 0, end = std::min (all.size (), decoded.size ()); ctr < end; ++ctr) {
       if (all[ctr] != decoded[ctr]) {
         std::cout << std::hex << ctr << ": "
-                  << "U+" << std::hex << static_cast<unsigned> (all[ctr]) << ' '
-                  << "U+" << std::hex << static_cast<unsigned> (decoded[ctr])
-                  << '\n';
+                  << "U+" << std::hex << static_cast<unsigned> (all[ctr]) << ' ' << "U+" << std::hex
+                  << static_cast<unsigned> (decoded[ctr]) << '\n';
       }
     }
   }
@@ -148,29 +136,25 @@ void check_utf8_to_16 () {
   std::vector<icubaby::char8> all8a;
   icubaby::t32_8 convert32_8;
   convert32_8.end_cp (
-      std::copy (std::begin (all), std::end (all),
-                 icubaby::iterator{&convert32_8, std::back_inserter (all8a)}));
+      std::copy (std::begin (all), std::end (all), icubaby::iterator{&convert32_8, std::back_inserter (all8a)}));
   assert (convert32_8.well_formed ());
 
   // 3. Convert the UTF-8 stream from step 2 to UTF-16.
   std::vector<char16_t> all16;
   icubaby::t8_16 convert8_16;
   convert8_16.end_cp (
-      std::copy (std::begin (all8a), std::end (all8a),
-                 icubaby::iterator{&convert8_16, std::back_inserter (all16)}));
+      std::copy (std::begin (all8a), std::end (all8a), icubaby::iterator{&convert8_16, std::back_inserter (all16)}));
   assert (convert8_16.well_formed ());
 
   // 4. Convert the UTF-16 collection from step 3 to UTF-8.
   std::vector<icubaby::char8> all8b;
   icubaby::t16_8 convert16_8;
   convert16_8.end_cp (
-      std::copy (std::begin (all16), std::end (all16),
-                 icubaby::iterator{&convert16_8, std::back_inserter (all8b)}));
+      std::copy (std::begin (all16), std::end (all16), icubaby::iterator{&convert16_8, std::back_inserter (all8b)}));
   assert (convert16_8.well_formed ());
 
   // 5. Compare the results of step 2 and step 4.
-  assert (std::equal (std::begin (all8a), std::end (all8a), std::begin (all8b),
-                      std::end (all8b)));
+  assert (std::equal (std::begin (all8a), std::end (all8a), std::begin (all8b), std::end (all8b)));
 }
 
 }  // end anonymous namespace
