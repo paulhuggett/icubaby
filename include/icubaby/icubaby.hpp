@@ -150,8 +150,7 @@ struct type_list<First, Rest> {
 
 /// An element in a type list must contain member types names 'first' and
 /// 'rest'. The end of the list is given by the type_list<> specialization.
-#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && \
-    defined(__cpp_lib_concepts)
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && defined(__cpp_lib_concepts)
 template <typename T>
 concept is_type_list = requires {
                          typename T::first;
@@ -211,6 +210,10 @@ using u8string_view = std::basic_string_view<char8>;
 
 /// A constant for U+FFFD REPLACEMENT CHARACTER
 inline constexpr auto replacement_char = char32_t{0xFFFD};
+/// A constant for U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK)
+inline constexpr auto zero_width_no_break_space = char32_t{0xFEFF};
+/// A constant for U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK)
+inline constexpr auto bom = zero_width_no_break_space;
 
 /// \brief The number of bits required to represent a code point.
 ///
@@ -251,9 +254,13 @@ inline constexpr std::size_t longest_sequence_v =
 /// text.
 using character_types = details::make_t<char8, char16_t, char32_t>;
 
+template <typename T> struct is_unicode_char_type : std::bool_constant<details::contains_v<character_types, T>> {};
+template <typename T> inline constexpr bool is_unicode_char_type_v = is_unicode_char_type<T>::value;
+
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
 template <typename T>
-inline constexpr bool is_unicode_char_type =
-    details::contains_v<character_types, T>;
+concept unicode_char_type = is_unicode_char_type_v<T>;
+#endif
 
 /// \brief Returns true if the code point \p c represents a UTF-16 high
 ///   surrogate.
@@ -287,7 +294,8 @@ constexpr bool is_surrogate (char32_t c) noexcept {
 /// \param c  The UTF-8 code unit to be tested.
 /// \returns true if \p c represents the start of a multi-byte UTF-8 sequence.
 constexpr bool is_code_point_start (char8 c) noexcept {
-  return (static_cast<std::make_unsigned_t<decltype (c)>> (c) & 0xC0U) != 0x80U;
+  static_assert (sizeof (c) == sizeof (std::byte));
+  return (static_cast<std::byte> (c) & std::byte{0xC0}) != std::byte{0x80};
 }
 /// \brief Returns true if \p c represents the start of a UTF-16 high, low
 ///   surrogate pair.
@@ -306,17 +314,56 @@ constexpr bool is_code_point_start (char32_t c) noexcept {
   return !is_surrogate (c) && c <= max_code_point;
 }
 
-/// Returns the number of code points in a sequence.
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && defined(__cpp_lib_concepts)
+
+/// \brief Returns the number of code points in a sequence.
+///
+/// \param r The range of the elements to examine.
+/// \param proj  Projection to apply to the elements.
+/// \returns  The number of code points.
+template <std::ranges::input_range R, typename Proj = std::identity>
+  requires unicode_char_type<std::ranges::range_value_t<R>>
+constexpr std::ranges::range_difference_t<R> length (R&& r, Proj proj = {}) {
+  return std::ranges::count_if (
+      std::forward<R> (r), [] (unicode_char_type auto c) { return is_code_point_start (c); }, proj);
+}
+
+/// \brief Returns the number of code points in a sequence.
 ///
 /// \param first  The start of the range of code units to examine.
 /// \param last  The end of the range of code units to examine.
-template <typename InputIterator>
-ICUBABY_REQUIRES (std::input_iterator<InputIterator>)
-constexpr auto length (InputIterator first, InputIterator last) {
-  return std::count_if (first, last, [] (auto c) {
-    static_assert (is_unicode_char_type<std::decay_t<decltype (c)>>);
-    return is_code_point_start (c);
-  });
+/// \param proj  Projection to apply to the elements.
+/// \returns  The number of code points.
+template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
+  requires unicode_char_type<typename std::iterator_traits<I>::value_type>
+constexpr std::iter_difference_t<I> length (I first, S last, Proj proj = {}) {
+  return length (std::ranges::subrange{first, last}, proj);
+}
+
+#else
+
+template <typename InputIterator,
+          typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
+constexpr typename iterator_traits<InputIt>::difference_type length (InputIterator first, InputIterator last) {
+  return std::count_if (first, last, [] (auto c) { return is_code_point_start (c); });
+}
+
+#endif
+
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && defined(__cpp_lib_concepts)
+
+/// Returns an iterator to the beginning of the pos'th code point in the range
+/// of code-units given by \p r.
+///
+/// \param r  The start of the range of code units to examine.
+/// \param pos  The number of code points to move.
+/// \returns  Iterator to the \p code point or iterator equal to last if no such element is found.
+template <std::ranges::input_range R, typename Proj = std::identity>
+constexpr std::ranges::borrowed_iterator_t<R> index (R&& r, std::size_t pos, Proj proj = {}) {
+  auto count = std::size_t{0};
+  return std::ranges::find_if (
+      std::forward<R> (r),
+      [&count, pos] (unicode_char_type auto c) { return is_code_point_start (c) ? (count++ == pos) : false; }, proj);
 }
 
 /// Returns an iterator to the beginning of the pos'th code point in the code
@@ -327,19 +374,27 @@ constexpr auto length (InputIterator first, InputIterator last) {
 /// \param pos  The number of code points to move.
 /// \returns  An iterator that is 'pos' code points after the start of the range or
 ///           'last' if the end of the range was encountered.
-template <typename InputIterator>
-ICUBABY_REQUIRES (std::input_iterator<InputIterator>)
-constexpr InputIterator
-    index (InputIterator first, InputIterator last, size_t pos) {
-  auto start_count = size_t{0};
-  return std::find_if (first, last, [&start_count, pos] (auto c) {
-    static_assert (is_unicode_char_type<std::decay_t<decltype (c)>>);
-    return is_code_point_start (c) ? (start_count++ == pos) : false;
+template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
+constexpr I index (I first, S last, std::size_t pos, Proj proj = {}) {
+  return index (std::ranges::subrange{first, last}, pos, proj);
+}
+
+#else
+
+template <typename InputIterator,
+          typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
+constexpr InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
+  auto count = std::size_t{0};
+  return std::find_if (first, last, [&count, pos] (auto c) {
+    static_assert (is_unicode_char_type_v<std::decay_t<decltype (c)>>);
+    return is_code_point_start (c) ? (count++ == pos) : false;
   });
 }
 
-#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && \
-    defined(__cpp_lib_concepts)
+#endif
+
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && defined(__cpp_lib_concepts)
+
 template <typename T>
 concept is_transcoder = requires (T t) {
                           typename T::input_type;
@@ -349,12 +404,19 @@ concept is_transcoder = requires (T t) {
                           { t.well_formed () } -> std::convertible_to<bool>;
                           { t.partial () } -> std::convertible_to<bool>;
                         };
+
 #endif  // __cpp_concepts
 
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
+/// An encoder takes a sequence of one of more code-units in one Unicode
+/// encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another.
+template <unicode_char_type From, unicode_char_type To> class transcoder;
+#else
 /// An encoder takes a sequence of one of more code-units in one Unicode
 /// encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another.
 template <typename From, typename To>
 class transcoder;
+#endif
 
 /// An output iterator which passes code units being output through a
 /// transcoder.
@@ -980,27 +1042,17 @@ using t32_32 = transcoder<char32_t, char32_t>;
 
 namespace ranges {
 
-template <typename FromEncoding, typename ToEncoding,
-          std::ranges::input_range View>
-  requires std::ranges::view<View> && is_unicode_char_type<FromEncoding> &&
-           is_unicode_char_type<ToEncoding>
-class transcode_view : public std::ranges::view_interface<
-                           transcode_view<FromEncoding, ToEncoding, View>> {
+template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+  requires std::ranges::view<View>
+class transcode_view : public std::ranges::view_interface<transcode_view<FromEncoding, ToEncoding, View>> {
 public:
   class iterator;
   class sentinel;
 
-  transcode_view ()
-    requires std::default_initializable<View>
-  = default;
+  transcode_view () requires std::default_initializable<View> = default;
   constexpr explicit transcode_view (View base) : base_ (std::move (base)) {}
 
-  template <typename Vp = View>
-  constexpr View base () const&
-    requires std::copy_constructible<Vp>
-  {
-    return base_;
-  }
+  constexpr View base () const& requires std::copy_constructible<View> { return base_; }
   constexpr View base () && { return std::move (base_); }
 
   constexpr auto begin () const { return iterator{*this, std::ranges::begin (base_)}; }
@@ -1016,10 +1068,8 @@ private:
   [[no_unique_address]] View base_ = View ();
 };
 
-template <typename FromEncoding, typename ToEncoding,
-          std::ranges::input_range View>
-  requires std::ranges::view<View> && is_unicode_char_type<FromEncoding> &&
-           is_unicode_char_type<ToEncoding>
+template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+  requires std::ranges::view<View>
 class transcode_view<FromEncoding, ToEncoding, View>::iterator {
 public:
   using iterator_category = std::forward_iterator_tag;
@@ -1028,14 +1078,12 @@ public:
   using value_type = ToEncoding;
   using difference_type = std::ranges::range_difference_t<View>;
 
-  iterator ()
-    requires std::default_initializable<std::ranges::iterator_t<View>>
-  = default;
-
+  iterator () requires std::default_initializable<std::ranges::iterator_t<View>> = default;
   constexpr iterator (transcode_view const& parent, std::ranges::iterator_t<View> current)
-      : current_{current}, parent_{&parent} {
-    state_.next_ = current;
+      : current_{current}, parent_{&parent}, state_{current} {
     assert (state_.empty ());
+    // Prime the input state so that a dereference of the iterator will yield the first of the
+    // output code-units.
     current_ = state_.fill (parent_->base_);
   }
 
@@ -1047,25 +1095,22 @@ public:
   constexpr std::ranges::iterator_t<View> const& base () const& noexcept { return current_; }
   constexpr std::ranges::iterator_t<View> base () && { return std::move (current_); }
 
-  constexpr value_type const& operator* () const { return *state_.out_it_; }
-  constexpr std::ranges::iterator_t<View> operator->() const { return *state_.out_it_; }
+  constexpr value_type const& operator* () const { return state_.front (); }
+  constexpr std::ranges::iterator_t<View> operator->() const { return state_.front (); }
 
   constexpr iterator& operator++ () {
-    ++state_.out_it_;
+    state_.advance ();
     if (state_.empty ()) {
-      // We've exhausted the code units in the out_ container. Refill it and
-      // reset.
+      // We've exhausted the stashed output code units. Refill the buffer and reset.
       current_ = state_.fill (parent_->base_);
     }
     return *this;
   }
   constexpr void operator++ (int) { ++*this; }
-  constexpr iterator operator++ (int)
-    requires std::ranges::forward_range<View>
-  {
-    auto tmp = *this;
+  constexpr iterator operator++ (int) requires std::ranges::forward_range<View> {
+    auto result = *this;
     ++*this;
-    return tmp;
+    return result;
   }
 
   friend constexpr bool operator== (iterator const& x, iterator const& y)
@@ -1074,8 +1119,7 @@ public:
     return x.current_ == y.current_;
   }
 
-  friend constexpr std::ranges::range_rvalue_reference_t<View>
-  iter_move (iterator const& it) noexcept (
+  friend constexpr std::ranges::range_rvalue_reference_t<View> iter_move (iterator const& it) noexcept (
       noexcept (std::ranges::iter_move (it.current_))) {
     return std::ranges::iter_move (it.current_);
   }
@@ -1092,53 +1136,64 @@ private:
   std::ranges::iterator_t<View> current_{};
   transcode_view const* parent_ = nullptr;
 
-  struct state {
-    constexpr state () noexcept : out_it_{out_.end ()}, out_end_{out_.end ()} {}
+  class state {
+  public:
+    constexpr explicit state (std::ranges::iterator_t<View> const& it) : next_{it}, valid_{out_.end (), out_.end ()} {}
+    constexpr state () : state{std::ranges::iterator_t<View>{}} {}
 
-    constexpr bool empty () const noexcept { return out_it_ == out_end_; }
+    [[nodiscard]] constexpr bool empty () const noexcept { return valid_.empty (); }
+    [[nodiscard]] constexpr auto& front () const noexcept { return valid_.front (); }
+    constexpr void advance () noexcept { valid_.advance (1); }
 
-    constexpr std::ranges::iterator_t<View> fill (View const& base) {
-      auto result = next_;
-      assert (this->empty () && "out_ was not empty when fill called ");
+    /// Consumes enough code-units from the base iterator to form a single code-point. The resulting
+    /// code-units in the output encoding can be sequentially accessed using the front() and
+    /// advance() methods.
+    ///
+    /// \returns The updated base iterator.
+    constexpr std::ranges::iterator_t<View> fill (View const& base);
 
-      out_it_ = out_.begin ();
-      out_end_ = out_it_;
-
-      if (auto const end = std::ranges::end (base); next_ == end) {
-        // We've consumed th entire input so tell the transcoder and get any
-        out_end_ = transcoder_.end_cp (out_end_);
-      } else {
-        // Loop until we've produced a code-point's worth of code-units in the out
-        // container or we've run out of input.
-        while (out_end_ == out_it_ && next_ != end) {
-          out_end_ = transcoder_ (*next_, out_end_);
-          assert (out_end_ <= out_.end ());
-          ++next_;
-        }
-      }
-      assert (out_end_ <= out_.end ());
-      return result;
-    }
-
+  private:
     using out_type = std::array<ToEncoding, longest_sequence_v<ToEncoding>>;
-    std::ranges::iterator_t<View> next_{};
+    using iterator = typename out_type::iterator;
+
+    std::ranges::iterator_t<View> next_;
     transcoder<FromEncoding, ToEncoding> transcoder_;
     /// The container into which the transcoder's output will be written.
     out_type out_{};
-    /// The next code-unit to be produced when the view is dereferenced. This always lies between
-    /// std::begin(out_) and out_end_.
-    typename out_type::iterator out_it_;
-    /// The valid range of code-units in the out_ container is given by [b,out_end_) where b is
-    /// std::begin(out_).
-    typename out_type::iterator out_end_;
+    /// The valid ragne of code units in the out_ container. Determines the code-units to be
+    /// produced when the view is dereferenced.
+    std::ranges::subrange<iterator> valid_;
   };
   mutable state state_{};
 };
 
-template <typename FromEncoding, typename ToEncoding,
-          std::ranges::input_range View>
-  requires std::ranges::view<View> && is_unicode_char_type<FromEncoding> &&
-           is_unicode_char_type<ToEncoding>
+template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+  requires std::ranges::view<View>
+constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding, View>::iterator::state::fill (
+    View const& base) {
+  auto result = next_;
+  assert (this->empty () && "out_ was not empty when fill called");
+
+  auto it = out_.begin ();
+
+  if (auto const input_end = std::ranges::end (base); next_ == input_end) {
+    // We've consumed the entire input so tell the transcoder and get any final output.
+    it = transcoder_.end_cp (it);
+  } else {
+    // Loop until we've produced a code-point's worth of code-units in the out
+    // container or we've run out of input.
+    while (it == out_.begin () && next_ != input_end) {
+      it = transcoder_ (*next_, it);
+      ++next_;
+    }
+  }
+  assert (it >= out_.begin () && it <= out_.end ());
+  valid_ = std::ranges::subrange<iterator>{out_.begin (), it};
+  return result;
+}
+
+template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+  requires std::ranges::view<View>
 class transcode_view<FromEncoding, ToEncoding, View>::sentinel {
 public:
   sentinel () = default;
@@ -1154,9 +1209,7 @@ private:
 
 namespace views::transcode {
 
-template <typename FromEncoding, typename ToEncoding>
-  requires is_unicode_char_type<FromEncoding> && is_unicode_char_type<ToEncoding>
-class transcode_range_adaptor {
+template <unicode_char_type FromEncoding, unicode_char_type ToEncoding> class transcode_range_adaptor {
 public:
   template <std::ranges::viewable_range Range>
   constexpr auto operator() (Range&& range) const {
@@ -1165,19 +1218,15 @@ public:
   }
 };
 
-template <typename FromEncoding, typename ToEncoding, std::ranges::viewable_range Range>
-  requires is_unicode_char_type<FromEncoding> && is_unicode_char_type<ToEncoding>
-constexpr auto operator| (Range&& r,
-                          transcode_range_adaptor<FromEncoding, ToEncoding> const& adaptor) {
+template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::viewable_range Range>
+constexpr auto operator| (Range&& r, transcode_range_adaptor<FromEncoding, ToEncoding> const& adaptor) {
   return adaptor (std::forward<Range> (r));
 }
 
 }  // end namespace views::transcode
 
-template <typename FromEncoding, typename ToEncoding>
-  requires is_unicode_char_type<FromEncoding> && is_unicode_char_type<ToEncoding>
-inline constexpr auto transcode =
-    views::transcode::transcode_range_adaptor<FromEncoding, ToEncoding>{};
+template <unicode_char_type FromEncoding, unicode_char_type ToEncoding>
+inline constexpr auto transcode = views::transcode::transcode_range_adaptor<FromEncoding, ToEncoding>{};
 
 }  // end namespace ranges
 

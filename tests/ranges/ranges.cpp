@@ -114,18 +114,20 @@ int main () {
       char8_t{0x0A}   // U+000A LINE FEED
   };
   // clang-format on
-  std::vector<char16_t> out16 = convert_8_to_16 (in);
-  std::vector<char32_t> out32 = convert_8_to_32 (in);
+  std::cout << "input length is " << icubaby::length (in) << " code-points\n";
+
+  std::vector<char16_t> const out16 = convert_8_to_16 (in);
+  std::vector<char32_t> const out32 = convert_8_to_32 (in);
   convert_32_to_16 (out32);
   convert_16_to_32 (out16);
-  std::vector<char8_t> out8 = convert_16_to_8 (out16);
+  std::vector<char8_t> const out8 = convert_16_to_8 (out16);
   assert (std::ranges::equal (in, out8));
 }
 
 #else
 
 int main () {
-  std::cout << "Sorry, C++ icubaby ranges aren't supported yet.\n";
+  std::cout << "Sorry, icubaby C++ 20 ranges aren't supported by your build.\n";
 }
 
 #endif
