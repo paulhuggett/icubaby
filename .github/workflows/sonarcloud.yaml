@@ -19,7 +19,8 @@ jobs:
       SONAR_SERVER_URL: "https://sonarcloud.io"
       # Directory where build-wrapper output will be placed
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory
-      CLANG_VERSION: 15
+      CLANG_VERSION: 16
+      BUILD_DIR: build
 
     steps:
       - uses: actions/checkout@v4
@@ -30,51 +31,64 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y            \
-            clang++-${{ env.CLANG_VERSION }} \
-            cmake                            \
-            libc++-${{ env.CLANG_VERSION }}-dev    \
-            libc++abi-${{ env.CLANG_VERSION }}-dev \
-            ninja-build
+          sudo apt-get install -y cmake ninja-build
+
+      - name: Install Clang
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          # Force --yes to the end of the add-apt-repository command to
+          # prevent the llvm.sh script hanging.
+          sed -ie "/^add-apt-repository/ s/$/ --yes/" llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh ${{env.CLANG_VERSION }}
 
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@e4882e1621ad2fb48dddfa48287411bed34789b1 # v2.0.2
 
-      - name: Perform build
+      - name: CMake Configure
         run: |
-          mkdir build
+          mkdir ${{ env.BUILD_DIR }}
           cmake -G Ninja                                           \
                 -S .                                               \
-                -B build                                           \
+                -B ${{ env.BUILD_DIR }}                            \
                 -D COVERAGE=Yes                                    \
-                -D LIBCXX=Yes                                      \
                 -D CMAKE_C_COMPILER=clang-${{ env.CLANG_VERSION }} \
                 -D CMAKE_CXX_COMPILER=clang++-${{ env.CLANG_VERSION }}
+
       - name: Build
         run: |
-          build-wrapper-linux-x86-64                     \
-              --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} \
-              cmake --build build/ --config Release
+          build-wrapper-linux-x86-64                   \
+            --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} \
+            cmake --build ${{ env.BUILD_DIR }} --config Release
 
-      - name: Run test tools
+      - name: Run Test Tools
         run: |
-          LLVM_PROFILE_FILE="build/icubaby-unittests.profraw" ./build/unittests/icubaby-unittests        && \
-          LLVM_PROFILE_FILE="build/icubaby-exhaust.profraw"   ./build/tests/exhaust/icubaby-exhaust-test && \
-          LLVM_PROFILE_FILE="build/iconv-test.profraw"        ./build/tests/iconv/iconv-test             && \
-          LLVM_PROFILE_FILE="build/demo8.profraw"             ./build/tests/demo8/demo8
+          set -v
+          TESTS="\
+            tests/iconv/iconv-test \
+            tests/ranges/ranges    \
+            tests/demo8/demo8      \
+            tests/exhaust/icubaby-exhaust-test"
+          for f in $TESTS; do
+            P="${{ env.BUILD_DIR }}/$f"
+            LLVM_PROFILE_FILE="$P.profraw" $P
+          done
 
-      - name: Index the raw profile
+      - name: Index the Raw Profiles
         run: |
-          llvm-profdata-${{ env.CLANG_VERSION }} merge -sparse build/*.profraw -o build/merged.profdata
+          find ${{ env.BUILD_DIR }} -name \*.profraw -print0 |
+          xargs -0 \
+            llvm-profdata-${{ env.CLANG_VERSION }}    \
+              merge                                   \
+              -o ${{ env.BUILD_DIR }}/merged.profdata \
+              -sparse
 
-      - name: Collect the coverage
+      - name: Collect Coverage
         run: |
-           { \
-           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/unittests/icubaby-unittests        && \
-           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/tests/exhaust/icubaby-exhaust-test && \
-           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/tests/iconv/iconv-test             && \
-           llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata ./build/tests/demo8/demo8
-           } > coverage.txt
+          { \
+            find ${{ env.BUILD_DIR }} -name CMakeFiles -prune -type f -or -type f -perm -u=x -print0 | \
+              xargs -0 -n 1 llvm-cov-${{ env.CLANG_VERSION }} show --instr-profile build/merged.profdata
+          } > coverage.txt
 
       - name: Run sonar-scanner
         env:
@@ -85,9 +99,10 @@ jobs:
               -X                                                                             \
               --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
               --define sonar.cfamily.llvm-cov.reportPath=coverage.txt                        \
-              --define sonar.exclusions='build/**/*','docs/**/*'                             \
+              --define sonar.exclusions='${{ env.BUILD_DIR }}/**/*,docs/**/*'                \
               --define sonar.host.url="${{ env.SONAR_SERVER_URL }}"                          \
               --define sonar.organization=paulhuggett-github                                 \
               --define sonar.projectKey=paulhuggett_icubaby                                  \
               --define sonar.projectVersion="$(git rev-parse HEAD)"                          \
+              --define sonar.python.version=3.7,3.8,3.9,3.10,3.11                            \
               --define sonar.sourceEncoding=UTF-8
