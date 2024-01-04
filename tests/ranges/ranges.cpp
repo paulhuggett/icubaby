@@ -74,43 +74,51 @@ template <typename CharType> void dump_vector (std::vector<CharType> const& v) {
   std::cout << '\n';
 }
 
-template <typename Range> std::vector<char16_t> convert_8_to_16 (Range const& in) {
+template <std::ranges::input_range ActualRange, std::ranges::input_range ExpectedRange>
+void check (ActualRange const& actual, ExpectedRange const& expected) {
+  if (!std::ranges::equal (actual, expected)) {
+    std::cerr << "Actual range did not equal the expected!\n";
+    std::exit (EXIT_FAILURE);
+  }
+}
+
+template <std::ranges::input_range Range> std::vector<char16_t> convert_8_to_16 (Range const& in) {
   std::vector<char16_t> out16;
   std::cout << "Convert the UTF-8 stream to UTF-16:\n";
   std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char16_t>, std::back_inserter (out16));
   dump_vector (out16);
-  assert (std::ranges::equal (out16, expected16));
+  check (out16, expected16);
   return out16;
 }
 
-template <typename Range> std::vector<char32_t> convert_8_to_32 (Range const& in) {
+template <std::ranges::input_range Range> std::vector<char32_t> convert_8_to_32 (Range const& in) {
   std::vector<char32_t> out32;
   std::cout << "Convert the UTF-8 stream to UTF-32:\n";
   std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char32_t>, std::back_inserter (out32));
   dump_vector (out32);
-  assert (std::ranges::equal (out32, expected32));
+  check (out32, expected32);
   return out32;
 }
 
-template <typename Range> std::vector<char16_t> convert_32_to_16 (Range const& in) {
+template <std::ranges::input_range Range> std::vector<char16_t> convert_32_to_16 (Range const& in) {
   std::vector<char16_t> out16;
   std::cout << "Convert the UTF-32 stream to UTF-16:\n";
   std::ranges::copy (in | icubaby::ranges::transcode<char32_t, char16_t>, std::back_inserter (out16));
   dump_vector (out16);
-  assert (std::ranges::equal (out16, expected16));
+  check (out16, expected16);
   return out16;
 }
 
-template <typename Range> std::vector<char32_t> convert_16_to_32 (Range const& in) {
+template <std::ranges::input_range Range> std::vector<char32_t> convert_16_to_32 (Range const& in) {
   std::vector<char32_t> out32;
   std::cout << "Convert the UTF-16 stream to UTF-32:\n";
   std::ranges::copy (in | icubaby::ranges::transcode<char16_t, char32_t>, std::back_inserter (out32));
   dump_vector (out32);
-  assert (std::ranges::equal (out32, expected32));
+  check (out32, expected32);
   return out32;
 }
 
-template <typename Range> std::vector<char8_t> convert_16_to_8 (Range const& in) {
+template <std::ranges::input_range Range> std::vector<char8_t> convert_16_to_8 (Range const& in) {
   std::vector<char8_t> out8;
   std::cout << "Convert the UTF-16 stream to UTF-8:\n";
   std::ranges::copy (in | icubaby::ranges::transcode<char16_t, char8_t>, std::back_inserter (out8));
