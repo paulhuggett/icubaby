@@ -68,7 +68,8 @@ jobs:
             tests/iconv/iconv-test \
             tests/ranges/ranges    \
             tests/demo8/demo8      \
-            tests/exhaust/icubaby-exhaust-test"
+            tests/exhaust/icubaby-exhaust-test \
+            unittests/icubaby-unittests"
           for f in $TESTS; do
             P="${{ env.BUILD_DIR }}/$f"
             LLVM_PROFILE_FILE="$P.profraw" $P
