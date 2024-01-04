@@ -328,7 +328,8 @@ constexpr std::iter_difference_t<I> length (I first, S last, Proj proj = {}) {
 
 template <typename InputIterator,
           typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
-constexpr typename iterator_traits<InputIt>::difference_type length (InputIterator first, InputIterator last) {
+constexpr typename std::iterator_traits<InputIterator>::difference_type length (InputIterator first,
+                                                                                InputIterator last) {
   return std::count_if (first, last, [] (auto c) { return is_code_point_start (c); });
 }
 
