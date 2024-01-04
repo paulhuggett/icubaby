@@ -89,22 +89,43 @@
 #include <version>
 #endif
 
-#ifdef __cpp_lib_concepts
-#include <concepts>
+#ifdef __cpp_lib_ranges
+#define ICUBABY_CPP_LIB_RANGES_DEFINED (1)
+#else
+#define ICUBABY_CPP_LIB_RANGES_DEFINED (0)
 #endif
-#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L
+
+/// \brief Tests for the availability of library support for C++ 20 ranges.
+#define ICUBABY_HAVE_RANGES (ICUBABY_CPP_LIB_RANGES_DEFINED && __cpp_lib_ranges >= 201811L)
+#if ICUBABY_HAVE_RANGES
 #include <ranges>
 #endif
 
+/// \brief Defined as true if compiler and library support for concepts are available.
+#ifdef __cpp_concepts
+#define ICUBABY_CPP_CONCEPTS_DEFINED (1)
+#else
+#define ICUBABY_CPP_CONCEPTS_DEFINED (0)
+#endif
+
+#ifdef __cpp_lib_concepts
+#define ICUBABY_CPP_LIB_CONCEPTS_DEFINED (1)
+#else
+#define ICUBABY_CPP_LIB_CONCEPTS_DEFINED (0)
+#endif
+
+#define ICUBABY_HAVE_CONCEPTS \
+  (ICUBABY_CPP_CONCEPTS_DEFINED && __cpp_concepts >= 201907L && ICUBABY_CPP_LIB_CONCEPTS_DEFINED)
+#if ICUBABY_HAVE_CONCEPTS
+#include <concepts>
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 /// \brief Defined as `requires x` if concepts are supported and as nothing
 ///   otherwise.
 /// \hideinitializer
-#if defined(__cpp_concepts) && defined(__cpp_lib_concepts)
-// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define ICUBABY_REQUIRES(x) requires x
 #else
 #define ICUBABY_REQUIRES(x)
-#endif  // __cpp_concepts
+#endif  // ICUBABY_HAVE_CONCEPTS
 
 /// \brief Defined as `[[no_unique_address]]` if the attribute is supported and
 ///   as nothing otherwise.
@@ -147,7 +168,7 @@ template <typename First, typename Rest> struct type_list<First, Rest> {
 
 /// An element in a type list must contain member types names 'first' and
 /// 'rest'. The end of the list is given by the type_list<> specialization.
-#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && defined(__cpp_lib_concepts)
+#if ICUBABY_HAVE_CONCEPTS
 template <typename T>
 concept is_type_list = requires {
   typename T::first;
@@ -241,7 +262,7 @@ using character_types = details::make_t<char8, char16_t, char32_t>;
 template <typename T> struct is_unicode_char_type : std::bool_constant<details::contains_v<character_types, T>> {};
 template <typename T> inline constexpr bool is_unicode_char_type_v = is_unicode_char_type<T>::value;
 
-#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
+#if ICUBABY_HAVE_CONCEPTS
 template <typename T>
 concept unicode_char_type = is_unicode_char_type_v<T>;
 #endif
@@ -298,7 +319,7 @@ constexpr bool is_code_point_start (char32_t c) noexcept {
   return !is_surrogate (c) && c <= max_code_point;
 }
 
-#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && defined(__cpp_lib_concepts)
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 /// \brief Returns the number of code points in a sequence.
 ///
@@ -333,9 +354,9 @@ constexpr typename std::iterator_traits<InputIterator>::difference_type length (
   return std::count_if (first, last, [] (auto c) { return is_code_point_start (c); });
 }
 
-#endif
+#endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
-#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && defined(__cpp_lib_concepts)
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 /// Returns an iterator to the beginning of the pos'th code point in the range
 /// of code-units given by \p r.
@@ -376,9 +397,9 @@ constexpr InputIterator index (InputIterator first, InputIterator last, std::siz
   });
 }
 
-#endif
+#endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
-#if defined(__cpp_concepts) && __cpp_concepts >= 201907L && defined(__cpp_lib_concepts)
+#if ICUBABY_HAVE_CONCEPTS
 
 template <typename T>
 concept is_transcoder = requires (T t) {
@@ -390,9 +411,6 @@ concept is_transcoder = requires (T t) {
   { t.partial () } -> std::convertible_to<bool>;
 };
 
-#endif  // __cpp_concepts
-
-#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
 /// An encoder takes a sequence of one of more code-units in one Unicode
 /// encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another.
 template <unicode_char_type From, unicode_char_type To> class transcoder;
@@ -400,7 +418,7 @@ template <unicode_char_type From, unicode_char_type To> class transcoder;
 /// An encoder takes a sequence of one of more code-units in one Unicode
 /// encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another.
 template <typename From, typename To> class transcoder;
-#endif
+#endif  // ICUBABY_HAVE_CONCEPTS
 
 /// An output iterator which passes code units being output through a
 /// transcoder.
@@ -965,7 +983,7 @@ using t32_16 = transcoder<char32_t, char16_t>;
 /// represents no change and is included for completeness.
 using t32_32 = transcoder<char32_t, char32_t>;
 
-#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L && defined(__cpp_concepts) && defined(__cpp_lib_concepts)
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 namespace ranges {
 
@@ -1151,7 +1169,7 @@ inline constexpr auto transcode = views::transcode::transcode_range_adaptor<From
 
 }  // end namespace ranges
 
-#endif  // ranges and concepts
+#endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 }  // end namespace icubaby
 
