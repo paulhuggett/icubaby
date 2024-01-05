@@ -47,6 +47,8 @@ enum class endian {
 };
 #endif  // __cpp_lib_endian
 
+// char to code
+// ~~~~~~~~~~~~
 template <typename C> struct char_to_code;
 template <> struct char_to_code<icubaby::char8> {
   static constexpr auto code () { return "UTF-8"; }
@@ -79,9 +81,13 @@ public:
   explicit unsupported_conversion (int erc) : std::system_error{std::error_code{erc, std::generic_category ()}} {}
 };
 
-template <typename C> void convert_using_iconv (std::vector<char32_t> const &in, std::vector<C> &out) {
+// convert using iconv
+// ~~~~~~~~~~~~~~~~~~~
+template <typename C, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<C>>>
+std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
   using from_encoding = char32_t;
   iconv_t cd = iconv_open (char_to_code<C>::code (), char_to_code<from_encoding>::code ());
+  // NOLINTNEXTLINE
   if (cd == reinterpret_cast<iconv_t> (-1)) {
     int const erc = errno;
     if (erc == EINVAL) {
@@ -90,13 +96,13 @@ template <typename C> void convert_using_iconv (std::vector<char32_t> const &in,
     throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv_open"};
   }
 
-  out.clear ();
+  std::vector<C> out;
   // The initial output buffer. We guess that the output is likely to require
   // at least twice as many code units as the input...
-  out.resize (in.size () * icubaby::longest_sequence_v<C>);
-  auto total_out_bytes = size_t{0};
+  out.resize (in.size () * 2);
+  auto total_out_bytes = std::size_t{0};
   auto const *inbuf = in.data ();
-  size_t in_bytes_left = sizeof (from_encoding) * in.size ();
+  std::size_t in_bytes_left = sizeof (from_encoding) * in.size ();
   while (in_bytes_left > 0) {
     auto const out_size = out.size ();
     auto const out_bytes_available = sizeof (C) * out_size - total_out_bytes;
@@ -105,7 +111,7 @@ template <typename C> void convert_using_iconv (std::vector<char32_t> const &in,
     auto *outbuf = reinterpret_cast<char *> (out.data ()) + total_out_bytes;
     // NOLINTNEXTLINE
     if (iconv (cd, reinterpret_cast<char **> (const_cast<from_encoding **> (&inbuf)), &in_bytes_left, &outbuf,
-               &out_bytes_left) == static_cast<size_t> (-1)) {
+               &out_bytes_left) == static_cast<std::size_t> (-1)) {
       // E2BIG tells us that the output buffer was too small.
       if (int const erc = errno; erc != E2BIG) {
         throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv"};
@@ -118,8 +124,24 @@ template <typename C> void convert_using_iconv (std::vector<char32_t> const &in,
   assert (total_out_bytes % sizeof (C) == 0);
   out.resize (total_out_bytes / sizeof (C));
   iconv_close (cd);
+  return out;
 }
 
+// convert using icubaby
+// ~~~~~~~~~~~~~~~~~~~~~
+template <typename C, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<C>>>
+std::vector<C> convert_using_icubaby (std::vector<char32_t> const &in) {
+  std::vector<C> out;
+  out.reserve (in.size () * icubaby::longest_sequence_v<C>);
+  icubaby::transcoder<char32_t, C> convert_32_8;
+  auto it = std::copy (std::begin (in), std::end (in), icubaby::iterator{&convert_32_8, std::back_inserter (out)});
+  it = convert_32_8.end_cp (it);
+  assert (convert_32_8.well_formed ());
+  return out;
+}
+
+// all code points
+// ~~~~~~~~~~~~~~~
 std::vector<char32_t> all_code_points () {
   std::vector<char32_t> result;
   for (auto cp = char32_t{0}; cp <= icubaby::max_code_point; ++cp) {
@@ -130,44 +152,51 @@ std::vector<char32_t> all_code_points () {
   return result;
 }
 
+// show diff
+// ~~~~~~~~~
+template <typename C, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<C>>>
+void show_diff (std::ostream &os, std::vector<C> const &iconv_out, std::vector<C> const &baby_out) {
+  os << "iconv output size=" << iconv_out.size () << '\n';
+  os << "icubaby output size=" << baby_out.size () << '\n';
+
+  auto iconv_pos = std::begin (iconv_out);
+  auto baby_pos = std::begin (baby_out);
+  auto ctr = std::size_t{0};
+
+  auto const end = iconv_pos + std::min (iconv_out.size (), baby_out.size ());
+  while (iconv_pos != end) {
+    if (*iconv_pos != *baby_pos) {
+      os << std::hex << ctr << ": "
+         << std::hex << static_cast<unsigned> (*iconv_pos) << ' '
+         << std::hex << static_cast<unsigned> (baby_out[ctr]) << '\n';
+    }
+    ++iconv_pos;
+    ++baby_pos;
+    ++ctr;
+  }
+}
+
+// check
+// ~~~~~
 template <typename T, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<T>>>
 [[nodiscard]] bool check (std::vector<char32_t> const &all) {
   static constexpr bool trace_failure = true;
 
   try {
-    // Pass the collection of input characters through the icubaby UTF-32 to UTF-8 converter.
-    std::vector<T> baby_out;
-    baby_out.reserve (all.size () * icubaby::longest_sequence_v<T>);
-    icubaby::transcoder<char32_t, T> convert_32_8;
-    auto it =
-        std::copy (std::begin (all), std::end (all), icubaby::iterator{&convert_32_8, std::back_inserter (baby_out)});
-    it = convert_32_8.end_cp (it);
-    assert (convert_32_8.well_formed ());
+    // Pass the collection of input characters through the icubaby UTF-32 to UTF-8/16 converter.
+    std::vector<T> const baby_out = convert_using_icubaby<T> (all);
 
-    // Pass the collection of input characters through the libiconv UTF-32 to UTF-8 converter.
-    std::vector<T> iconv_out;
-    iconv_out.reserve (all.size () * icubaby::longest_sequence_v<T>);
-    convert_using_iconv<T> (all, iconv_out);
+    // ... now through the libiconv UTF-32 to UTF-8/16 converter.
+    std::vector<T> const iconv_out = convert_using_iconv<T> (all);
 
     // Compare the output of the two converters.
     if (!std::equal (std::begin (iconv_out), std::end (iconv_out), std::begin (baby_out), std::end (baby_out))) {
       if constexpr (trace_failure) {
         std::cerr << "FAILURE\n";
-        std::cout << "iconv output size=" << iconv_out.size () << '\n';
-        std::cout << "icubaby output size=" << baby_out.size () << '\n';
-
-        for (size_t ctr = 0, end = std::min (iconv_out.size (), baby_out.size ()); ctr < end; ++ctr) {
-          if (iconv_out[ctr] != baby_out[ctr]) {
-            std::cout << std::hex << ctr << ": "
-                      << std::hex << static_cast<uint_least32_t> (all[ctr]) << "-> "
-                      << std::hex << static_cast<unsigned> (iconv_out[ctr]) << ' '
-                      << std::hex << static_cast<unsigned> (baby_out[ctr]) << '\n';
-          }
-        }
+        show_diff (std::cout, iconv_out, baby_out);
       }
       return false;
     }
-
   } catch (unsupported_conversion const &) {
     std::cout << "Skipping " << char_to_code<T>::code () << " iconv test: conversion not supported\n";
   }
