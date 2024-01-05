@@ -595,12 +595,15 @@ public:
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     // Prior to C++20, char8 might be signed.
-    auto const ucu = static_cast<std::make_unsigned_t<input_type>> (code_unit);
+    static_assert (sizeof (input_type) == sizeof (std::uint8_t));
+    auto const ucu = static_cast<std::uint8_t> (code_unit);
     static_assert (std::is_unsigned_v<decltype (ucu)> && std::numeric_limits<decltype (ucu)>::max () <= utf8d_.size ());
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     auto const type = utf8d_[ucu];
-    code_point_ =
-        (state_ != accept) ? (ucu & 0x3FU) | static_cast<uint_least32_t> (code_point_ << 6U) : (0xFFU >> type) & ucu;
+    code_point_ = (state_ != accept)
+                      ? static_cast<std::uint_least32_t> (static_cast<std::byte> (code_unit) & std::byte{0x3FU}) |
+                            static_cast<uint_least32_t> (code_point_ << 6U)
+                      : (0xFFU >> type) & ucu;
     auto const idx = 256U + state_ + type;
     assert (idx < utf8d_.size ());
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
@@ -842,7 +845,7 @@ public:
     // The (intermediate) output from the conversion to UTF-32. It's possible
     // for the transcoder to produce more than a single output code unit if the
     // input is malformed.
-    std::array<char32_t, 2> intermediate;
+    std::array<char32_t, 2> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
     auto begin = std::begin (intermediate);
     return copy (begin, to_inter_ (c, begin), dest);
@@ -858,7 +861,7 @@ public:
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator end_cp (OutputIterator dest) {
-    std::array<char32_t, 2> intermediate;
+    std::array<char32_t, 2> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
     auto begin = std::begin (intermediate);
     return copy (begin, to_inter_.end_cp (begin), dest);
