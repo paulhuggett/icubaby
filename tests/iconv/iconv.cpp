@@ -163,7 +163,7 @@ void show_diff (std::ostream &os, std::vector<C> const &iconv_out, std::vector<C
   auto baby_pos = std::begin (baby_out);
   auto ctr = std::size_t{0};
 
-  using difference_type = std::iterator_traits<decltype (iconv_pos)>::difference_type;
+  using difference_type = typename std::iterator_traits<decltype (iconv_pos)>::difference_type;
   auto const end = iconv_pos + static_cast<difference_type> (std::min (iconv_out.size (), baby_out.size ()));
   while (iconv_pos != end) {
     if (*iconv_pos != *baby_pos) {
