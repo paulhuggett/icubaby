@@ -51,23 +51,19 @@ function (setup_target target)
     list (APPEND clang_options $<$<BOOL:${CLANG_W_UNSAFE_BUFFER_USAGE}>:-Wno-unsafe-buffer-usage>)
   endif ()
 
-  if (WERROR)
+  if (ICUBABY_WERROR)
     list (APPEND clang_options -Werror)
     list (APPEND gcc_options -Werror)
     list (APPEND msvc_options /WX)
   endif ()
-  if (LIBCXX)
+  if (ICUBABY_LIBCXX)
     list (APPEND clang_options -stdlib=libc++)
   endif ()
-  if (COVERAGE)
+  if (ICUBABY_COVERAGE)
     list (APPEND clang_options -fprofile-instr-generate -fcoverage-mapping)
   endif ()
 
-  set_target_properties (${target} PROPERTIES
-    CXX_STANDARD ${standard}
-    CXX_STANDARD_REQUIRED Yes
-    CXX_EXTENSIONS No
-  )
+  target_compile_features (${target} PUBLIC $<IF:$<BOOL:${ICUBABY_CXX17}>,cxx_std_17,cxx_std_20>)
   target_compile_options (${target} PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:IntelLLVM>>:${clang_options}>
     $<$<CXX_COMPILER_ID:GNU>:${gcc_options}>

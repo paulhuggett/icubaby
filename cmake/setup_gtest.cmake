@@ -26,17 +26,13 @@ add_subdirectory ("${icubaby_project_root}/googletest")
 
 function (setup_gtest)
   foreach (target gtest gmock gmock_main gtest_main)
-    set_target_properties (${target} PROPERTIES
-      CXX_STANDARD ${standard}
-      CXX_STANDARD_REQUIRED Yes
-      CXX_EXTENSIONS No
-    )
     set (gclang_options -Wno-implicit-int-float-conversion)
-    if (LIBCXX)
+    if (ICUBABY_LIBCXX)
       list (APPEND gclang_options -stdlib=libc++)
     endif ()
     set (gintelllvm_options ${gclang_options} -Wno-tautological-constant-compare)
 
+    target_compile_features (${target} PUBLIC $<IF:$<BOOL:${ICUBABY_CXX17}>,cxx_std_17,cxx_std_20>)
     target_compile_definitions (${target} PUBLIC GTEST_REMOVE_LEGACY_TEST_CASEAPI_=1)
     target_compile_options (${target} PRIVATE
       $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${gclang_options}>

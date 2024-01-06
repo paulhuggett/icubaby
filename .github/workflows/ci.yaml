@@ -40,7 +40,7 @@ jobs:
             build_type: Debug
             cxx_compiler: -DCMAKE_CXX_COMPILER=clang++-16 -DCMAKE_C_COMPILER=clang-16
             generator: Ninja
-            options: '-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold'
+            options: -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold
             os: ubuntu-22.04
 
           - name: Ubuntu-22.04/clang-16/Release
@@ -49,7 +49,7 @@ jobs:
             build_type: Release
             cxx_compiler: -DCMAKE_CXX_COMPILER=clang++-16 -DCMAKE_C_COMPILER=clang-16
             generator: Ninja
-            options: '-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold'
+            options: -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold
             os: ubuntu-22.04
 
           - name: Ubuntu-22.04/clang-14/Release/C++17
@@ -57,7 +57,7 @@ jobs:
             build_type: Release
             cxx_compiler: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_C_COMPILER=clang-14
             generator: Ninja
-            options: -DCXX17=Yes -DLIBCXX=Yes -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold
+            options: -DICUBABY_CXX17=Yes -DICUBABY_LIBCXX=Yes -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold
             os: ubuntu-22.04
 
           # Windows builds
@@ -108,7 +108,7 @@ jobs:
                 -B "${{ github.workspace }}/build"           \
                 -G "${{ matrix.generator }}"                 \
                 -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                -D WERROR=Yes                                \
+                -D ICUBABY_WERROR=Yes                        \
                 ${{ matrix.cxx_compiler }}                   \
                 ${{ matrix.options }}
 

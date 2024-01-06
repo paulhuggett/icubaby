@@ -51,7 +51,7 @@ jobs:
           cmake -G Ninja                                           \
                 -S .                                               \
                 -B ${{ env.BUILD_DIR }}                            \
-                -D COVERAGE=Yes                                    \
+                -D ICUBABY_COVERAGE=Yes                            \
                 -D CMAKE_C_COMPILER=clang-${{ env.CLANG_VERSION }} \
                 -D CMAKE_CXX_COMPILER=clang++-${{ env.CLANG_VERSION }}
 
