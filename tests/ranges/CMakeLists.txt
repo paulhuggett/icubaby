@@ -1,5 +1,3 @@
-if (standard GREATER_EQUAL 20)
-  add_executable (ranges ranges.cpp)
-  setup_target (ranges)
-  target_link_libraries (ranges PUBLIC icubaby)
-endif ()
+add_executable (ranges ranges.cpp)
+setup_target (ranges)
+target_link_libraries (ranges PUBLIC icubaby)
