@@ -19,8 +19,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#ifndef ENCODED_CHAR_HPP
-#define ENCODED_CHAR_HPP
+#ifndef UNITTESTS_ENCODED_CHAR_HPP
+#define UNITTESTS_ENCODED_CHAR_HPP
 
 #include <array>
 
@@ -307,4 +307,4 @@ template <code_point C, typename To, typename OutputIterator> OutputIterator app
   return std::copy (std::begin (code_units), std::end (code_units), out);
 }
 
-#endif  // ENCODED_CHAR_HPP
+#endif  // UNITTESTS_ENCODED_CHAR_HPP

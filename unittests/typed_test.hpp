@@ -19,8 +19,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#ifndef TYPED_TEST_HPP
-#define TYPED_TEST_HPP
+#ifndef UNITTESTS_TYPED_TEST_HPP
+#define UNITTESTS_TYPED_TEST_HPP
 
 #include <gtest/gtest.h>
 
@@ -76,4 +76,4 @@ public:
 
 using OutputTypes = testing::Types<icubaby::char8, char16_t, char32_t>;
 
-#endif  // TYPED_TEST_HPP
+#endif  // UNITTESTS_TYPED_TEST_HPP
