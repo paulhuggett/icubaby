@@ -25,9 +25,7 @@ if (Iconv_FOUND)
   add_executable (iconv-test iconv.cpp)
   target_include_directories (iconv-test PUBLIC ${Iconv_INCLUDE_DIRS})
   target_link_libraries (iconv-test PUBLIC icubaby ${Iconv_LIBRARIES})
-  setup_target (iconv-test)
 
-  target_compile_options (iconv-test PRIVATE
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-Wno-unreachable-code-return>
-  )
+  set (ICUBABY_CXX17 Yes)  # Force this project to C++17.
+  setup_target (iconv-test)
 endif (Iconv_FOUND)
