@@ -20,17 +20,17 @@ jobs:
 
           # Ubuntu builds
           # ~~~~~~~~~~~~~
-          - name: Ubuntu-22.04/gcc-12/Debug
-            apt_install: cmake g++-12 libstdc++-12-dev ninja-build
+          - name: Ubuntu-22.04/gcc-13/Debug
+            apt_install: cmake g++-13 libstdc++-13-dev ninja-build
             build_type: Debug
-            cxx_compiler: -DCMAKE_CXX_COMPILER=g++-12 -DCMAKE_C_COMPILER=gcc-12
+            cxx_compiler: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_C_COMPILER=gcc-13
             generator: Ninja
             os: ubuntu-22.04
 
-          - name: Ubuntu-22.04/gcc-12/Release
-            apt_install: cmake g++-12 libstdc++-12-dev ninja-build
+          - name: Ubuntu-22.04/gcc-13/Release
+            apt_install: cmake g++-13 libstdc++-13-dev ninja-build
             build_type: Release
-            cxx_compiler: -DCMAKE_CXX_COMPILER=g++-12 -DCMAKE_C_COMPILER=gcc-12
+            cxx_compiler: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_C_COMPILER=gcc-13
             generator: Ninja
             os: ubuntu-22.04
 
