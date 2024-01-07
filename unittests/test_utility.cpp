@@ -19,10 +19,21 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#include <gtest/gtest.h>
 
-#include "encoded_char.hpp"
+#include <cstddef>
+#include <iterator>
+#include <limits>
+#include <string>
+#include <vector>
+
+// icubaby itself.
 #include "icubaby/icubaby.hpp"
+
+// Google Test/Mock
+#include "gtest/gtest.h"
+
+// Local includes
+#include "encoded_char.hpp"
 #include "typed_test.hpp"
 
 // NOLINTNEXTLINE
@@ -101,8 +112,7 @@ TEST (IsCodePointStart, Utf32) {
 namespace {
 
 struct AsciiUtf8 : testing::Test {
-  AsciiUtf8 () : CUs{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'} {}
-  std::vector<icubaby::char8> const CUs;
+  std::vector<icubaby::char8> const CUs{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'};
 };
 
 }  // end anonymous namespace

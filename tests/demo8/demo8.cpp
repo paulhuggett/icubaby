@@ -89,8 +89,8 @@ void c3 () {
 void c4 () {
   std::vector<char16_t> out;
   icubaby::t8_16 t;
-  std::array<icubaby::char8, 4> const in{static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
-                                         static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
+  std::array const in{static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
+                      static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
   auto it = icubaby::iterator{&t, std::back_inserter (out)};
   for (auto cu : in) {
     *(it++) = cu;
@@ -100,8 +100,8 @@ void c4 () {
 }
 
 void c5 () {
-  std::array<icubaby::char8, 4> const in{static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
-                                         static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
+  std::array const in{static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
+                      static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
   std::vector<char16_t> out;
   icubaby::t8_16 t;
 #if __cpp_lib_ranges
@@ -115,9 +115,8 @@ void c5 () {
 }  // namespace
 
 int main () {
-  using namespace std::string_view_literals;
   icubaby::char8 const* in = u8"こんにちは世界\n";
-  show (std::cout, std::basic_string_view<icubaby::char8> (in));
+  show (std::cout, std::basic_string_view (in));
   show (std::cout, *convert (in));
   show (std::cout, *convert2 (in));
   c3 ();

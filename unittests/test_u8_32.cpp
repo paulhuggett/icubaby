@@ -19,13 +19,22 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#include <gmock/gmock.h>
 
+#include <algorithm>
 #include <array>
 #include <iterator>
+#include <ranges>
+#include <string>
+#include <type_traits>
 #include <vector>
+#include <version>
 
+// icubaby itself
 #include "icubaby/icubaby.hpp"
+
+// Google Test/Mock
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 // NOLINTNEXTLINE(misc-redundant-expression)
 static_assert (std::is_same_v<icubaby::t8_8 ::input_type, icubaby::char8> &&
@@ -66,8 +75,7 @@ TEST (Utf8To32, GoodDollarSign) {
 // NOLINTNEXTLINE
 TEST (Utf8To32, GoodCentSign) {
   // 0xC2, 0xA2 => U+00A2  CENT SIGN
-  std::array<icubaby::char8, 2> const cent_sign = {
-      {static_cast<icubaby::char8> (0xC2), static_cast<icubaby::char8> (0xA2)}};
+  std::array const cent_sign{static_cast<icubaby::char8> (0xC2), static_cast<icubaby::char8> (0xA2)};
 
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
@@ -90,8 +98,8 @@ TEST (Utf8To32, GoodCentSign) {
 // NOLINTNEXTLINE
 TEST (Utf8To32, GoodDevanagariLetterHa) {
   // 0xE0, 0xA4, 0xB9 => U+0939 DEVANAGARI LETTER HA
-  std::array<icubaby::char8, 3> const devanagri_letter_ha{
-      {static_cast<icubaby::char8> (0xE0), static_cast<icubaby::char8> (0xA4), static_cast<icubaby::char8> (0xB9)}};
+  std::array const devanagri_letter_ha{static_cast<icubaby::char8> (0xE0), static_cast<icubaby::char8> (0xA4),
+                                       static_cast<icubaby::char8> (0xB9)};
 
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
@@ -118,8 +126,8 @@ TEST (Utf8To32, GoodDevanagariLetterHa) {
 // NOLINTNEXTLINE
 TEST (Utf8To32, GoodEuroSign) {
   // 0xE2, 0x82, 0xAC => U+20AC EURO SIGN
-  std::array<icubaby::char8, 3> const euro_sign{
-      {static_cast<icubaby::char8> (0xE2), static_cast<icubaby::char8> (0x82), static_cast<icubaby::char8> (0xAC)}};
+  std::array const euro_sign{static_cast<icubaby::char8> (0xE2), static_cast<icubaby::char8> (0x82),
+                             static_cast<icubaby::char8> (0xAC)};
 
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
@@ -142,8 +150,8 @@ TEST (Utf8To32, GoodEuroSign) {
 // NOLINTNEXTLINE
 TEST (Utf8To32, GoodHangulSyllableHan) {
   // 0xED, 0x95, 0x9C,      | U+D55C  HANGUL SYLLABLE HAN
-  std::array<icubaby::char8, 3> const hangul_syllable_han{
-      {static_cast<icubaby::char8> (0xED), static_cast<icubaby::char8> (0x95), static_cast<icubaby::char8> (0x9C)}};
+  std::array const hangul_syllable_han{static_cast<icubaby::char8> (0xED), static_cast<icubaby::char8> (0x95),
+                                       static_cast<icubaby::char8> (0x9C)};
 
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);
@@ -166,9 +174,8 @@ TEST (Utf8To32, GoodHangulSyllableHan) {
 // NOLINTNEXTLINE
 TEST (Utf8To32, GoodGothicLetterHwair) {
   // 0xF0, 0x90, 0x8D, 0x88 | U+10348 GOTHIC LETTER HWAIR
-  std::array<icubaby::char8, 4> const gothic_letter_hwair{
-      {static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x90), static_cast<icubaby::char8> (0x8D),
-       static_cast<icubaby::char8> (0x88)}};
+  std::array const gothic_letter_hwair{static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x90),
+                                       static_cast<icubaby::char8> (0x8D), static_cast<icubaby::char8> (0x88)};
 
   std::vector<char32_t> cu;
   auto out = std::back_inserter (cu);

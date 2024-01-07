@@ -19,11 +19,17 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#include <gmock/gmock.h>
 
+#include <iterator>
+#include <type_traits>
 #include <vector>
 
+// icubaby itself.
 #include "icubaby/icubaby.hpp"
+
+// Google Test/Mock
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 static_assert (std::is_same_v<icubaby::t32_8 ::input_type, char32_t> &&
                std::is_same_v<icubaby::t32_8 ::output_type, icubaby::char8>);

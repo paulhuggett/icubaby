@@ -19,14 +19,22 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-#include <gmock/gmock.h>
 
 #include <array>
 #include <iterator>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
-#include "encoded_char.hpp"
+// icubaby itself.
 #include "icubaby/icubaby.hpp"
+
+// Google Test/Mock
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+
+// Local includes
+#include "encoded_char.hpp"
 #include "typed_test.hpp"
 
 static_assert (std::is_same_v<icubaby::t16_8 ::input_type, char16_t> &&
@@ -259,3 +267,5 @@ TYPED_TEST (Utf16, LonelyHighSurrogate) {
 
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
 }
+
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
