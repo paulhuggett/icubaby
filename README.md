@@ -6,6 +6,7 @@
 [![CodeQL](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml)
 [![Microsoft C++ Code Analysis](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/paulhuggett/icubaby/badge)](https://securityscorecards.dev/viewer/?uri=github.com/paulhuggett/icubaby)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/8282/badge)](https://www.bestpractices.dev/projects/8282)
 
 A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32. It does not allocate dynamic memory and neither throws or catches exceptions.
 
