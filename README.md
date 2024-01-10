@@ -1,16 +1,18 @@
 # icubaby 
 
-[![CI Build & Test](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=paulhuggett_icubaby&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=paulhuggett_icubaby)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d7aafd88d8ef4be7b03b568e957f0103)](https://app.codacy.com/gh/paulhuggett/icubaby/dashboard)
-[![CodeQL](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml)
-[![Microsoft C++ Code Analysis](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/paulhuggett/icubaby/badge)](https://securityscorecards.dev/viewer/?uri=github.com/paulhuggett/icubaby)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/8282/badge)](https://www.bestpractices.dev/projects/8282)
-
-A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32. It does not allocate dynamic memory and neither throws or catches exceptions.
+A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting sequences of text between any of the Unicode UTF encodings. It does not allocate dynamic memory and neither throws or catches exceptions.
 
 > icubaby is in no way related to the [International Components for Unicode](https://icu.unicode.org) library!
+
+## Status
+
+| Category | Badges |
+| --- | --- |
+| Continuous Integration | [![CI Build & Test](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml) |
+| Static Analysis | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=paulhuggett_icubaby&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=paulhuggett_icubaby) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d7aafd88d8ef4be7b03b568e957f0103)](https://app.codacy.com/gh/paulhuggett/icubaby/dashboard) [![CodeQL](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml) [![Microsoft C++ Code Analysis](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml)
+| Runtime Analysis |
+| [OpenSSF](https://openssf.org) |  [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/paulhuggett/icubaby/badge)](https://securityscorecards.dev/viewer/?uri=github.com/paulhuggett/icubaby) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/8282/badge)](https://www.bestpractices.dev/projects/8282) |
+
 
 ## Introduction
 
@@ -18,7 +20,77 @@ C++ 17 [deprecated the standard library's `<codecvt>` header file](https://www.o
 
 ## Usage
 
-Let’s try converting a single Unicode emoji character 😀 (U+1F600 GRINNING FACE) which is expressed as four UTF-8 code units (0xF0, 0x9F, 0x98, 0x80) to UTF-16 (where it is the surrogate pair 0xD83D, 0xDE00).
+There are broadly three ways to use the icubaby library:
+
+1. C++ 20 Range Adaptor
+2. An iterator interface
+3. Manually driving the conversion
+
+### C++ 20 Range Adaptor
+
+C++ 20 introduces the ranges library which enables, more composable and less error-prone, interaction with iterators and containers. In icubaby, we can transform a range of input values from one Unicode encoding to another using a single range adaptor:
+
+~~~cpp
+auto const in = std::array{char32_t{0x1F600}};
+auto r = in | icubaby::ranges::transcode<char32_t, char16_t>;
+std::vector<char16_t> out;
+std::ranges::copy(r, std::back_inserter(out));
+~~~
+
+This code wants to convert a single Unicode code-point 😀 (U+1F600 GRINNING FACE) from UTF-32 to UTF-16.
+As in the previous examples, the `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
+
+#### Disecting this code
+
+1. Define the input range:
+
+    ~~~cpp
+    auto const in = std::array{char32_t{0x1F600}};
+    ~~~
+
+    We express the input as a container with our input text consisting simply of U+1F600 GRINNING FACE expressed in UTF-32.
+
+2. Create a range with a view of our container and pass it to the icubaby `transcode` range adaptor:
+
+    ~~~cpp
+    auto r = in | icubaby::ranges::transcode<char32_t, char16_t>;
+    ~~~
+
+    The first template argument for icubaby::ranges::transcode<> is the encoding of the input text (one of `icubaby::char8`, `char16_t`, `char32_t`), the second argument is the desired encoding of the output text.
+    
+    We now have the range `r` containing the UTF-16 code-units that correspond to the original input text.
+
+3. The final step is to record the values within the range `r`. In C++ 20, this can be achieved with the [std::ranges::copy()](https://en.cppreference.com/w/cpp/algorithm/ranges/copy) algorithm:
+
+    ~~~cpp
+    std::vector<char16_t> out;
+    std::ranges::copy(r, std::back_inserter(out));
+    ~~~
+
+    If you are using the C++ 23 ranges library, you can simplify this even further using [std::ranges::to()](https://en.cppreference.com/w/cpp/ranges/to):
+    
+    ~~~cpp
+    auto const out = r | std::ranges::to<std::vector> ();
+    ~~~
+
+### The Iterator Interface
+
+~~~cpp
+auto const in = std::vector{char8_t{0xF0}, char8_t{0x9F}, char8_t{0x98}, char8_t{0x80}};
+std::vector<char16_t> out;
+icubaby::t8_16 t;
+auto it = icubaby::iterator{&t, std::back_inserter (out)};
+for (auto cu: in) {
+  *(it++) = cu;
+}
+it = t.end_cp (it);
+~~~
+
+The `icubaby::iterator<>` class offers a familiar output iterator for using a transcoder. Each code unit from the input encoding is written to the iterator and this writes the output encoding to a second iterator. This enables use to use standard algorithms such as [`std::copy`](https://en.cppreference.com/w/cpp/algorithm/copy) with the library.
+
+### Manually Driving the Conversion
+
+Let’s try converting a single Unicode emoji character 😀 (U+1F600 GRINNING FACE) expressed as four UTF-8 code units (0xF0, 0x9F, 0x98, 0x80) to UTF-16 (where it is the surrogate pair 0xD83D, 0xDE00).
 
 ~~~cpp
 std::vector<char16_t> out;
@@ -32,7 +104,7 @@ it = t.end_cp (it);
 
 The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
 
-### Disecting this code 
+#### Disecting this code 
 
 1.  Define where and how the output should be written:
 
@@ -68,33 +140,6 @@ The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
     ~~~
 
     It’s only necessary to make a single call to `end_cp()` once *all* of the input has been fed to the transcoder.
-
-### An alternative: using icubaby::iterator
-
-~~~cpp
-auto const in = std::vector{char8_t{0xF0}, char8_t{0x9F}, char8_t{0x98}, char8_t{0x80}};
-std::vector<char16_t> out;
-icubaby::t8_16 t;
-auto it = icubaby::iterator{&t, std::back_inserter (out)};
-for (auto cu: in) {
-  *(it++) = cu;
-}
-it = t.end_cp (it);
-~~~
-
-The `icubaby::iterator<>` class offers a familiar output iterator for using a transcoder. Each code unit from the input encoding is written to the iterator and this writes the output encoding to a second iterator. This enables use to use standard algorithms such as [`std::copy`](https://en.cppreference.com/w/cpp/algorithm/copy) with the library.
-
-### C++ 20 Ranges
-
-C++ 20 introduces the ranges library which introduces new ways to interact with iterators and containers. In icubaby, we can transform a range of input values from one Unicode encoding to another in a single step of a ranges pipeline:
-
-~~~cpp
-std::vector<char16_t> out;
-auto const in = std::vector{char8_t{0xF0}, char8_t{0x9F}, char8_t{0x98}, char8_t{0x80}};
-auto r = in | icubaby::ranges::transcode<char8_t, char16_t>;
-std::ranges::copy (r, std::back_inserter (out));
-~~~
-As in the previous examples, the `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
 
 
 ## API
