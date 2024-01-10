@@ -62,6 +62,7 @@ function (setup_target target)
   endif ()
   if (ICUBABY_COVERAGE)
     list (APPEND clang_options -fprofile-instr-generate -fcoverage-mapping)
+    list (APPEND gcc_options -fprofile-arcs -ftest-coverage)
   endif ()
 
   target_compile_features (${target} PUBLIC $<IF:$<BOOL:${ICUBABY_CXX17}>,cxx_std_17,cxx_std_20>)
