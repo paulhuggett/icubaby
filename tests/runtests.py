@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import pathlib
 import stat
 import subprocess
 import sys
@@ -18,11 +19,11 @@ def is_executable(entry:os.DirEntry) -> bool:
 
     if entry.is_file():
         if sys.platform.startswith('win32'):
-            return entry.name.endwith('.exe')
+            return entry.name.endswith('.exe')
         return (entry.stat(follow_symlinks=False).st_mode & stat.S_IXUSR) != 0
     return False
 
-def find_executables(directory:str, excludes:list[str]) -> typing.Generator:
+def find_executables(directory:pathlib.Path, excludes:list[str]) -> typing.Generator:
     """
     A generator function which yields executable files within the directory tree
     given by 'path'.
@@ -34,13 +35,13 @@ def find_executables(directory:str, excludes:list[str]) -> typing.Generator:
     with os.scandir(directory) as entries:
         for entry in entries:
             if entry.name not in excludes:
-                path = os.path.join(directory, entry.name)
+                path = entry.path
                 if entry.is_dir(follow_symlinks=False):
-                    yield from find_exe(path, excludes)
+                    yield from find_executables(path, excludes)
                 elif is_executable(entry):
                     yield path
 
-def run_executables(directory:str, excludes:list[str]) -> None:
+def run_executables(directory:pathlib.Path, excludes:list[str]) -> None:
     """
     :param directory: The directory to be scanned for executables.
     :param excludes: A list of file or directory names to be excluded from the search.
@@ -52,10 +53,14 @@ def run_executables(directory:str, excludes:list[str]) -> None:
         print(f'---\nRunning {path}', flush=True)
         subprocess.run([path], check=True, timeout=60)
 
-if __name__ == '__main__':
+def main() -> int:
     parser = argparse.ArgumentParser(
         prog='runtests',
-        description='Finds an runs executables within a directory tree')
-    parser.add_argument('path')
+        description='Finds and runs executables within a directory tree')
+    parser.add_argument('path', type=pathlib.Path)
     args = parser.parse_args()
-    run_executables(args.path, [ 'CMakeFiles' ])
+    run_executables(args.path, [ 'CMakeFiles', os.path.split(__file__)[1]])
+    return 0
+
+if __name__ == '__main__':
+    sys.exit (main())
