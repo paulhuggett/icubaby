@@ -6,7 +6,9 @@
 version: 2
 
 updates:
-  - package-ecosystem: "github-actions" # See documentation for possible values
+  - package-ecosystem:
+      - github-actions
+      - gitsubmodule
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
