@@ -1,6 +1,6 @@
 # icubaby
 
-A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence in any of UTF-8, UTF-16, or UTF-32. It does not allocate dynamic memory and neither throws or catches exceptions.
+A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting sequences of text between any of the Unicode UTF encodings. It does not allocate dynamic memory and neither throws or catches exceptions.
 
 > icubaby is in no way related to the [International Components for Unicode](https://icu.unicode.org) library!
 
@@ -10,7 +10,30 @@ C++ 17 [deprecated the standard library's `<codecvt>` header file](https://www.o
 
 ## Usage
 
-Let’s try converting a single Unicode emoji character 😀 (U+1F600 GRINNING FACE) which is expressed as four UTF-8 code units (0xF0, 0x9F, 0x98, 0x80) to UTF-16 (where it is the surrogate pair 0xD83D, 0xDE00).
+There are broadly three ways to use the icubaby library:
+
+1. [C++ 20 Range Adaptor](cxx20-range-adaptor.md)
+2. An iterator interface
+3. Manually driving the conversion
+
+### The Iterator Interface
+
+~~~cpp
+auto const in = std::vector{char8_t{0xF0}, char8_t{0x9F}, char8_t{0x98}, char8_t{0x80}};
+std::vector<char16_t> out;
+icubaby::t8_16 t;
+auto it = icubaby::iterator{&t, std::back_inserter (out)};
+for (auto cu: in) {
+  *(it++) = cu;
+}
+it = t.end_cp (it);
+~~~
+
+The `icubaby::iterator<>` class offers a familiar output iterator for using a transcoder. Each code unit from the input encoding is written to the iterator and this writes the output encoding to a second iterator. This enables use to use standard algorithms such as [`std::copy`](https://en.cppreference.com/w/cpp/algorithm/copy) with the library.
+
+### Manually Driving the Conversion
+
+Let’s try converting a single Unicode emoji character 😀 (U+1F600 GRINNING FACE) expressed as four UTF-8 code units (0xF0, 0x9F, 0x98, 0x80) to UTF-16 (where it is the surrogate pair 0xD83D, 0xDE00).
 
 ~~~cpp
 std::vector<char16_t> out;
@@ -24,7 +47,7 @@ it = t.end_cp (it);
 
 The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
 
-### Disecting this code
+#### Disecting this code
 
 1.  Define where and how the output should be written:
 
