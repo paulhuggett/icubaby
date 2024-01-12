@@ -118,37 +118,77 @@ constexpr bool is_code_point_start (char32_t c) noexcept;
 
 #### length
 
+Returns the number of code points in a sequence.
+
+> Note: the input sequence must be well formed for the result to be accurate.
+
 ~~~cpp
-template <std::input_iterator InputIterator>
-constexpr auto length (InputIterator first, InputIterator last);
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
+template <std::ranges::input_range R, typename Proj = std::identity>
+  requires unicode_char_type<std::ranges::range_value_t<R>>
+constexpr std::ranges::range_difference_t<R>
+length (R&& r, Proj proj = {});
+
+template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
+  requires unicode_char_type<typename std::iterator_traits<I>::value_type>
+constexpr std::iter_difference_t<I>
+length (I first, S last, Proj proj = {});
+
+#else
+
+template <typename InputIterator,
+          typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
+constexpr typename std::iterator_traits<InputIterator>::difference_type
+length (InputIterator first, InputIterator last);
+
+#endif
 ~~~
-Returns the number of code points in a sequence. Note that input sequence must be well formed for the result to be accurate.
 
 Parameter | Description
 --------- | -----------
-first     |  The start of the range of elements to examine.
-last      |  The end of the range of elements to examine.
+first     | The start of the range of code units to examine.
+last      | The end of the range of code units to examine.
+proj      | Projection to apply to the elements.
+r         | The range of the elements to examine.
 
 #### index
 
 ~~~cpp
-template <std::input_iterator InputIterator>
-constexpr InputIterator index (InputIterator first, InputIterator last, std::size_t pos);
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
+template <std::ranges::input_range R, typename Proj = std::identity>
+constexpr std::ranges::borrowed_iterator_t<R>
+index (R&& r, std::size_t pos, Proj proj = {});
+
+template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
+constexpr I
+index (I first, S last, std::size_t pos, Proj proj = {});
+
+#else
+
+template <typename InputIterator,
+          typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
+constexpr InputIterator
+index (InputIterator first, InputIterator last, std::size_t pos);
+
+#endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 ~~~
 
-Returns an iterator to the beginning of the pos'th code point in the sequence [first, last). Note that input sequence must be well formed for the result to be accurate.
+Returns an iterator to the beginning of the pos'th code point in a range of code-units.
+
+> Note: the input sequence must be well formed for the result to be accurate.
 
 Parameter | Description
 --------- | -----------
-first     |  The start of the range of elements to examine.
-last      |  The end of the range of elements to examine.
-pos       |  The number of code points to move.
+first     | The start of the range of elements to examine.
+last      | The end of the range of elements to examine.
+pos       | The number of code points to move.
+r         | The range of code units to examine.
 
 ##### Returns
 
 An iterator that is `pos` code-points after the start of the range or `last` if the end of the range was encountered.
-
-
 
 ### char8
 

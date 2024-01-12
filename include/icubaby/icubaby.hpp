@@ -323,6 +323,7 @@ constexpr bool is_code_point_start (char32_t c) noexcept {
 
 /// \brief Returns the number of code points in a sequence.
 ///
+/// \note The input sequence must be well formed for the result to be accurate.
 /// \param r The range of the elements to examine.
 /// \param proj  Projection to apply to the elements.
 /// \returns  The number of code points.
@@ -335,6 +336,7 @@ constexpr std::ranges::range_difference_t<R> length (R&& r, Proj proj = {}) {
 
 /// \brief Returns the number of code points in a sequence.
 ///
+/// \note The input sequence must be well formed for the result to be accurate.
 /// \param first  The start of the range of code units to examine.
 /// \param last  The end of the range of code units to examine.
 /// \param proj  Projection to apply to the elements.
@@ -361,7 +363,7 @@ constexpr typename std::iterator_traits<InputIterator>::difference_type length (
 /// Returns an iterator to the beginning of the pos'th code point in the range
 /// of code-units given by \p r.
 ///
-/// \param r  The start of the range of code units to examine.
+/// \param r  The range of code units to examine.
 /// \param pos  The number of code points to move.
 /// \returns  Iterator to the \p code point or iterator equal to last if no such element is found.
 template <std::ranges::input_range R, typename Proj = std::identity>
