@@ -12,7 +12,7 @@
 
 #include "icubaby/icubaby.hpp"
 
-#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 namespace {
 
@@ -52,7 +52,7 @@ std::array const expected32{
     char32_t{0x000A}    // U+000A LINE FEED
 };
 
-template <typename CharType> struct char_to_output_type {};
+template <icubaby::unicode_char_type CharType> struct char_to_output_type {};
 template <> struct char_to_output_type<char8_t> {
   using type = unsigned;
 };
@@ -63,15 +63,17 @@ template <> struct char_to_output_type<char32_t> {
   using type = std::uint_least32_t;
 };
 
-template <typename CharType> void dump_vector (std::vector<CharType> const& v) {
+template <icubaby::unicode_char_type CharType>
+std::ostream& dump_vector (std::ostream& os, std::vector<CharType> const& v) {
   constexpr auto width = std::is_same_v<CharType, char8_t> ? 2 : 4;
   auto const* separator = "";
   for (auto c : v) {
-    std::cout << separator << "0x" << std::setw (width) << std::setfill ('0') << std::uppercase << std::hex
-              << static_cast<typename char_to_output_type<CharType>::type> (c);
+    os << separator << "0x" << std::setw (width) << std::setfill ('0') << std::uppercase << std::hex
+       << static_cast<typename char_to_output_type<CharType>::type> (c);
     separator = " ";
   }
-  std::cout << '\n';
+  os << '\n';
+  return os;
 }
 
 template <std::ranges::input_range ActualRange, std::ranges::input_range ExpectedRange>
@@ -83,46 +85,62 @@ void check (ActualRange const& actual, ExpectedRange const& expected) {
 }
 
 template <std::ranges::input_range Range> std::vector<char16_t> convert_8_to_16 (Range const& in) {
+  auto r = in | icubaby::ranges::transcode<char8_t, char16_t>;
   std::vector<char16_t> out16;
-  std::cout << "Convert the UTF-8 stream to UTF-16:\n";
-  std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char16_t>, std::back_inserter (out16));
-  dump_vector (out16);
+  std::ranges::copy (r, std::back_inserter (out16));
+
+  std::cout << "Convert the UTF-8 stream to UTF-16:\n ";
+  dump_vector (std::cout, out16);
+  std::cout << " well formed? " << r.well_formed () << '\n';
+
   check (out16, expected16);
   return out16;
 }
 
 template <std::ranges::input_range Range> std::vector<char32_t> convert_8_to_32 (Range const& in) {
   std::vector<char32_t> out32;
-  std::cout << "Convert the UTF-8 stream to UTF-32:\n";
   std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char32_t>, std::back_inserter (out32));
-  dump_vector (out32);
+
+  std::cout << "Convert the UTF-8 stream to UTF-32:\n ";
+  dump_vector (std::cout, out32);
+
   check (out32, expected32);
   return out32;
 }
 
 template <std::ranges::input_range Range> std::vector<char16_t> convert_32_to_16 (Range const& in) {
   std::vector<char16_t> out16;
-  std::cout << "Convert the UTF-32 stream to UTF-16:\n";
   std::ranges::copy (in | icubaby::ranges::transcode<char32_t, char16_t>, std::back_inserter (out16));
-  dump_vector (out16);
+
+  std::cout << "Convert the UTF-32 stream to UTF-16:\n ";
+  dump_vector (std::cout, out16);
+
   check (out16, expected16);
   return out16;
 }
 
 template <std::ranges::input_range Range> std::vector<char32_t> convert_16_to_32 (Range const& in) {
   std::vector<char32_t> out32;
-  std::cout << "Convert the UTF-16 stream to UTF-32:\n";
-  std::ranges::copy (in | icubaby::ranges::transcode<char16_t, char32_t>, std::back_inserter (out32));
-  dump_vector (out32);
+  auto const r = in | icubaby::ranges::transcode<char16_t, char32_t>;
+  std::ranges::copy (r, std::back_inserter (out32));
+
+  std::cout << "Convert the UTF-16 stream to UTF-32:\n ";
+  dump_vector (std::cout, out32);
+  std::cout << " well formed? " << r.well_formed () << '\n';
+
   check (out32, expected32);
   return out32;
 }
 
 template <std::ranges::input_range Range> std::vector<char8_t> convert_16_to_8 (Range const& in) {
   std::vector<char8_t> out8;
-  std::cout << "Convert the UTF-16 stream to UTF-8:\n";
-  std::ranges::copy (in | icubaby::ranges::transcode<char16_t, char8_t>, std::back_inserter (out8));
-  dump_vector (out8);
+  auto const r = in | icubaby::ranges::transcode<char16_t, char8_t>;
+
+  std::cout << "Convert the UTF-16 stream to UTF-8:\n ";
+  std::ranges::copy (r, std::back_inserter (out8));
+  dump_vector (std::cout, out8);
+  std::cout << " well formed? " << r.well_formed () << '\n';
+
   return out8;
 }
 
@@ -130,13 +148,13 @@ template <std::ranges::input_range Range> std::vector<char8_t> convert_16_to_8 (
 
 int main () {
   auto const& in = expected8;
-  std::cout << "input length is " << icubaby::length (in) << " code-points\n";
+  std::cout << std::boolalpha << "input length is " << icubaby::length (in) << " code-points\n";
 
   auto const out16 = convert_8_to_16 (in);
   auto const out32 = convert_8_to_32 (in);
   convert_32_to_16 (out32);
   convert_16_to_32 (out16);
-  std::vector<char8_t> const out8 = convert_16_to_8 (out16);
+  auto const out8 = convert_16_to_8 (out16);
   assert (std::ranges::equal (in, out8));
 }
 

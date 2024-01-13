@@ -8,7 +8,7 @@
 //
 // MIT License
 //
-// Copyright (c) 2022 Paul Bowen-Huggett
+// Copyright (c) 2022-2024 Paul Bowen-Huggett
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -143,6 +143,8 @@ namespace ICUBABY_INSIDE_NS {
 namespace icubaby {
 
 namespace details {
+
+/// \brief A compile-time list of types.
 template <typename... Types> struct type_list;
 
 /// \brief A compile-time list of types.
@@ -224,7 +226,7 @@ inline constexpr auto replacement_char = char32_t{0xFFFD};
 /// A constant for U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK)
 inline constexpr auto zero_width_no_break_space = char32_t{0xFEFF};
 /// A constant for U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK)
-inline constexpr auto bom = zero_width_no_break_space;
+inline constexpr auto byte_order_mark = zero_width_no_break_space;
 
 /// \brief The number of bits required to represent a code point.
 ///
@@ -1014,8 +1016,11 @@ public:
     }
   }
 
+  [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
+
 private:
   [[no_unique_address]] View base_ = View ();
+  mutable bool well_formed_ = true;
 };
 
 template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
@@ -1034,11 +1039,8 @@ public:
     assert (state_.empty ());
     // Prime the input state so that a dereference of the iterator will yield the first of the
     // output code-units.
-    current_ = state_.fill (parent_->base_);
+    current_ = state_.fill (parent_);
   }
-
-  /// \returns True if the input encoding was well-formed.
-  [[nodiscard]] constexpr bool well_formed () const noexcept { return state_.transcoder_.well_formed (); }
 
   constexpr std::ranges::iterator_t<View> const& base () const& noexcept { return current_; }
   constexpr std::ranges::iterator_t<View> base () && { return std::move (current_); }
@@ -1050,7 +1052,7 @@ public:
     state_.advance ();
     if (state_.empty ()) {
       // We've exhausted the stashed output code units. Refill the buffer and reset.
-      current_ = state_.fill (parent_->base_);
+      current_ = state_.fill (parent_);
     }
     return *this;
   }
@@ -1098,7 +1100,7 @@ private:
     /// advance() methods.
     ///
     /// \returns The updated base iterator.
-    constexpr std::ranges::iterator_t<View> fill (View const& base);
+    constexpr std::ranges::iterator_t<View> fill (transcode_view const* parent);
 
   private:
     using out_type = std::array<ToEncoding, longest_sequence_v<ToEncoding>>;
@@ -1118,13 +1120,13 @@ private:
 template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding, View>::iterator::state::fill (
-    View const& base) {
+    transcode_view const* parent) {
   auto result = next_;
   assert (this->empty () && "out_ was not empty when fill called");
 
   auto it = out_.begin ();
 
-  if (auto const input_end = std::ranges::end (base); next_ == input_end) {
+  if (auto const input_end = std::ranges::end (parent->base_); next_ == input_end) {
     // We've consumed the entire input so tell the transcoder and get any final output.
     it = transcoder_.end_cp (it);
   } else {
@@ -1136,6 +1138,7 @@ constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding,
     }
   }
   assert (it >= out_.begin () && it <= out_.end ());
+  parent->well_formed_ = transcoder_.well_formed ();
   valid_ = std::ranges::subrange<iterator>{out_.begin (), it};
   return result;
 }
