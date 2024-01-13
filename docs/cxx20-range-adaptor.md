@@ -18,7 +18,7 @@ int main() {
 This code wants to convert a single Unicode code-point 😀 (U+1F600 GRINNING FACE) from UTF-32 to UTF-16.
 As in the previous examples, the `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
 
-You can experiment with a working example using [Compiler Explorer](https://godbolt.org/z/EjvqGdErx).
+You can experiment with a working example using [Compiler Explorer](https://godbolt.org/z/z94x9dvh3).
 
 ### Disecting this code
 
