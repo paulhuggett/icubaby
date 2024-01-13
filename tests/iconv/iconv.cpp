@@ -145,7 +145,7 @@ std::vector<C> convert_using_icubaby (std::vector<char32_t> const &in) {
 std::vector<char32_t> all_code_points () {
   std::vector<char32_t> result;
   for (auto cp = char32_t{0}; cp <= icubaby::max_code_point; ++cp) {
-    if (!icubaby::is_surrogate (cp) && cp != icubaby::bom) {
+    if (!icubaby::is_surrogate (cp) && cp != icubaby::byte_order_mark) {
       result.push_back (cp);
     }
   }
