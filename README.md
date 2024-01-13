@@ -23,7 +23,7 @@ C++ 17 [deprecated the standard library's `<codecvt>` header file](https://www.o
 There are three ways to use the icubaby library depending on your needs:
 
 1. [C++ 20 Range Adaptor](#c-20-range-adaptor)
-2. An iterator interface
+2. [An iterator interface](#the-iterator-interface)
 3. [Converting one code-unit at a time](#converting-one-code-unit-at-a-time)
 
 ### C++ 20 Range Adaptor
