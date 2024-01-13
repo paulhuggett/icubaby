@@ -1045,7 +1045,9 @@ public:
   constexpr std::ranges::iterator_t<View> const& base () const& noexcept { return current_; }
   constexpr std::ranges::iterator_t<View> base () && { return std::move (current_); }
 
-  constexpr value_type const& operator* () const { return state_.front (); }
+  constexpr value_type const& operator* () const {
+    return state_.empty () ? replacement : state_.front ();
+  }
   constexpr std::ranges::iterator_t<View> operator->() const { return state_.front (); }
 
   constexpr iterator& operator++ () {
@@ -1085,6 +1087,7 @@ public:
 private:
   std::ranges::iterator_t<View> current_{};
   transcode_view const* parent_ = nullptr;
+  static value_type const replacement = icubaby::replacement_char;
 
   class state {
   public:
@@ -1116,6 +1119,11 @@ private:
   };
   mutable state state_{};
 };
+
+template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+  requires std::ranges::view<View>
+transcode_view<FromEncoding, ToEncoding, View>::iterator::value_type const
+transcode_view<FromEncoding, ToEncoding, View>::iterator::replacement;
 
 template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
