@@ -6,15 +6,66 @@ A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, depe
 
 ## Introduction
 
-C++ 17 [deprecated the standard library's `<codecvt>` header file](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0618r0.html) which contained its unicode conversion facets. Those features weren’t easy to use correctly but without them code is forced to look to other libraries. 
+C++ 17 [deprecated the standard library's `<codecvt>` header file](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0618r0.html) leading to the search for alternative libraries for Unicode conversion. icubaby is a portable, header-only, dependency-free C++ library designed for fast and immediate Unicode conversion between UTF encodings. Notably, it does not allocate dynamic memory and avoids exceptions. 
+
+## Installation
+
+To integrate icubaby into your C++ project, follow these steps:
+
+1. Clone the repository
+
+   ~~~bash
+   git clone https://github.com/paulhuggett/icubaby.git
+   ~~~
+
+2. Include the `icubaby.hpp` header in your C++ code.
 
 ## Usage
 
-There are broadly three ways to use the icubaby library:
+1. C++ 20 Range Adaptor
 
-1. [C++ 20 Range Adaptor](cxx20-range-adaptor.md)
-2. [An iterator interface](iterator-interface.md). Enables use of iterator-based algorithms.
-3. [Explicit Conversion](explicit-conversion.md). This drives the conversion one code-unit at a time.
+   Leverage the C++20 Range Adaptor for expressive and concise code when working with ranges of elements.
+
+   ~~~cpp
+   auto const src = std::array{char32_t{0x1F600}};
+   auto const r = src | icubaby::ranges::transcode<char32_t, char16_t>;
+   std::vector<char16_t> out;
+   std::ranges::copy(r, std::back_inserter(out));
+   ~~~
+
+   [Learn more](cxx20-range-adaptor.md)
+
+2. Iterator Interface
+
+   Utilize the iterator interface for flexibility in processing sequences of text with iterator-based algorithms.
+
+   ~~~cpp
+   auto const src = std::array{char32_t{0x1F600}};
+   std::vector<char16_t> out;
+   icubaby::t32_16 t;
+   auto it = icubaby::iterator{&t, std::back_inserter (out)};
+   it = std::copy (std::begin (src), std::end (src), it);
+   t.end_cp (it);
+   ~~~
+
+   [Learn more](iterator-interface.md)
+
+3. Explicit Conversion
+
+   Drive the conversion one code-unit at a time, providing fine-grained control over the conversion process.
+
+   ~~~cpp
+   auto const src = std::array{char32_t{0x1F600}};
+   std::vector<char16_t> out;
+   icubaby::t8_16 t;
+   auto it = std::back_inserter (out);
+   for (auto cu: src) {
+     it = t (cu, it);
+   }
+   t.end_cp (it);
+   ~~~
+
+   [Learn more](explicit-conversion.md)
 
 ## API
 
@@ -66,39 +117,78 @@ constexpr bool is_code_point_start (char32_t c) noexcept;
 ~~~
 
 #### length
-~~~cpp
 
-template <typename InputIterator>
-  requires (std::input_iterator<InputIterator>)
-constexpr auto length (InputIterator first, InputIterator last);
+Returns the number of code points in a sequence.
+
+> Note: the input sequence must be well formed for the result to be accurate.
+
+~~~cpp
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
+template <std::ranges::input_range R, typename Proj = std::identity>
+  requires unicode_char_type<std::ranges::range_value_t<R>>
+constexpr std::ranges::range_difference_t<R>
+length (R&& r, Proj proj = {});
+
+template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
+  requires unicode_char_type<typename std::iterator_traits<I>::value_type>
+constexpr std::iter_difference_t<I>
+length (I first, S last, Proj proj = {});
+
+#else
+
+template <typename InputIterator,
+          typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
+constexpr typename std::iterator_traits<InputIterator>::difference_type
+length (InputIterator first, InputIterator last);
+
+#endif
 ~~~
-Returns the number of code points in a sequence. Note that input sequence must be well formed for the result to be accurate.
 
 Parameter | Description
 --------- | -----------
-first     |  The start of the range of elements to examine.
-last      |  The end of the range of elements to examine.
+first     | The start of the range of code units to examine.
+last      | The end of the range of code units to examine.
+proj      | Projection to apply to the elements.
+r         | The range of the elements to examine.
 
 #### index
+
 ~~~cpp
-template <typename InputIterator>
-  requires (std::input_iterator<InputIterator>)
-constexpr InputIterator index (InputIterator first, InputIterator last, std::size_t pos);
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
+template <std::ranges::input_range R, typename Proj = std::identity>
+constexpr std::ranges::borrowed_iterator_t<R>
+index (R&& r, std::size_t pos, Proj proj = {});
+
+template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
+constexpr I
+index (I first, S last, std::size_t pos, Proj proj = {});
+
+#else
+
+template <typename InputIterator,
+          typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
+constexpr InputIterator
+index (InputIterator first, InputIterator last, std::size_t pos);
+
+#endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 ~~~
 
-Returns an iterator to the beginning of the pos'th code point in the sequence [first, last). Note that input sequence must be well formed for the result to be accurate.
+Returns an iterator to the beginning of the pos'th code point in a range of code-units.
+
+> Note: the input sequence must be well formed for the result to be accurate.
 
 Parameter | Description
 --------- | -----------
-first     |  The start of the range of elements to examine.
-last      |  The end of the range of elements to examine.
-pos       |  The number of code points to move.
+first     | The start of the range of elements to examine.
+last      | The end of the range of elements to examine.
+pos       | The number of code points to move.
+r         | The range of code units to examine.
 
 ##### Returns
 
-An iterator that is `pos` codepoints after the start of the range or `last` if the end of the range was encountered.
-
-
+An iterator that is `pos` code-points after the start of the range or `last` if the end of the range was encountered.
 
 ### char8
 
