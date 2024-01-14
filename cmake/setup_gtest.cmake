@@ -22,7 +22,7 @@
 include (CheckCXXCompilerFlag)
 
 function (setup_gtest)
-  if (EXISTS "${URI_ROOT}/googletest/CMakeLists.txt")
+  if (EXISTS "${icubaby_project_root}/googletest/CMakeLists.txt")
     # Tell gtest to link against the "Multi-threaded Debug DLL runtime library"
     # on Windows.
     set (gtest_force_shared_crt On CACHE BOOL "Always use msvcrt.dll")
