@@ -1109,7 +1109,7 @@ private:
     constexpr std::ranges::iterator_t<View> fill (transcode_view const* parent);
 
   private:
-    using out_type = std::array<ToEncoding, longest_sequence_v<ToEncoding>>;
+    using out_type = std::array<ToEncoding, longest_sequence_v<ToEncoding> * 2>;
     using iterator = typename out_type::iterator;
 
     std::ranges::iterator_t<View> next_;
