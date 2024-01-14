@@ -32,6 +32,9 @@
 // Google Test/Mock
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#if ICUBABY_FUZZTEST
+#include "fuzztest/fuzztest.h"
+#endif
 
 // Local includes
 #include "encoded_char.hpp"
@@ -248,5 +251,73 @@ TYPED_TEST (Utf32, RangesBadInput) {
 }
 
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
+#if ICUBABY_FUZZTEST
+
+template <typename OutputEncoding> static std::vector<OutputEncoding> Manual (std::vector<char32_t> const& input) {
+  std::vector<OutputEncoding> manout;
+  icubaby::transcoder<char32_t, OutputEncoding> t;
+  auto out = std::back_inserter (manout);
+  for (auto const c : input) {
+    out = t (c, out);
+  }
+  t.end_cp (out);
+  return manout;
+}
+
+template <typename OutputEncoding> static void ManualAndIteratorAlwaysMatch (std::vector<char32_t> const& input) {
+  // Do the conversion manually...
+  std::vector<OutputEncoding> const manout = Manual<OutputEncoding> (input);
+  // Use the iterator interface to perform the conversion...
+  std::vector<OutputEncoding> itout;
+  icubaby::transcoder<char32_t, OutputEncoding> t;
+  t.end_cp (std::copy (std::begin (input), std::end (input), icubaby::iterator{&t, std::back_inserter (itout)}));
+  EXPECT_THAT (itout, testing::ContainerEq (manout));
+}
+
+static void ManualAndIteratorAlwaysMatch8 (std::vector<char32_t> const& input) {
+  ManualAndIteratorAlwaysMatch<icubaby::char8> (input);
+}
+FUZZ_TEST (T32, ManualAndIteratorAlwaysMatch8);
+
+static void ManualAndIteratorAlwaysMatch16 (std::vector<char32_t> const& input) {
+  ManualAndIteratorAlwaysMatch<char32_t> (input);
+}
+FUZZ_TEST (T32, ManualAndIteratorAlwaysMatch16);
+
+static void ManualAndIteratorAlwaysMatch32 (std::vector<char32_t> const& input) {
+  ManualAndIteratorAlwaysMatch<char32_t> (input);
+}
+FUZZ_TEST (T32, ManualAndIteratorAlwaysMatch32);
+
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
+template <typename OutputEncoding> static void ManualAndRangeAdaptorAlwaysMatch (std::vector<char32_t> const& input) {
+  // Do the conversion manually...
+  std::vector<OutputEncoding> const manout = Manual<OutputEncoding> (input);
+  // Use the range adaptor interface to perform the conversion...
+  std::vector<OutputEncoding> rngout;
+  std::ranges::copy (input | icubaby::ranges::transcode<char32_t, OutputEncoding>, std::back_inserter (rngout));
+  EXPECT_THAT (rngout, testing::ContainerEq (manout));
+}
+
+static void ManualAndRangeAdaptorAlwaysMatch8 (std::vector<char32_t> const& input) {
+  ManualAndRangeAdaptorAlwaysMatch<icubaby::char8> (input);
+}
+FUZZ_TEST (T32, ManualAndRangeAdaptorAlwaysMatch8);
+
+static void ManualAndRangeAdaptorAlwaysMatch16 (std::vector<char32_t> const& input) {
+  ManualAndRangeAdaptorAlwaysMatch<char32_t> (input);
+}
+FUZZ_TEST (T32, ManualAndRangeAdaptorAlwaysMatch16);
+
+static void ManualAndRangeAdaptorAlwaysMatch32 (std::vector<char32_t> const& input) {
+  ManualAndRangeAdaptorAlwaysMatch<char32_t> (input);
+}
+FUZZ_TEST (T32, ManualAndRangeAdaptorAlwaysMatch32);
+
+#endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
+#endif  // ICUBABY_FUZZTEST
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
