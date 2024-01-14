@@ -26,6 +26,7 @@ project (icubaby CXX)
 
 option (ICUBABY_WERROR "Compiler warnings are errors")
 option (ICUBABY_CXX17 "Use C++17 (rather than the default C++20)")
+option (ICUBABY_FUZZTEST "Enable FuzzTest")
 option (ICUBABY_LIBCXX "Use libc++ rather than libstdc++ (clang only)")
 option (ICUBABY_COVERAGE "Generate LLVM Source-based Coverage")
 
@@ -35,11 +36,30 @@ list (APPEND CMAKE_MODULE_PATH "${icubaby_project_root}/cmake")
 include (setup_target)
 include (setup_gtest)
 
-setup_gtest ()
+if (ICUBABY_FUZZTEST)
+  set (FUZZTEST_FUZZING_MODE On)
+  include (FetchContent)
+  set (FUZZTEST_REPO_BRANCH "main" CACHE STRING "FuzzTest repository branch.")
+  message ("Building fuzztest at branch " ${FUZZTEST_REPO_BRANCH})
+  FetchContent_Declare (
+    fuzztest
+    GIT_REPOSITORY https://github.com/google/fuzztest.git
+    GIT_TAG ${FUZZTEST_REPO_BRANCH}
+  )
+  FetchContent_MakeAvailable (fuzztest)
+  enable_testing ()
+  include (GoogleTest)
+  fuzztest_setup_fuzzing_flags ()
+else ()
+  setup_gtest ()
+endif (ICUBABY_FUZZTEST)
 
 add_library (icubaby INTERFACE "${icubaby_project_root}/include/icubaby/icubaby.hpp")
 target_include_directories (icubaby INTERFACE "${icubaby_project_root}/include")
 
 add_subdirectory (tests)
-add_subdirectory (unittests)
+if (TARGET gtest)
+  add_subdirectory (unittests)
+endif ()
+
 

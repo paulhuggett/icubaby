@@ -19,29 +19,35 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 
-# Tell gtest to link against the "Multi-threaded Debug DLL runtime
-# library" on Windows.
-set (gtest_force_shared_crt ON CACHE BOOL "Always use msvcrt.dll")
-add_subdirectory ("${icubaby_project_root}/googletest")
+include (CheckCXXCompilerFlag)
 
 function (setup_gtest)
-  foreach (target gtest gmock gmock_main gtest_main)
-    set (gclang_options -Wno-implicit-int-float-conversion)
-    if (ICUBABY_LIBCXX)
-      list (APPEND gclang_options -stdlib=libc++)
-    endif ()
-    set (gintelllvm_options ${gclang_options} -Wno-tautological-constant-compare)
+  if (EXISTS "${URI_ROOT}/googletest/CMakeLists.txt")
+    # Tell gtest to link against the "Multi-threaded Debug DLL runtime library"
+    # on Windows.
+    set (gtest_force_shared_crt On CACHE BOOL "Always use msvcrt.dll")
+    # We don't want to install either gtest or gmock.
+    set (INSTALL_GTEST Off CACHE BOOL "Disable gtest install")
+    set (INSTALL_GMOCK Off CACHE BOOL "Disable gmock install")
+    add_subdirectory ("${icubaby_project_root}/googletest")
 
-    target_compile_features (${target} PUBLIC $<IF:$<BOOL:${ICUBABY_CXX17}>,cxx_std_17,cxx_std_20>)
-    target_compile_definitions (${target} PUBLIC GTEST_REMOVE_LEGACY_TEST_CASEAPI_=1)
-    target_compile_options (${target} PRIVATE
-      $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${gclang_options}>
-      $<$<CXX_COMPILER_ID:IntelLLVM>:${gintelllvm_options}>
-    )
-    target_link_options (${target} PRIVATE
-      $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${gclang_options}>
-      $<$<CXX_COMPILER_ID:IntelLLVM>:${gintelllvm_options}>
-    )
-  endforeach()
+    foreach (target gtest gmock gmock_main gtest_main)
+      set (gclang_options -Wno-implicit-int-float-conversion)
+      if (ICUBABY_LIBCXX)
+        list (APPEND gclang_options -stdlib=libc++)
+      endif ()
+      set (gintelllvm_options ${gclang_options} -Wno-tautological-constant-compare)
+
+      target_compile_features (${target} PUBLIC $<IF:$<BOOL:${ICUBABY_CXX17}>,cxx_std_17,cxx_std_20>)
+      target_compile_definitions (${target} PUBLIC GTEST_REMOVE_LEGACY_TEST_CASEAPI_=1)
+      target_compile_options (${target} PRIVATE
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${gclang_options}>
+        $<$<CXX_COMPILER_ID:IntelLLVM>:${gintelllvm_options}>
+      )
+      target_link_options (${target} PRIVATE
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${gclang_options}>
+        $<$<CXX_COMPILER_ID:IntelLLVM>:${gintelllvm_options}>
+      )
+    endforeach()
+  endif()
 endfunction (setup_gtest)
-

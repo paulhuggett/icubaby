@@ -22,7 +22,6 @@
 
 add_executable (icubaby-unittests
   encoded_char.hpp
-  harness.cpp
   test_u8_32.cpp
   test_u16.cpp
   test_u32.cpp
@@ -31,19 +30,26 @@ add_executable (icubaby-unittests
   typed_test.hpp
 )
 setup_target (icubaby-unittests)
+target_link_libraries (icubaby-unittests PUBLIC icubaby)
 
-target_link_libraries (icubaby-unittests PRIVATE icubaby gmock)
+target_compile_options (
+  icubaby-unittests
+  PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:
+      -Wno-global-constructors
+      -Wno-used-but-marked-unused>
+    $<$<CXX_COMPILER_ID:GNU>:>
+    # -wd4702 : unreachable code.
+    $<$<CXX_COMPILER_ID:MSVC>:
+      -wd4702>
+)
+add_test(NAME icubaby-unittests COMMAND icubaby-unittests)
 
-set (clang_options
-  -Wno-global-constructors
-  -Wno-used-but-marked-unused
-)
-set (gcc_options
-)
-set (msvc_options
-)
-target_compile_options (icubaby-unittests PRIVATE
-  $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:IntelLLVM>>:${clang_options}>
-  $<$<CXX_COMPILER_ID:GNU>:${gcc_options}>
-  $<$<CXX_COMPILER_ID:MSVC>:${msvc_options}>
-)
+if (ICUBABY_FUZZTEST)
+  target_link_libraries (icubaby-unittests PUBLIC gtest gmock)
+  link_fuzztest (icubaby-unittests)
+  gtest_discover_tests (icubaby-unittests)
+else ()
+  target_sources (icubaby-unittests PUBLIC harness.cpp)
+  target_link_libraries (icubaby-unittests PUBLIC gmock_main)
+endif (ICUBABY_FUZZTEST)

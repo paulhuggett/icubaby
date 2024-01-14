@@ -1,3 +1,4 @@
+
 # MIT License
 #
 # Copyright (c) 2022-2024 Paul Bowen-Huggett
@@ -71,6 +72,7 @@ function (setup_target target)
     $<$<CXX_COMPILER_ID:GNU>:${gcc_options}>
     $<$<CXX_COMPILER_ID:MSVC>:${msvc_options}>
   )
+  target_compile_definitions (${target} PUBLIC ICUBABY_FUZZTEST=$<BOOL:${ICUBABY_FUZZTEST}>)
   target_link_options (${target} PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:IntelLLVM>>:${clang_options}>
     $<$<CXX_COMPILER_ID:GNU>:${gcc_options}>

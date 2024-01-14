@@ -1,0 +1,67 @@
+name: Fuzz Test
+
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  fuzztest:
+    name: Fuzz Test
+    runs-on: ubuntu-latest
+    env:
+      BUILD_DIR: build_fuzztest
+      BUILD_TYPE: RelWithDebug
+      CLANG_VERSION: 16
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build # "clang-${CLANG_VERSION}"
+
+      - name: Install Dependencies (LLVM)
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+
+          # Verify that the file we downloaded is as we expected.
+          cat << 'EOF' | sha256sum --check
+          7dbc0855dff7d1a5b4eb71a209ab3dd9b8654d67e55daa1e49180dd1d97a1bcf  llvm.sh
+          EOF
+
+          # Force --yes to the end of the add-apt-repository command to
+          # prevent the llvm.sh script hanging.
+          sed -ie "/^add-apt-repository/ s/$/ --yes/" llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh "$CLANG_VERSION"
+
+      - name: Configure
+        run: |
+          mkdir "$BUILD_DIR"
+          cmake                                            \
+            -S .                                           \
+            -B "$BUILD_DIR"                                \
+            -G Ninja                                       \
+            -D CMAKE_BUILD_TYPE="$BUILD_TYPE"              \
+            -D CMAKE_CXX_COMPILER="clang++-$CLANG_VERSION" \
+            -D CMAKE_C_COMPILER="clang-$CLANG_VERSION"     \
+            -D ICUBABY_FUZZTEST=Yes
+
+      - name: Build
+        run: |
+          cmake --build "$BUILD_DIR" --config "$BUILD_TYPE"
+
+      - name: Fuzz
+        run: |
+          "$BUILD_DIR/unittests/icubaby-unittests" --fuzz_for 30s
