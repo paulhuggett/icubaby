@@ -1085,7 +1085,6 @@ public:
 private:
   std::ranges::iterator_t<View> current_{};
   transcode_view const* parent_ = nullptr;
-  static value_type const replacement = icubaby::replacement_char;
 
   class state {
   public:
@@ -1120,11 +1119,6 @@ private:
   };
   mutable state state_{};
 };
-
-template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
-  requires std::ranges::view<View>
-transcode_view<FromEncoding, ToEncoding, View>::iterator::value_type const
-transcode_view<FromEncoding, ToEncoding, View>::iterator::replacement;
 
 template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
