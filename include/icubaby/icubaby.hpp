@@ -697,11 +697,11 @@ public:
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type code_point, OutputIterator dest) {
-    if (code_point <= 0xFFFF) {
-      *(dest++) = static_cast<output_type> (code_point);
-    } else if (is_surrogate (code_point) || code_point > max_code_point) {
+    if (is_surrogate (code_point) || code_point > max_code_point) {
       dest = (*this) (replacement_char, dest);
       well_formed_ = false;
+    } else if (code_point <= 0xFFFF) {
+      *(dest++) = static_cast<output_type> (code_point);
     } else {
       *(dest++) = static_cast<output_type> (0xD7C0U + (code_point >> 10U));
       *(dest++) = static_cast<output_type> (first_low_surrogate + (code_point & 0x3FFU));
@@ -1034,7 +1034,7 @@ public:
   using difference_type = std::ranges::range_difference_t<View>;
 
   iterator () requires std::default_initializable<std::ranges::iterator_t<View>> = default;
-  constexpr iterator (transcode_view const& parent, std::ranges::iterator_t<View> current)
+  constexpr iterator (transcode_view const& parent, std::ranges::iterator_t<View> const& current)
       : current_{current}, parent_{&parent}, state_{current} {
     assert (state_.empty ());
     // Prime the input state so that a dereference of the iterator will yield the first of the
@@ -1045,9 +1045,7 @@ public:
   constexpr std::ranges::iterator_t<View> const& base () const& noexcept { return current_; }
   constexpr std::ranges::iterator_t<View> base () && { return std::move (current_); }
 
-  constexpr value_type const& operator* () const {
-    return state_.empty () ? replacement : state_.front ();
-  }
+  constexpr value_type const& operator* () const { return state_.front (); }
   constexpr std::ranges::iterator_t<View> operator->() const { return state_.front (); }
 
   constexpr iterator& operator++ () {
@@ -1095,7 +1093,10 @@ private:
     constexpr state () : state{std::ranges::iterator_t<View>{}} {}
 
     [[nodiscard]] constexpr bool empty () const noexcept { return valid_.empty (); }
-    [[nodiscard]] constexpr auto& front () const noexcept { return valid_.front (); }
+    [[nodiscard]] constexpr auto& front () const noexcept {
+      assert (!valid_.empty ());
+      return valid_.front ();
+    }
     constexpr void advance () noexcept { valid_.advance (1); }
 
     /// Consumes enough code-units from the base iterator to form a single code-point. The resulting
@@ -1134,16 +1135,16 @@ constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding,
 
   auto it = out_.begin ();
 
-  if (auto const input_end = std::ranges::end (parent->base_); next_ == input_end) {
+  auto const input_end = std::ranges::end (parent->base_);
+  // Loop until we've produced a code-point's worth of code-units in the out
+  // container or we've run out of input.
+  while (it == out_.begin () && next_ != input_end) {
+    it = transcoder_ (*next_, it);
+    ++next_;
+  }
+  if (next_ == input_end) {
     // We've consumed the entire input so tell the transcoder and get any final output.
     it = transcoder_.end_cp (it);
-  } else {
-    // Loop until we've produced a code-point's worth of code-units in the out
-    // container or we've run out of input.
-    while (it == out_.begin () && next_ != input_end) {
-      it = transcoder_ (*next_, it);
-      ++next_;
-    }
   }
   assert (it >= out_.begin () && it <= out_.end ());
   parent->well_formed_ = transcoder_.well_formed ();

@@ -95,4 +95,14 @@ TEST (Utf32To8, RangesCopy) {
   ));
   // clang-format on
 }
+// NOLINTNEXTLINE
+TEST (Utf32To8, RangesBadInput) {
+  std::vector const in{char32_t{0xFFFFFFFF}};
+  std::vector<char8_t> out8;
+  auto const r = in | icubaby::ranges::transcode<char32_t, char8_t>;
+  std::ranges::copy (r, std::back_inserter (out8));
+  EXPECT_THAT (out8, testing::ElementsAre (char8_t{0xEF}, char8_t{0xBF}, char8_t{0xBD}));
+  EXPECT_FALSE (r.well_formed ());
+}
+
 #endif  // __cpp_lib_ranges
