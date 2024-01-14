@@ -24,11 +24,12 @@ cmake_minimum_required(VERSION 3.22)
 
 project (icubaby CXX)
 
-option (ICUBABY_WERROR "Compiler warnings are errors")
+option (ICUBABY_COVERAGE "Generate LLVM Source-based Coverage")
 option (ICUBABY_CXX17 "Use C++17 (rather than the default C++20)")
 option (ICUBABY_FUZZTEST "Enable FuzzTest")
 option (ICUBABY_LIBCXX "Use libc++ rather than libstdc++ (clang only)")
-option (ICUBABY_COVERAGE "Generate LLVM Source-based Coverage")
+option (ICUBABY_SANITIZE "Enable undefined behavior- and address-sanitizers where supported")
+option (ICUBABY_WERROR "Compiler warnings are errors")
 
 set (icubaby_project_root "${CMAKE_CURRENT_SOURCE_DIR}")
 list (APPEND CMAKE_MODULE_PATH "${icubaby_project_root}/cmake")
