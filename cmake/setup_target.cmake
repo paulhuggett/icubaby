@@ -65,6 +65,10 @@ function (setup_target target)
     list (APPEND clang_options -fprofile-instr-generate -fcoverage-mapping)
     list (APPEND gcc_options -fprofile-arcs -ftest-coverage)
   endif ()
+  if (ICUBABY_SANITIZE)
+    list (APPEND clang_options -fsanitize=undefined -fsanitize=address)
+    list (APPEND gcc_options -fsanitize=undefined -fsanitize=address -fno-sanitize-recover)
+  endif ()
 
   target_compile_features (${target} PUBLIC $<IF:$<BOOL:${ICUBABY_CXX17}>,cxx_std_17,cxx_std_20>)
   target_compile_options (${target} PRIVATE
