@@ -32,6 +32,9 @@
 // Google Test/Mock
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#if ICUBABY_FUZZTEST
+#include "fuzztest/fuzztest.h"
+#endif
 
 // Local includes
 #include "encoded_char.hpp"
@@ -267,5 +270,40 @@ TYPED_TEST (Utf16, LonelyHighSurrogate) {
 
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
 }
+
+#if ICUBABY_FUZZTEST
+template <typename OutputEncoding> static void T16ManualAndIteratorAlwaysMatch (std::vector<char16_t> const& input) {
+  // Do the conversion manually...
+  std::vector<OutputEncoding> manout;
+  {
+    icubaby::transcoder<char16_t, OutputEncoding> man_t16;
+    auto out = std::back_inserter (manout);
+    for (auto const c : input) {
+      out = man_t16 (c, out);
+    }
+    man_t16.end_cp (out);
+  }
+
+  // Use the iterator interface to perform the conversion...
+  std::vector<OutputEncoding> itout;
+  {
+    icubaby::transcoder<char16_t, OutputEncoding> it_t16;
+    it_t16.end_cp (std::copy (std::begin (input), std::end (input), icubaby::iterator{&it_t16, std::back_inserter (itout)}));
+  }
+  EXPECT_THAT (itout, testing::ContainerEq (manout));
+}
+static void T16ManualAndIteratorAlwaysMatch8 (std::vector<char16_t> const& input) {
+  T16ManualAndIteratorAlwaysMatch<icubaby::char8> (input);
+}
+static void T16ManualAndIteratorAlwaysMatch16 (std::vector<char16_t> const& input) {
+  T16ManualAndIteratorAlwaysMatch<char16_t> (input);
+}
+static void T16ManualAndIteratorAlwaysMatch32 (std::vector<char16_t> const& input) {
+  T16ManualAndIteratorAlwaysMatch<char32_t> (input);
+}
+FUZZ_TEST (T16, T16ManualAndIteratorAlwaysMatch8);
+FUZZ_TEST (T16, T16ManualAndIteratorAlwaysMatch16);
+FUZZ_TEST (T16, T16ManualAndIteratorAlwaysMatch32);
+#endif  // ICUBABY_FUZZTEST
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
