@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2022 Paul Bowen-Huggett
+# Copyright (c) 2022-2024 Paul Bowen-Huggett
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,3 +23,18 @@
 add_executable (icubaby-exhaust-test exhaust.cpp)
 target_link_libraries (icubaby-exhaust-test PUBLIC icubaby)
 setup_target (icubaby-exhaust-test)
+
+if (TARGET gtest)
+  set (ICUBABY_TEST_TARGET icubaby-unittests)
+  set (ICUBABY_OUT_XML "${CMAKE_BINARY_DIR}/${ICUBABY_TEST_TARGET}.xml")
+  add_custom_command (
+    TARGET icubaby-exhaust-test
+    PRE_LINK
+    COMMAND "$<TARGET_FILE:${ICUBABY_TEST_TARGET}>"
+            "--gtest_output=xml:${ICUBABY_OUT_XML}"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "Running unit tests" DEPENDS ${ICUBABY_TEST_TARGET}
+    BYPRODUCTS "${CMAKE_BINARY_DIR}/${ICUBABY_OUT_XML}"
+    VERBATIM
+  )
+endif (TARGET gtest)
