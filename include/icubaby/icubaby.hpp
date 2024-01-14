@@ -200,7 +200,7 @@ template <typename TypeList, typename Element>
 ICUBABY_REQUIRES (is_type_list<TypeList>)
 struct contains : std::bool_constant<std::is_same_v<Element, typename TypeList::first> ||
                                      contains<typename TypeList::rest, Element>::value> {};
-/// \brief Yields false: the empty type list does not contains a type matching
+/// \brief Yields false: the empty type list does not contain a type matching
 ///   \p Element.
 template <typename Element> struct contains<type_list<>, Element> : std::bool_constant<false> {};
 
@@ -1096,7 +1096,10 @@ private:
       assert (!valid_.empty ());
       return valid_.front ();
     }
-    constexpr void advance () noexcept { valid_.advance (1); }
+    constexpr void advance () noexcept {
+      assert (!valid_.empty ());
+      valid_.advance (1);
+    }
 
     /// Consumes enough code-units from the base iterator to form a single code-point. The resulting
     /// code-units in the output encoding can be sequentially accessed using the front() and
@@ -1113,7 +1116,7 @@ private:
     transcoder<FromEncoding, ToEncoding> transcoder_;
     /// The container into which the transcoder's output will be written.
     out_type out_{};
-    /// The valid ragne of code units in the out_ container. Determines the code-units to be
+    /// The valid range of code units in the out_ container. Determines the code-units to be
     /// produced when the view is dereferenced.
     std::ranges::subrange<iterator> valid_;
   };
@@ -1127,22 +1130,23 @@ constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding,
   auto result = next_;
   assert (this->empty () && "out_ was not empty when fill called");
 
-  auto it = out_.begin ();
-
+  auto out_it = out_.begin ();
   auto const input_end = std::ranges::end (parent->base_);
   // Loop until we've produced a code-point's worth of code-units in the out
   // container or we've run out of input.
-  while (it == out_.begin () && next_ != input_end) {
-    it = transcoder_ (*next_, it);
+  while (out_it == out_.begin () && next_ != input_end) {
+    out_it = transcoder_ (*next_, out_it);
     ++next_;
   }
   if (next_ == input_end) {
     // We've consumed the entire input so tell the transcoder and get any final output.
-    it = transcoder_.end_cp (it);
+    out_it = transcoder_.end_cp (out_it);
   }
-  assert (it >= out_.begin () && it <= out_.end ());
-  parent->well_formed_ = transcoder_.well_formed ();
-  valid_ = std::ranges::subrange<iterator>{out_.begin (), it};
+  assert (out_it >= out_.begin () && out_it <= out_.end ());
+  if (!transcoder_.well_formed ()) {
+    parent->well_formed_ = false;
+  }
+  valid_ = std::ranges::subrange<iterator>{out_.begin (), out_it};
   return result;
 }
 
