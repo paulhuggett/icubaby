@@ -277,8 +277,23 @@ TEST (Utf8To32, RangesCopy) {
   };
   // clang-format on
   std::vector<char32_t> out32;
-  std::ranges::copy (in | icubaby::ranges::transcode<char8_t, char32_t>, std::back_inserter (out32));
+  auto const r = in | icubaby::ranges::transcode<char8_t, char32_t>;
+  std::ranges::copy (r, std::back_inserter (out32));
   EXPECT_THAT (out32, testing::ElementsAre (char32_t{0x3053}, char32_t{0x3093}, char32_t{0x306B}, char32_t{0x3061},
                                             char32_t{0x306F}, char32_t{0x4E16}, char32_t{0x754C}, char32_t{0x000A}));
+  EXPECT_TRUE (r.well_formed());
 }
+TEST (Utf8To32, RangesBadInput) {
+  // clang-format off
+  std::vector const in{
+    char8_t{0xF3}, char8_t{0x81},
+  };
+  // clang-format on
+  std::vector<char32_t> out32;
+  auto const r = in | icubaby::ranges::transcode<char8_t, char32_t>;
+  std::ranges::copy (r, std::back_inserter (out32));
+  EXPECT_THAT (out32, testing::ElementsAre (char32_t{icubaby::replacement_char}));
+  EXPECT_FALSE (r.well_formed());
+}
+
 #endif  // __cpp_lib_ranges
