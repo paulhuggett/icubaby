@@ -272,38 +272,72 @@ TYPED_TEST (Utf16, LonelyHighSurrogate) {
 }
 
 #if ICUBABY_FUZZTEST
-template <typename OutputEncoding> static void T16ManualAndIteratorAlwaysMatch (std::vector<char16_t> const& input) {
-  // Do the conversion manually...
-  std::vector<OutputEncoding> manout;
-  {
-    icubaby::transcoder<char16_t, OutputEncoding> man_t16;
-    auto out = std::back_inserter (manout);
-    for (auto const c : input) {
-      out = man_t16 (c, out);
-    }
-    man_t16.end_cp (out);
-  }
 
+template <typename OutputEncoding> static std::vector<OutputEncoding> Manual (std::vector<char16_t> const& input) {
+  std::vector<OutputEncoding> manout;
+  icubaby::transcoder<char16_t, OutputEncoding> t;
+  auto out = std::back_inserter (manout);
+  for (auto const c : input) {
+    out = t (c, out);
+  }
+  t.end_cp (out);
+  return manout;
+}
+
+template <typename OutputEncoding> static void ManualAndIteratorAlwaysMatch (std::vector<char16_t> const& input) {
+  // Do the conversion manually...
+  std::vector<OutputEncoding> const manout = Manual<OutputEncoding> (input);
   // Use the iterator interface to perform the conversion...
   std::vector<OutputEncoding> itout;
-  {
-    icubaby::transcoder<char16_t, OutputEncoding> it_t16;
-    it_t16.end_cp (std::copy (std::begin (input), std::end (input), icubaby::iterator{&it_t16, std::back_inserter (itout)}));
-  }
+  icubaby::transcoder<char16_t, OutputEncoding> it_t16;
+  it_t16.end_cp (
+      std::copy (std::begin (input), std::end (input), icubaby::iterator{&it_t16, std::back_inserter (itout)}));
   EXPECT_THAT (itout, testing::ContainerEq (manout));
 }
-static void T16ManualAndIteratorAlwaysMatch8 (std::vector<char16_t> const& input) {
-  T16ManualAndIteratorAlwaysMatch<icubaby::char8> (input);
+
+static void ManualAndIteratorAlwaysMatch8 (std::vector<char16_t> const& input) {
+  ManualAndIteratorAlwaysMatch<icubaby::char8> (input);
 }
-static void T16ManualAndIteratorAlwaysMatch16 (std::vector<char16_t> const& input) {
-  T16ManualAndIteratorAlwaysMatch<char16_t> (input);
+FUZZ_TEST (T16, ManualAndIteratorAlwaysMatch8);
+
+static void ManualAndIteratorAlwaysMatch16 (std::vector<char16_t> const& input) {
+  ManualAndIteratorAlwaysMatch<char16_t> (input);
 }
-static void T16ManualAndIteratorAlwaysMatch32 (std::vector<char16_t> const& input) {
-  T16ManualAndIteratorAlwaysMatch<char32_t> (input);
+FUZZ_TEST (T16, ManualAndIteratorAlwaysMatch16);
+
+static void ManualAndIteratorAlwaysMatch32 (std::vector<char16_t> const& input) {
+  ManualAndIteratorAlwaysMatch<char32_t> (input);
 }
-FUZZ_TEST (T16, T16ManualAndIteratorAlwaysMatch8);
-FUZZ_TEST (T16, T16ManualAndIteratorAlwaysMatch16);
-FUZZ_TEST (T16, T16ManualAndIteratorAlwaysMatch32);
+FUZZ_TEST (T16, ManualAndIteratorAlwaysMatch32);
+
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
+template <typename OutputEncoding> static void ManualAndRangeAdaptorAlwaysMatch (std::vector<char16_t> const& input) {
+  // Do the conversion manually...
+  std::vector<OutputEncoding> const manout = Manual<OutputEncoding> (input);
+  // Use the range adaptor interface to perform the conversion...
+  std::vector<OutputEncoding> rngout;
+  std::ranges::copy (input | icubaby::ranges::transcode<char16_t, OutputEncoding>, std::back_inserter (rngout));
+  EXPECT_THAT (rngout, testing::ContainerEq (manout));
+}
+
+static void ManualAndRangeAdaptorAlwaysMatch8 (std::vector<char16_t> const& input) {
+  ManualAndRangeAdaptorAlwaysMatch<icubaby::char8> (input);
+}
+FUZZ_TEST (T16, ManualAndRangeAdaptorAlwaysMatch8);
+
+static void ManualAndRangeAdaptorAlwaysMatch16 (std::vector<char16_t> const& input) {
+  ManualAndRangeAdaptorAlwaysMatch<char16_t> (input);
+}
+FUZZ_TEST (T16, ManualAndRangeAdaptorAlwaysMatch16);
+
+static void ManualAndRangeAdaptorAlwaysMatch32 (std::vector<char16_t> const& input) {
+  ManualAndRangeAdaptorAlwaysMatch<char32_t> (input);
+}
+FUZZ_TEST (T16, ManualAndRangeAdaptorAlwaysMatch32);
+
+#endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
 #endif  // ICUBABY_FUZZTEST
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
