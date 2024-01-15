@@ -96,7 +96,7 @@ jobs:
           curl                                                \
             --form "token=${{ secrets.COVERITY_TOKEN }}"      \
             --form "email=${{ secrets.COVERITY_EMAIL }}"      \
-            --form file=@./peejay.tgz                         \
+            --form file=@./icubaby.tgz                        \
             --form "version=$VERSION"                         \
             --form description=""                             \
             "https://${{ env.COVURL }}/builds?project=$PROJECT"
