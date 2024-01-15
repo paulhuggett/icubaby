@@ -58,7 +58,7 @@ namespace {
 template <typename T> class Utf8 : public testing::Test {
 protected:
   std::vector<T> output_;
-  icubaby::transcoder<char8_t, T> transcoder_;
+  icubaby::transcoder<icubaby::char8, T> transcoder_;
 };
 
 }  // end anonymous namespace
