@@ -439,7 +439,7 @@ template <> struct encoded_char<code_point::u80, char32_t> {
 template <> struct encoded_char<code_point::u80, char16_t> {
   static constexpr std::array value{static_cast<char16_t> (code_point::u80)};
 };
-template <> struct encoded_char<code_point::u80, char8_t> {
+template <> struct encoded_char<code_point::u80, icubaby::char8> {
   static constexpr std::array value{static_cast<icubaby::char8> (0xC2), static_cast<icubaby::char8> (0x80)};
 };
 
