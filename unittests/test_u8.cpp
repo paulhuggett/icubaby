@@ -70,7 +70,7 @@ TYPED_TEST (Utf8, DollarSign) {
   auto& output = this->output_;
   auto out = std::back_inserter (output);
   EXPECT_TRUE (transcoder.well_formed ());
-  out = transcoder (0x24, out);
+  out = transcoder (static_cast<icubaby::char8> (0x24), out);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
@@ -91,9 +91,9 @@ TYPED_TEST (Utf8, FirstLowSurrogate) {
 
   auto it = std::back_inserter (output);
   // Illegal UTF-8 for U+D800: the first low surrogate code point.
-  it = transcoder (0xED, it);
-  it = transcoder (0xA0, it);
-  it = transcoder (0x80, it);
+  it = transcoder (static_cast<icubaby::char8> (0xED), it);
+  it = transcoder (static_cast<icubaby::char8> (0xA0), it);
+  it = transcoder (static_cast<icubaby::char8> (0x80), it);
   transcoder.end_cp (it);
   EXPECT_FALSE (transcoder.well_formed ());
 
@@ -108,8 +108,8 @@ TYPED_TEST (Utf8, LowestTwoByteSequence) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
   auto it = std::back_inserter (output);
-  it = transcoder (0xC2, it);
-  it = transcoder (0x80, it);
+  it = transcoder (static_cast<icubaby::char8> (0xC2), it);
+  it = transcoder (static_cast<icubaby::char8> (0x80), it);
   transcoder.end_cp (it);
   EXPECT_TRUE (transcoder.well_formed ());
 
