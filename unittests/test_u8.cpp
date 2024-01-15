@@ -279,7 +279,6 @@ TYPED_TEST (Utf8, PartialEndCp) {
 // NOLINTNEXTLINE
 TYPED_TEST (Utf8, RangesCopy) {
   auto& output = this->output_;
-  auto out = std::back_inserter (output);
 
   std::vector<icubaby::char8> src;
   append<code_point::hiragana_letter_ko, icubaby::char8> (std::back_inserter (src));
@@ -307,7 +306,6 @@ TYPED_TEST (Utf8, RangesCopy) {
 // NOLINTNEXTLINE
 TYPED_TEST (Utf8, RangesBadInput) {
   auto& output = this->output_;
-  auto out = std::back_inserter (output);
 
   std::array const bad_input{static_cast<icubaby::char8> (0xC3), static_cast<icubaby::char8> (0x28)};
   auto r = bad_input | icubaby::ranges::transcode<char8_t, TypeParam>;
