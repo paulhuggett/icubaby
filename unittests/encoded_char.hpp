@@ -28,31 +28,52 @@
 #include "icubaby/icubaby.hpp"
 
 enum class code_point : char32_t {
-  cjk_unified_ideograph_2070e = char32_t{0x2070e},
+  cent_sign = char32_t{0x00A2},
+  cjk_unified_ideograph_2070e = char32_t{0x2070E},
   cjk_unified_ideograph_20731 = char32_t{0x20731},
   cjk_unified_ideograph_20779 = char32_t{0x20779},
   cjk_unified_ideograph_20c53 = char32_t{0x20c53},
+  cjk_unified_ideograph_4e16 = char32_t{0x4E16},
+  cjk_unified_ideograph_754c = char32_t{0x754C},
   code_point_ffff = char32_t{0xffff},
   cuneiform_sign_uru_times_ki = char32_t{0x12345},
+  devanagri_letter_ha = char32_t{0x939},
   dollar_sign = char32_t{0x0024},
+  gothic_letter_hwair = char32_t{0x10348},
   hiragana_letter_go = char32_t{0x3054},
-  hiragana_letter_ha = char32_t{0x306f},
+  hiragana_letter_ha = char32_t{0x306F},
   hiragana_letter_i = char32_t{0x3044},
-  hiragana_letter_ma = char32_t{0x307e},
+  hiragana_letter_ko = char32_t{0x3053},
+  hiragana_letter_ma = char32_t{0x307E},
+  hiragana_letter_n = char32_t{0x3093},
+  hiragana_letter_ni = char32_t{0x306B},
   hiragana_letter_o = char32_t{0x304a},
   hiragana_letter_su = char32_t{0x3059},
+  hiragana_letter_ti = char32_t{0x3061},
   hiragana_letter_u = char32_t{0x3046},
   hiragana_letter_yo = char32_t{0x3088},
   hiragana_letter_za = char32_t{0x3056},
+  line_feed = char32_t{0x000A},
   linear_b_syllable_b008_a = char32_t{0x10000},
   replacement_char = icubaby::replacement_char,
   start_of_heading = char32_t{0x001},
   start_of_text = char32_t{0x002},
 
+  u80 = char32_t{0x0080},
   last_valid_code_point = icubaby::max_code_point
 };
 
 template <code_point C, typename To> struct encoded_char;
+
+template <> struct encoded_char<code_point::line_feed, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::line_feed)};
+};
+template <> struct encoded_char<code_point::line_feed, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::line_feed)};
+};
+template <> struct encoded_char<code_point::line_feed, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (code_point::line_feed)};
+};
 
 template <> struct encoded_char<code_point::start_of_heading, char32_t> {
   static constexpr std::array value{static_cast<char32_t> (code_point::start_of_heading)};
@@ -74,6 +95,17 @@ template <> struct encoded_char<code_point::start_of_text, icubaby::char8> {
   static constexpr std::array value{static_cast<icubaby::char8> (code_point::start_of_text)};
 };
 
+template <> struct encoded_char<code_point::devanagri_letter_ha, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::devanagri_letter_ha)};
+};
+template <> struct encoded_char<code_point::devanagri_letter_ha, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::devanagri_letter_ha)};
+};
+template <> struct encoded_char<code_point::devanagri_letter_ha, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (0xE0), static_cast<icubaby::char8> (0xA4),
+                                    static_cast<icubaby::char8> (0xB9)};
+};
+
 template <> struct encoded_char<code_point::dollar_sign, char32_t> {
   static constexpr std::array value{static_cast<char32_t> (code_point::dollar_sign)};
 };
@@ -82,6 +114,16 @@ template <> struct encoded_char<code_point::dollar_sign, char16_t> {
 };
 template <> struct encoded_char<code_point::dollar_sign, icubaby::char8> {
   static constexpr std::array value{static_cast<icubaby::char8> (code_point::dollar_sign)};
+};
+
+template <> struct encoded_char<code_point::cent_sign, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::cent_sign)};
+};
+template <> struct encoded_char<code_point::cent_sign, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::cent_sign)};
+};
+template <> struct encoded_char<code_point::cent_sign, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (0xC2), static_cast<icubaby::char8> (0xA2)};
 };
 
 template <> struct encoded_char<code_point::replacement_char, char32_t> {
@@ -93,6 +135,63 @@ template <> struct encoded_char<code_point::replacement_char, char16_t> {
 template <> struct encoded_char<code_point::replacement_char, icubaby::char8> {
   static constexpr std::array value{static_cast<icubaby::char8> (0xef), static_cast<icubaby::char8> (0xbf),
                                     static_cast<icubaby::char8> (0xbd)};
+};
+
+template <> struct encoded_char<code_point::gothic_letter_hwair, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::gothic_letter_hwair)};
+};
+template <> struct encoded_char<code_point::gothic_letter_hwair, char16_t> {
+  static constexpr std::array value{char16_t{0xD800}, char16_t{0xDF48}};
+};
+template <> struct encoded_char<code_point::gothic_letter_hwair, icubaby::char8> {
+  static constexpr std::array value{
+      static_cast<icubaby::char8> (0xF0),
+      static_cast<icubaby::char8> (0x90),
+      static_cast<icubaby::char8> (0x8D),
+      static_cast<icubaby::char8> (0x88),
+  };
+};
+
+template <> struct encoded_char<code_point::hiragana_letter_ko, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::hiragana_letter_ko)};
+};
+template <> struct encoded_char<code_point::hiragana_letter_ko, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::hiragana_letter_ko)};
+};
+template <> struct encoded_char<code_point::hiragana_letter_ko, icubaby::char8> {
+  static constexpr std::array value{
+      static_cast<icubaby::char8> (0xE3),
+      static_cast<icubaby::char8> (0x81),
+      static_cast<icubaby::char8> (0x93),
+  };
+};
+
+template <> struct encoded_char<code_point::hiragana_letter_n, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::hiragana_letter_n)};
+};
+template <> struct encoded_char<code_point::hiragana_letter_n, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::hiragana_letter_n)};
+};
+template <> struct encoded_char<code_point::hiragana_letter_n, icubaby::char8> {
+  static constexpr std::array value{
+      static_cast<icubaby::char8> (0xE3),
+      static_cast<icubaby::char8> (0x82),
+      static_cast<icubaby::char8> (0x93),
+  };
+};
+
+template <> struct encoded_char<code_point::hiragana_letter_ni, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::hiragana_letter_ni)};
+};
+template <> struct encoded_char<code_point::hiragana_letter_ni, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::hiragana_letter_ni)};
+};
+template <> struct encoded_char<code_point::hiragana_letter_ni, icubaby::char8> {
+  static constexpr std::array value{
+      static_cast<icubaby::char8> (0xE3),
+      static_cast<icubaby::char8> (0x81),
+      static_cast<icubaby::char8> (0xAB),
+  };
 };
 
 template <> struct encoded_char<code_point::hiragana_letter_o, char32_t> {
@@ -199,8 +298,19 @@ template <> struct encoded_char<code_point::hiragana_letter_su, char16_t> {
   static constexpr std::array value{char16_t{0x3059}};
 };
 template <> struct encoded_char<code_point::hiragana_letter_su, icubaby::char8> {
-  static constexpr std::array value{static_cast<icubaby::char8> (0xe3), static_cast<icubaby::char8> (0x81),
+  static constexpr std::array value{static_cast<icubaby::char8> (0xE3), static_cast<icubaby::char8> (0x81),
                                     static_cast<icubaby::char8> (0x99)};
+};
+
+template <> struct encoded_char<code_point::hiragana_letter_ti, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::hiragana_letter_ti)};
+};
+template <> struct encoded_char<code_point::hiragana_letter_ti, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::hiragana_letter_ti)};
+};
+template <> struct encoded_char<code_point::hiragana_letter_ti, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (0xE3), static_cast<icubaby::char8> (0x81),
+                                    static_cast<icubaby::char8> (0xA1)};
 };
 
 template <> struct encoded_char<code_point::code_point_ffff, char32_t> {
@@ -251,6 +361,34 @@ template <> struct encoded_char<code_point::cjk_unified_ideograph_2070e, icubaby
   };
 };
 
+template <> struct encoded_char<code_point::cjk_unified_ideograph_4e16, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::cjk_unified_ideograph_4e16)};
+};
+template <> struct encoded_char<code_point::cjk_unified_ideograph_4e16, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::cjk_unified_ideograph_4e16)};
+};
+template <> struct encoded_char<code_point::cjk_unified_ideograph_4e16, icubaby::char8> {
+  static constexpr std::array value{
+      static_cast<icubaby::char8> (0xE4),
+      static_cast<icubaby::char8> (0xB8),
+      static_cast<icubaby::char8> (0x96),
+  };
+};
+
+template <> struct encoded_char<code_point::cjk_unified_ideograph_754c, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::cjk_unified_ideograph_754c)};
+};
+template <> struct encoded_char<code_point::cjk_unified_ideograph_754c, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::cjk_unified_ideograph_754c)};
+};
+template <> struct encoded_char<code_point::cjk_unified_ideograph_754c, icubaby::char8> {
+  static constexpr std::array value{
+      static_cast<icubaby::char8> (0xE7),
+      static_cast<icubaby::char8> (0x95),
+      static_cast<icubaby::char8> (0x8C),
+  };
+};
+
 template <> struct encoded_char<code_point::cjk_unified_ideograph_20731, char32_t> {
   static constexpr std::array value{static_cast<char32_t> (code_point::cjk_unified_ideograph_20731)};
 };
@@ -293,6 +431,16 @@ template <> struct encoded_char<code_point::last_valid_code_point, char16_t> {
 template <> struct encoded_char<code_point::last_valid_code_point, icubaby::char8> {
   static constexpr std::array value{static_cast<icubaby::char8> (0xf4), static_cast<icubaby::char8> (0x8f),
                                     static_cast<icubaby::char8> (0xbf), static_cast<icubaby::char8> (0xbf)};
+};
+
+template <> struct encoded_char<code_point::u80, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::u80)};
+};
+template <> struct encoded_char<code_point::u80, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::u80)};
+};
+template <> struct encoded_char<code_point::u80, char8_t> {
+  static constexpr std::array value{static_cast<icubaby::char8> (0xC2), static_cast<icubaby::char8> (0x80)};
 };
 
 template <code_point C, typename To> inline constexpr auto encoded_char_v = encoded_char<C, To>::value;

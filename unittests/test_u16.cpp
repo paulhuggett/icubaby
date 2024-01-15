@@ -273,7 +273,8 @@ TYPED_TEST (Utf16, LonelyHighSurrogate) {
 
 #if ICUBABY_FUZZTEST
 
-template <typename OutputEncoding> static std::vector<OutputEncoding> Manual (std::vector<char16_t> const& input) {
+template <typename OutputEncoding>
+static std::tuple<std::vector<OutputEncoding>, bool> Manual (std::vector<char16_t> const& input) {
   std::vector<OutputEncoding> manout;
   icubaby::transcoder<char16_t, OutputEncoding> t;
   auto out = std::back_inserter (manout);
@@ -281,18 +282,19 @@ template <typename OutputEncoding> static std::vector<OutputEncoding> Manual (st
     out = t (c, out);
   }
   t.end_cp (out);
-  return manout;
+  return std::make_tuple (std::move (manout), t.well_formed ());
 }
 
 template <typename OutputEncoding> static void ManualAndIteratorAlwaysMatch (std::vector<char16_t> const& input) {
   // Do the conversion manually...
-  std::vector<OutputEncoding> const manout = Manual<OutputEncoding> (input);
+  auto const [man_out, man_well_formed] = Manual<OutputEncoding> (input);
   // Use the iterator interface to perform the conversion...
-  std::vector<OutputEncoding> itout;
+  std::vector<OutputEncoding> it_out;
   icubaby::transcoder<char16_t, OutputEncoding> it_t16;
   it_t16.end_cp (
-      std::copy (std::begin (input), std::end (input), icubaby::iterator{&it_t16, std::back_inserter (itout)}));
-  EXPECT_THAT (itout, testing::ContainerEq (manout));
+      std::copy (std::begin (input), std::end (input), icubaby::iterator{&it_t16, std::back_inserter (it_out)}));
+  EXPECT_EQ (man_well_formed, it_t16.well_formed ());
+  EXPECT_THAT (man_out, testing::ContainerEq (it_out));
 }
 
 static void ManualAndIteratorAlwaysMatch8 (std::vector<char16_t> const& input) {
@@ -314,11 +316,13 @@ FUZZ_TEST (T16, ManualAndIteratorAlwaysMatch32);
 
 template <typename OutputEncoding> static void ManualAndRangeAdaptorAlwaysMatch (std::vector<char16_t> const& input) {
   // Do the conversion manually...
-  std::vector<OutputEncoding> const manout = Manual<OutputEncoding> (input);
+  auto const [man_out, man_well_formed] = Manual<OutputEncoding> (input);
   // Use the range adaptor interface to perform the conversion...
-  std::vector<OutputEncoding> rngout;
-  std::ranges::copy (input | icubaby::ranges::transcode<char16_t, OutputEncoding>, std::back_inserter (rngout));
-  EXPECT_THAT (rngout, testing::ContainerEq (manout));
+  std::vector<OutputEncoding> rng_out;
+  auto r = input | icubaby::ranges::transcode<char16_t, OutputEncoding>;
+  std::ranges::copy (r, std::back_inserter (rng_out));
+  EXPECT_EQ (man_well_formed, r.well_formed ());
+  EXPECT_THAT (rng_out, testing::ContainerEq (man_out));
 }
 
 static void ManualAndRangeAdaptorAlwaysMatch8 (std::vector<char16_t> const& input) {
