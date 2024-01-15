@@ -124,7 +124,7 @@ TYPED_TEST (Utf8, CentSign) {
   auto& output = this->output_;
   auto out = std::back_inserter (output);
 
-  constexpr auto& cent_sign = encoded_char<code_point::cent_sign, icubaby::char8>::value;
+  constexpr auto const& cent_sign = encoded_char<code_point::cent_sign, icubaby::char8>::value;
   static_assert (cent_sign.size () == 2U, "cent_sign should be two UTF-8 code units");
 
   std::vector<TypeParam> expected;
@@ -152,7 +152,7 @@ TYPED_TEST (Utf8, DevanagariLetterHa) {
   auto& output = this->output_;
   auto out = std::back_inserter (output);
 
-  constexpr auto& devanagri_letter_ha = encoded_char<code_point::devanagri_letter_ha, icubaby::char8>::value;
+  constexpr auto const& devanagri_letter_ha = encoded_char<code_point::devanagri_letter_ha, icubaby::char8>::value;
   static_assert (devanagri_letter_ha.size () == 3U, "devanagri_letter_ha should be three UTF-8 code units");
 
   std::vector<TypeParam> expected;
@@ -185,7 +185,7 @@ TYPED_TEST (Utf8, GoodGothicLetterHwair) {
   auto& output = this->output_;
   auto out = std::back_inserter (output);
 
-  constexpr auto& gothic_letter_hwair = encoded_char<code_point::gothic_letter_hwair, icubaby::char8>::value;
+  constexpr auto const& gothic_letter_hwair = encoded_char<code_point::gothic_letter_hwair, icubaby::char8>::value;
   static_assert (gothic_letter_hwair.size () == 4U, "gothic_letter_hwair should be four UTF-8 code units");
 
   std::vector<TypeParam> expected;
