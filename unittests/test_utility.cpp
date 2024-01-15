@@ -31,6 +31,9 @@
 
 // Google Test/Mock
 #include "gtest/gtest.h"
+#if ICUBABY_FUZZTEST
+#include "fuzztest/fuzztest.h"
+#endif
 
 // Local includes
 #include "encoded_char.hpp"
@@ -239,3 +242,27 @@ TYPED_TEST (CjkUnifiedIdeographCodePoints, Index) {
 
   EXPECT_EQ (end, icubaby::index (begin, end, size_t{4}));
 }
+
+#if ICUBABY_FUZZTEST
+
+template <typename InputEncoding> static void LengthRangeAndIteratorSentinel (std::vector<InputEncoding> const& input) {
+  auto const l1 = icubaby::length (std::begin (input), std::end (input));
+  auto const l2 = icubaby::length (input);
+  EXPECT_EQ (l1, l2);
+}
+static void LengthRangeAndIteratorSentinel8 (std::vector<icubaby::char8> const& input) {
+  LengthRangeAndIteratorSentinel (input);
+}
+FUZZ_TEST (Index, LengthRangeAndIteratorSentinel8);
+
+static void LengthRangeAndIteratorSentinel16 (std::vector<char16_t> const& input) {
+  LengthRangeAndIteratorSentinel (input);
+}
+FUZZ_TEST (Index, LengthRangeAndIteratorSentinel16);
+
+static void LengthRangeAndIteratorSentinel32 (std::vector<char32_t> const& input) {
+  LengthRangeAndIteratorSentinel (input);
+}
+FUZZ_TEST (Index, LengthRangeAndIteratorSentinel32);
+
+#endif
