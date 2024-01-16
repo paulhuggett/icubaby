@@ -32,11 +32,13 @@
 
 // Do we have library support for C++ 20 std::format()?
 #if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
+#define HAVE_CPP_LIB_FORMAT (1)
 #include <format>
 #else
 // We're lacking std::format(). Fall back to using iostreams manipulators.
 #include <iomanip>
 #endif
+
 // Do we have library support for C++ 20 ranges?
 #if defined(__cpp_lib_ranges) && __cpp_lib_ranges > 201811L
 #include <ranges>
@@ -95,7 +97,7 @@ template <> struct char_to_output_type<char32_t> {
   using type = std::uint_least32_t;
 };
 
-#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
+#if HAVE_CPP_LIB_FORMAT
 
 template <icubaby::unicode_char_type CharType>
 std::ostream& dump_vector (std::ostream& os, std::vector<CharType> const& v) {
@@ -105,11 +107,7 @@ std::ostream& dump_vector (std::ostream& os, std::vector<CharType> const& v) {
     if constexpr (std::is_same_v<CharType, char8_t>) {
       os << std::format ("{}0x{:02X}", separator, oc);
     } else {
-      if (oc > 0xFFFF) {
-        os << std::format ("{}0x{:04X}", separator, oc);
-      } else {
-        os << std::format ("{}0x{:X}", separator, oc);
-      }
+      os << std::format ("{}0x{:04X}", separator, oc);
     }
     separator = " ";
   }
@@ -153,7 +151,7 @@ std::ostream& dump_vector (std::ostream& os, std::vector<CharType> const& v) {
   return os;
 }
 
-#endif
+#endif  // HAVE_CPP_LIB_FORMAT
 
 template <std::ranges::input_range ActualRange, std::ranges::input_range ExpectedRange>
 void check (ActualRange const& actual, ExpectedRange const& expected) {
@@ -205,7 +203,12 @@ template <std::ranges::input_range Range> std::vector<char32_t> convert_16_to_32
 
   std::cout << "Convert the UTF-16 stream to UTF-32:\n ";
   dump_vector (std::cout, out32);
-  std::cout << " well formed? " << r.well_formed () << '\n';
+#if HAVE_CPP_LIB_FORMAT
+  std::cout << std::format (" well formed? {}\n", r.well_formed ());
+#else
+  ios_flags_saver _{std::cout};
+  std::cout << " well formed? " << std::boolalpha << r.well_formed () << '\n';
+#endif
 
   check (out32, expected32);
   return out32;
@@ -218,7 +221,12 @@ template <std::ranges::input_range Range> std::vector<char8_t> convert_16_to_8 (
   std::cout << "Convert the UTF-16 stream to UTF-8:\n ";
   std::ranges::copy (r, std::back_inserter (out8));
   dump_vector (std::cout, out8);
-  std::cout << " well formed? " << r.well_formed () << '\n';
+#if HAVE_CPP_LIB_FORMAT
+  std::cout << std::format (" well formed? {}\n", r.well_formed ());
+#else
+  ios_flags_saver _{std::cout};
+  std::cout << " well formed? " << std::boolalpha << r.well_formed () << '\n';
+#endif
 
   return out8;
 }
@@ -227,7 +235,11 @@ template <std::ranges::input_range Range> std::vector<char8_t> convert_16_to_8 (
 
 int main () {
   auto const& in = expected8;
-  std::cout << std::boolalpha << "input length is " << icubaby::length (in) << " code-points\n";
+#if HAVE_CPP_LIB_FORMAT
+  std::cout << std::format ("input length is {} code points\n", icubaby::length (in));
+#else
+  std::cout << "input length is " << icubaby::length (in) << " code-points\n";
+#endif
 
   auto const out16 = convert_8_to_16 (in);
   auto const out32 = convert_8_to_32 (in);
