@@ -31,7 +31,28 @@
 
 namespace {
 
+/// \brief A class used to save an iostream's formatting flags on construction
+/// and restore them on destruction.
+///
+/// Used to manage the restoration of the flags on exit from a scope.
+class ios_flags_saver {
+public:
+  explicit ios_flags_saver (std::ios_base& stream) : stream_{stream}, flags_{stream.flags ()} {}
+  ios_flags_saver (ios_flags_saver const&) = delete;
+  ios_flags_saver (ios_flags_saver&&) noexcept = delete;
+
+  ~ios_flags_saver () { stream_.flags (flags_); }
+
+  ios_flags_saver& operator= (ios_flags_saver const&) = delete;
+  ios_flags_saver& operator= (ios_flags_saver&&) noexcept = delete;
+
+private:
+  std::ios_base& stream_;
+  std::ios_base::fmtflags flags_;
+};
+
 template <typename StringType> void show (std::ostream& os, StringType const& str) {
+  ios_flags_saver s{os};
   os << std::setfill ('0') << std::hex;
   auto const* separator = "";
   for (auto const c : str) {
