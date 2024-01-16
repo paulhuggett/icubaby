@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 #include <algorithm>
-#include <iomanip>
 #include <iostream>
 #include <optional>
 #include <string_view>
