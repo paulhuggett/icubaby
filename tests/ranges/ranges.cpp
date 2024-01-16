@@ -108,11 +108,7 @@ std::ostream& dump_vector (std::ostream& os, std::vector<CharType> const& v) {
     if constexpr (std::is_same_v<CharType, char8_t>) {
       os << std::format ("{}0x{:02X}", separator, oc);
     } else {
-      if (oc > 0xFFFF) {
-        os << std::format ("{}0x{:04X}", separator, oc);
-      } else {
-        os << std::format ("{}0x{:X}", separator, oc);
-      }
+      os << std::format ("{}0x{:04X}", separator, oc);
     }
     separator = " ";
   }
