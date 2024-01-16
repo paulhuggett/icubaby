@@ -3,7 +3,11 @@
 
 First off, thanks for taking the time to contribute! ❤️
 
-All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents) for different ways to help and details about how this project handles them. Please make sure to read the relevant section before making your contribution. It will make it a lot easier for us maintainers and smooth out the experience for all involved. The community looks forward to your contributions. 🎉
+All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents)
+for different ways to help and details about how this project handles them.
+Please make sure to read the relevant section before making your contribution.
+It will make it a lot easier for us maintainers and smooth out the experience
+for all involved. The community looks forward to your contributions. 🎉
 
 > And if you like the project, but just don't have time to contribute, that's fine. There are other easy ways to support the project and show your appreciation, which we would also be very happy about:
 > - Star the project
@@ -25,21 +29,24 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 - [Commit Messages](#commit-messages)
 - [Join The Project Team](#join-the-project-team)
 
-
 ## Code of Conduct
 
 This project and everyone participating in it is governed by the
 [icubaby Code of Conduct](https://github.com/paulhuggett/icubaby/blob/main/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code.
 
-
 ## I Have a Question
 
-> If you want to ask a question, we assume that you have read the available [documentation](https://paulhuggett.github.io/icubaby/).
+> If you want to ask a question, we assume that you have read the available
+> [documentation](https://paulhuggett.github.io/icubaby/).
 
-Before you ask a question, it is best to search for existing [issues](https://github.com/paulhuggett/icubaby/issues) that might help you. In case you have found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first.
+Before you ask a question, it is best to search for existing [issues](https://github.com/paulhuggett/icubaby/issues)
+that might help you. In case you have found a suitable issue and still need
+clarification, you can write your question in this issue. It is also advisable
+to search the internet for answers first.
 
-If you then still feel the need to ask a question and need clarification, we recommend the following:
+If you then still feel the need to ask a question and need clarification, we
+recommend the following:
 
 - Open an [issue](https://github.com/paulhuggett/icubaby/issues/new).
 - Provide as much context as you can about what you're running into.
@@ -65,14 +72,20 @@ Depending on how large the project is, you may want to outsource the questioning
 ## I Want To Contribute
 
 > ### Legal Notice <!-- omit in toc -->
-> When contributing to this project, you must agree that you have authored 100% of the content, that you have the necessary rights to the content and that the content you contribute may be provided under the project license.
+> When contributing to this project, you must agree that you have authored 100%
+> of the content, that you have the necessary rights to the content and that
+> the content you contribute may be provided under the project license.
 
 ### Reporting Bugs
 
 <!-- omit in toc -->
 #### Before Submitting a Bug Report
 
-A good bug report shouldn't leave others needing to chase you up for more information. Therefore, we ask you to investigate carefully, collect information and describe the issue in detail in your report. Please complete the following steps in advance to help us fix any potential bug as fast as possible.
+A good bug report shouldn't leave others needing to chase you up for more
+information. Therefore, we ask you to investigate carefully, collect
+information and describe the issue in detail in your report. Please complete
+the following steps in advance to help us fix any potential bug as fast as
+possible.
 
 - Make sure that you are using the latest version.
 - Determine if your bug is really a bug and not an error on your side e.g. using incompatible environment components/versions (Make sure that you have read the [documentation](https://paulhuggett.github.io/icubaby/). If you are looking for support, you might want to check [this section](#i-have-a-question)).
@@ -88,7 +101,8 @@ A good bug report shouldn't leave others needing to chase you up for more inform
 <!-- omit in toc -->
 #### How do I Submit a Good Bug Report?
 
-We use GitHub issues to track bugs and errors. If you run into an issue with the project:
+We use GitHub issues to track bugs and errors. If you run into an issue with
+the project:
 
 - Open an [issue](https://github.com/paulhuggett/icubaby/issues/new). (Since we can't be sure at this point whether it is a bug or not, we ask you not to talk about a bug yet and not to label the issue.)
 - Explain the behavior you would expect and the actual behavior.
@@ -103,10 +117,12 @@ Once it's filed:
 
 <!-- You might want to create an issue template for bugs and errors that can be used as a guide and that defines the structure of the information to be included. If you do so, reference it here in the description. -->
 
-
 ### Suggesting Enhancements
 
-This section guides you through submitting an enhancement suggestion for icubaby, **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
+This section guides you through submitting an enhancement suggestion for
+icubaby, **including completely new features and minor improvements to existing
+functionality**. Following these guidelines will help maintainers and the
+community to understand your suggestion and find related suggestions.
 
 <!-- omit in toc -->
 #### Before Submitting an Enhancement
