@@ -25,12 +25,22 @@
 #include <cassert>
 #include <cstdint>
 #include <functional>
-#include <iomanip>
 #include <iostream>
 #include <iterator>
-#include <ranges>
 #include <vector>
 #include <version>
+
+// Do we have library support for C++ 20 std::format()?
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
+#include <format>
+#else
+// We're lacking std::format(). Fall back to using iostreams manipulators.
+#include <iomanip>
+#endif
+// Do we have library support for C++ 20 ranges?
+#if defined(__cpp_lib_ranges) && __cpp_lib_ranges > 201811L
+#include <ranges>
+#endif
 
 #include "icubaby/icubaby.hpp"
 
@@ -85,8 +95,53 @@ template <> struct char_to_output_type<char32_t> {
   using type = std::uint_least32_t;
 };
 
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
+
 template <icubaby::unicode_char_type CharType>
 std::ostream& dump_vector (std::ostream& os, std::vector<CharType> const& v) {
+  auto const* separator = "";
+  for (auto c : v) {
+    auto const oc = static_cast<typename char_to_output_type<CharType>::type> (c);
+    if constexpr (std::is_same_v<CharType, char8_t>) {
+      os << std::format ("{}0x{:02X}", separator, oc);
+    } else {
+      if (oc > 0xFFFF) {
+        os << std::format ("{}0x{:04X}", separator, oc);
+      } else {
+        os << std::format ("{}0x{:X}", separator, oc);
+      }
+    }
+    separator = " ";
+  }
+  os << '\n';
+  return os;
+}
+
+#else
+
+/// \brief A class used to save an iostream's formatting flags on construction
+/// and restore them on destruction.
+///
+/// Used to manage the restoration of the flags on exit from a scope.
+class ios_flags_saver {
+public:
+  explicit ios_flags_saver (std::ios_base& stream) : stream_{stream}, flags_{stream.flags ()} {}
+  ios_flags_saver (ios_flags_saver const&) = delete;
+  ios_flags_saver (ios_flags_saver&&) noexcept = delete;
+
+  ~ios_flags_saver () { stream_.flags (flags_); }
+
+  ios_flags_saver& operator= (ios_flags_saver const&) = delete;
+  ios_flags_saver& operator= (ios_flags_saver&&) noexcept = delete;
+
+private:
+  std::ios_base& stream_;
+  std::ios_base::fmtflags flags_;
+};
+
+template <icubaby::unicode_char_type CharType>
+std::ostream& dump_vector (std::ostream& os, std::vector<CharType> const& v) {
+  ios_flags_saver _{os};
   constexpr auto width = std::is_same_v<CharType, char8_t> ? 2 : 4;
   auto const* separator = "";
   for (auto c : v) {
@@ -97,6 +152,8 @@ std::ostream& dump_vector (std::ostream& os, std::vector<CharType> const& v) {
   os << '\n';
   return os;
 }
+
+#endif
 
 template <std::ranges::input_range ActualRange, std::ranges::input_range ExpectedRange>
 void check (ActualRange const& actual, ExpectedRange const& expected) {
