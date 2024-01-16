@@ -21,15 +21,42 @@
 // SOFTWARE.
 
 #include <algorithm>
-#include <iomanip>
 #include <iostream>
 #include <optional>
 #include <string_view>
 #include <vector>
+#include <version>
+
+// Do we have library support for C++ 20 std::format()?
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
+#define HAVE_CPP_LIB_FORMAT (1)
+#include <format>
+#else
+// We're lacking std::format(). Fall back to using iostreams manipulators.
+#include <iomanip>
+#endif
 
 #include "icubaby/icubaby.hpp"
 
 namespace {
+
+#if HAVE_CPP_LIB_FORMAT
+
+template <typename StringType> void show (std::ostream& os, StringType const& str) {
+  auto const* separator = "";
+  for (auto const c : str) {
+    os << separator;
+    if constexpr (sizeof (c) == 1) {
+      os << std::format ("{:02X}", static_cast<unsigned> (c));
+    } else {
+      os << std::format ("{:04X}", static_cast<std::uint_least16_t> (c));
+    }
+    separator = " ";
+  }
+  os << '\n';
+}
+
+#else
 
 /// \brief A class used to save an iostream's formatting flags on construction
 /// and restore them on destruction.
@@ -53,14 +80,16 @@ private:
 
 template <typename StringType> void show (std::ostream& os, StringType const& str) {
   ios_flags_saver s{os};
-  os << std::setfill ('0') << std::hex;
+  os << std::setfill ('0') << std::hex << std::uppercase;
   auto const* separator = "";
   for (auto const c : str) {
-    os << separator << std::setw (sizeof (c) * 2) << static_cast<std::uint16_t> (c);
+    os << separator << std::setw (sizeof (c) * 2) << static_cast<std::uint_least16_t> (c);
     separator = " ";
   }
   os << '\n';
 }
+
+#endif  // HAVE_CPP_LIB_FORMAT
 
 std::optional<std::u16string> convert (std::basic_string_view<icubaby::char8> const& src) {
   std::u16string out;
