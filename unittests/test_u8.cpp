@@ -296,13 +296,18 @@ protected:
 
 private:
   template <typename OutputIterator>
-  static OutputIterator add8 (icubaby::transcoder<icubaby::char8, OutputChar>& transcoder, OutputIterator out,
-                              std::uint_least8_t c) {
+  static OutputIterator add8 (icubaby::transcoder<icubaby::char8, OutputChar>& transcoder, OutputIterator out, int c) {
+    if (c < 0 || c > 255) {
+      throw std::range_error ("character value out of range");
+    }
     return transcoder.end_cp (transcoder (static_cast<icubaby::char8> (c), out));
   }
   template <typename OutputIterator, typename... Args>
-  static OutputIterator add8 (icubaby::transcoder<icubaby::char8, OutputChar>& transcoder, OutputIterator out,
-                              std::uint_least8_t c, Args... args) {
+  static OutputIterator add8 (icubaby::transcoder<icubaby::char8, OutputChar>& transcoder, OutputIterator out, int c,
+                              Args... args) {
+    if (c < 0 || c > 255) {
+      throw std::range_error ("character value out of range");
+    }
     return add8 (transcoder, transcoder (static_cast<icubaby::char8> (c), out), args...);
   }
 
