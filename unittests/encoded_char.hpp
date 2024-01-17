@@ -55,6 +55,10 @@ enum class code_point : char32_t {
   hiragana_letter_za = char32_t{0x3056},
   line_feed = char32_t{0x000A},
   linear_b_syllable_b008_a = char32_t{0x10000},
+  pilcrow_sign = char32_t{0x00B6},
+  pile_of_poop = char32_t{0x1F4A9},
+  snowman = char32_t{0x2603},
+
   replacement_char = icubaby::replacement_char,
   start_of_heading = char32_t{0x001},
   start_of_text = char32_t{0x002},
@@ -124,6 +128,38 @@ template <> struct encoded_char<code_point::cent_sign, char16_t> {
 };
 template <> struct encoded_char<code_point::cent_sign, icubaby::char8> {
   static constexpr std::array value{static_cast<icubaby::char8> (0xC2), static_cast<icubaby::char8> (0xA2)};
+};
+
+template <> struct encoded_char<code_point::pilcrow_sign, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::pilcrow_sign)};
+};
+template <> struct encoded_char<code_point::pilcrow_sign, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::pilcrow_sign)};
+};
+template <> struct encoded_char<code_point::pilcrow_sign, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (0xC2), static_cast<icubaby::char8> (0xB6)};
+};
+
+template <> struct encoded_char<code_point::pile_of_poop, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::pile_of_poop)};
+};
+template <> struct encoded_char<code_point::pile_of_poop, char16_t> {
+  static constexpr std::array value{char16_t{0xD83D}, char16_t{0xDCA9}};
+};
+template <> struct encoded_char<code_point::pile_of_poop, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
+                                    static_cast<icubaby::char8> (0x92), static_cast<icubaby::char8> (0xA9)};
+};
+
+template <> struct encoded_char<code_point::snowman, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::snowman)};
+};
+template <> struct encoded_char<code_point::snowman, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::snowman)};
+};
+template <> struct encoded_char<code_point::snowman, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (0xE2), static_cast<icubaby::char8> (0x98),
+                                    static_cast<icubaby::char8> (0x83)};
 };
 
 template <> struct encoded_char<code_point::replacement_char, char32_t> {
