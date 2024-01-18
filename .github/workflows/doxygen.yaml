@@ -1,0 +1,64 @@
+name: Doxygen
+on: workflow_dispatch
+permissions:
+  contents: read
+
+jobs:
+  doxygen:
+    name: Build Doxygen Docs
+    runs-on: ubuntu-latest
+    env:
+      TOOL_DIR: "${{ github.workspace }}/doxygen-bin"
+      VERSION: 1.10.0
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          submodules: 'True'
+
+      - name: Install GraphViz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+
+      - name: Cache the Doxygen binary
+        id: cache-binary
+        uses: actions/cache@e12d46a63a90f2fae62d114769bbf2a179198b5c # v3.3.3
+        with:
+          key: 'doxygen-${{ runner.os }}-${{ env.VERSION }}'
+          path: '${{ env.TOOL_DIR }}/doxygen.tgz'
+
+      - name: Download Doxygen binary
+        if: ${{ steps.cache-binary.outputs.cache-hit != 'true' }}
+        run: |
+          echo ${{ steps.cache-binary.outputs.cache-hit }}
+          mkdir -p "${{ env.TOOL_DIR }}"
+          curl \
+            --location \
+            --output "${{ env.TOOL_DIR }}/doxygen.tgz" \
+            "https://www.doxygen.nl/files/doxygen-${{ env.VERSION }}.linux.bin.tar.gz"
+
+      - name: Unpack Doxygen binary
+        run: |
+          cd "${{ env.TOOL_DIR }}"
+          tar xzf doxygen.tgz
+          ls
+
+      - name: Run Doxygen
+        run: |
+          "${{ env.TOOL_DIR }}/doxygen-${{ env.VERSION }}/bin/doxygen"
+
+      - name: Compress Documentation Directory
+        run: |
+          tar czf ./docs.tgz docs
+
+      - name: Upload Documentation
+        uses: actions/upload-artifact@1eb3cb2b3e0f29609092a73eb033bb759a334595 # v4.1.0
+        with:
+          name: docs
+          path: ./docs.tgz

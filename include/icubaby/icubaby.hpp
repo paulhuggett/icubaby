@@ -89,6 +89,7 @@
 #include <version>
 #endif
 
+/// brief Defined as 1 if the standard library's __cpp_lib_ranges macro is available and 0 otherwise.
 #ifdef __cpp_lib_ranges
 #define ICUBABY_CPP_LIB_RANGES_DEFINED (1)
 #else
@@ -108,12 +109,14 @@
 #define ICUBABY_CPP_CONCEPTS_DEFINED (0)
 #endif
 
+/// \brief Defined as 1 if the standard library's __cpp_lib_concepts macro is available and 0 otherwise.
 #ifdef __cpp_lib_concepts
 #define ICUBABY_CPP_LIB_CONCEPTS_DEFINED (1)
 #else
 #define ICUBABY_CPP_LIB_CONCEPTS_DEFINED (0)
 #endif
 
+/// \brief A macro that evaluates true if the compiler and library have support for C++ 20 concepts.
 #define ICUBABY_HAVE_CONCEPTS \
   (ICUBABY_CPP_CONCEPTS_DEFINED && __cpp_concepts >= 201907L && ICUBABY_CPP_LIB_CONCEPTS_DEFINED)
 #if ICUBABY_HAVE_CONCEPTS
@@ -142,35 +145,40 @@ namespace ICUBABY_INSIDE_NS {
 
 namespace icubaby {
 
-namespace details {
-
-/// \brief A compile-time list of types.
-template <typename... Types> struct type_list;
-
-/// \brief A compile-time list of types.
+/// \brief Implementation details of the icubaby interface.
 ///
-/// This specialization defines the end of the list.
-template <> struct type_list<> {};
+/// Functions and types defined in this namespace are not part of the icubaby public interface
+/// and should not be used in client code. They may change at any time!
+namespace details {
 
 /// \brief A compile-time list of types.
 ///
 /// An instance of type_list represents an element in a list. It is somewhat
 /// like a cons cell in Lisp: it has two slots, and each slot holds a type.
-///
 /// A list is formed when a series of type_list instances are chained together,
 /// so that each cell refers to the next one. There is one type_list instance
 /// for each list member. The 'first' member holds a member type and the 'rest'
 /// field is used to chain together type_list instances. The end of the list is
 /// represented by a type_list specialization which takes no arguments and
 /// contains no members.
+template <typename... Types> struct type_list;
+
+/// \brief A compile-time list of types. This specialization defines the end of the list.
+/// \see type_list, type_list<First, Rest>.
+template <> struct type_list<> {};
+
+/// \brief A compile-time list of types. This specialization holds a member of the list.
+/// \see type_list, type_list<>.
 template <typename First, typename Rest> struct type_list<First, Rest> {
   using first = First;  ///< The first member of a list of types.
-  using rest = Rest;    ///< The remaining members of the list of types.
+  using rest = Rest;    ///< The remaining members of the type list.
 };
 
+#if ICUBABY_HAVE_CONCEPTS
+/// \brief Defines the requirements of a type that is a member of a type list.
+///
 /// An element in a type list must contain member types names 'first' and
 /// 'rest'. The end of the list is given by the type_list<> specialization.
-#if ICUBABY_HAVE_CONCEPTS
 template <typename T>
 concept is_type_list = requires {
   typename T::first;
@@ -178,12 +186,16 @@ concept is_type_list = requires {
 } || std::is_same_v<T, type_list<>>;
 #endif
 
+/// \brief Constructs a type_list from a template parameter pack.
+/// \see make<>, make<T, Ts...>, make_t
 template <typename... Types> struct make;
-/// Constructs an empty icubaby::type_list.
+/// \brief Constructs an empty type_list.
+/// \see make, make<T, Ts...>, make_t
 template <> struct make<> {
   using type = type_list<>;  ///< An empty type list.
 };
-/// Constructs a icubaby::type_list from a template parameter pack.
+/// \brief Constructs a type_list from a template parameter pack.
+/// \see make, make<>, make_t
 template <typename T, typename... Ts> struct make<T, Ts...> {
   /// A list of types.
   ///
@@ -191,20 +203,24 @@ template <typename T, typename... Ts> struct make<T, Ts...> {
   /// are \p Ts.
   using type = type_list<T, typename make<Ts...>::type>;
 };
-/// A helper template for icubaby::make.
+/// \brief A helper template for make<>.
 template <typename... Types> using make_t = typename make<Types...>::type;
 
 /// \brief Yields true if the type list contains a type matching \p Element
 ///   and false otherwise.
+/// \see contains_v
+/// \tparam TypeList A list of types (formed by type_list).
+/// \tparam Element  The type to be checked.
 template <typename TypeList, typename Element>
 ICUBABY_REQUIRES (is_type_list<TypeList>)
 struct contains : std::bool_constant<std::is_same_v<Element, typename TypeList::first> ||
                                      contains<typename TypeList::rest, Element>::value> {};
-/// \brief Yields false: the empty type list does not contain a type matching
-///   \p Element.
+/// \brief Yields false: the empty type list does not contain a type matching \p Element.
+/// \see contains_v
+/// \tparam Element  The type to be checked.
 template <typename Element> struct contains<type_list<>, Element> : std::bool_constant<false> {};
 
-/// A helper variable template for icubaby::contains.
+/// A helper variable template for contains<>.
 template <typename TypeList, typename Element> inline constexpr bool contains_v = contains<TypeList, Element>::value;
 
 }  // end namespace details
@@ -247,11 +263,13 @@ inline constexpr auto last_low_surrogate = char32_t{0xDFFF};
 inline constexpr auto max_code_point = char32_t{0x10FFFF};
 static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
 
-/// The number of code-units in the longest legal representation of a code-point
-/// for the various encodings.
+/// \brief The number of code-units in the longest legal representation of a code-point.
 template <typename Encoding> struct longest_sequence {};
+/// \brief The number of code-units in the longest legal UTF-8 representation of a code-point.
 template <> struct longest_sequence<char8> : std::integral_constant<std::size_t, 4> {};
+/// \brief The number of code-units in the longest legal UTF-16 representation of a code-point.
 template <> struct longest_sequence<char16_t> : std::integral_constant<std::size_t, 2> {};
+/// \brief The number of code-units in the longest legal UTF-32 representation of a code-point.
 template <> struct longest_sequence<char32_t> : std::integral_constant<std::size_t, 1> {};
 
 /// A helper variable template to simplify use of longest_sequence<>.
@@ -261,10 +279,20 @@ template <typename Encoding> inline constexpr std::size_t longest_sequence_v = l
 /// text.
 using character_types = details::make_t<char8, char16_t, char32_t>;
 
+/// \brief Checks whether the argument is one of the unicode character types
+///
+/// Provides the constant `value` which is equal to true, if T is one of the unicode character types as defined by
+/// icubaby::character_types. Otherwise, value is equal to false.
+/// \tparam T  The type to be checked.
 template <typename T> struct is_unicode_char_type : std::bool_constant<details::contains_v<character_types, T>> {};
+/// \brief A helper variable template to simplify use of icubaby::is_unicode_char_type.
 template <typename T> inline constexpr bool is_unicode_char_type_v = is_unicode_char_type<T>::value;
 
 #if ICUBABY_HAVE_CONCEPTS
+/// \brief Checks whether the argument is one of the unicode character types
+///
+/// The unicode_char_type concept defines the requires of a type that matches one of the types that denote a
+/// Unicode encoding.
 template <typename T>
 concept unicode_char_type = is_unicode_char_type_v<T>;
 #endif
@@ -351,6 +379,12 @@ constexpr std::iter_difference_t<I> length (I first, S last, Proj proj = {}) {
 
 #else
 
+/// \brief Returns the number of code points in a sequence.
+///
+/// \note The input sequence must be well formed for the result to be accurate.
+/// \param first  The start of the range of code units to examine.
+/// \param last  The end of the range of code units to examine.
+/// \returns  The number of code points.
 template <typename InputIterator,
           typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
 constexpr typename std::iterator_traits<InputIterator>::difference_type length (InputIterator first,
@@ -367,6 +401,7 @@ constexpr typename std::iterator_traits<InputIterator>::difference_type length (
 ///
 /// \param r  The range of code units to examine.
 /// \param pos  The number of code points to move.
+/// \param proj  Projection to apply to the elements.
 /// \returns  Iterator to the \p code point or iterator equal to last if no such element is found.
 template <std::ranges::input_range R, typename Proj = std::identity>
 constexpr std::ranges::borrowed_iterator_t<R> index (R&& r, std::size_t pos, Proj proj = {}) {
@@ -382,6 +417,7 @@ constexpr std::ranges::borrowed_iterator_t<R> index (R&& r, std::size_t pos, Pro
 /// \param first  The start of the range of code units to examine.
 /// \param last  The end of the range of code units to examine.
 /// \param pos  The number of code points to move.
+/// \param proj  Projection to apply to the elements.
 /// \returns  An iterator that is 'pos' code points after the start of the range or
 ///           'last' if the end of the range was encountered.
 template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
@@ -391,6 +427,14 @@ constexpr I index (I first, S last, std::size_t pos, Proj proj = {}) {
 
 #else
 
+/// Returns an iterator to the beginning of the pos'th code point in the code
+/// unit sequence [first, last).
+///
+/// \param first  The start of the range of code units to examine.
+/// \param last  The end of the range of code units to examine.
+/// \param pos  The number of code points to move.
+/// \returns  An iterator that is 'pos' code points after the start of the range or
+///           'last' if the end of the range was encountered.
 template <typename InputIterator,
           typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
 constexpr InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
@@ -404,7 +448,7 @@ constexpr InputIterator index (InputIterator first, InputIterator last, std::siz
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 #if ICUBABY_HAVE_CONCEPTS
-
+/// \brief Defines the requirements of a type that provides the transcoder interface.
 template <typename T>
 concept is_transcoder = requires (T t) {
   typename T::input_type;
@@ -415,17 +459,29 @@ concept is_transcoder = requires (T t) {
   { t.partial () } -> std::convertible_to<bool>;
 };
 
-/// An encoder takes a sequence of one of more code-units in one Unicode
+#endif  // ICUBABY_HAVE_CONCEPTS
+
+/// A transcoder takes a sequence of one of more code-units in one Unicode
 /// encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another.
+///
+/// Each of the specializations of this template (there is one for each input/output combination) supplies
+/// the same interface. We have:
+///
+/// - operator(). This member function accepts accepts a code unit in the source encoding and
+///   writes code units in the output encoding to an output iterator as they are produced.
+/// - end_cp(). Call once the entire input sequence has been fed to operator(). This
+///   function ensures that the sequence did not end with a partial code point and flushes any remaining output.
+/// - well_formed(). Indicates whether the input was well formed.
+/// - partial(). Indicates whether a "partial" code point has been passed to operator(). If true, one or more code
+///   units are required to build the complete code point.
+#if ICUBABY_HAVE_CONCEPTS
 template <unicode_char_type From, unicode_char_type To> class transcoder;
 #else
-/// An encoder takes a sequence of one of more code-units in one Unicode
-/// encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another.
 template <typename From, typename To> class transcoder;
 #endif  // ICUBABY_HAVE_CONCEPTS
 
-/// An output iterator which passes code units being output through a
-/// transcoder.
+/// \brief An output iterator which passes code units being output through a
+///   transcoder.
 ///
 /// This iterator simplifies the job of converting unicode representation and
 /// storing the results of that conversion. Each time that a code point is
@@ -450,18 +506,30 @@ template <typename Transcoder, typename OutputIterator>
 ICUBABY_REQUIRES ((is_transcoder<Transcoder> && std::output_iterator<OutputIterator, typename Transcoder::output_type>))
 class iterator {
 public:
+  /// Defines this class as fulfilling the requirements of an output iterator.
   using iterator_category = std::output_iterator_tag;
+  /// The class is an output iterator and as such does not yield values.
   using value_type = void;
+  /// A type that can be used to identify distance between iterators.
   using difference_type = std::ptrdiff_t;
+  /// Defines a pointer to the type iterated over (none in the case of this iterator).
   using pointer = void;
+  /// Defines a reference to the type iterated over (none in the case of this iterator).
   using reference = void;
 
+  /// Initializes the underlying transcoder and the output iterator to which elements will be written.
+  ///
+  /// \param transcoder  The underlying transcoder. This class does not take ownership of the pointer.
+  /// \param it  An output iterator to which code units produced by the \p transcoder will be written.
   iterator (Transcoder* transcoder, OutputIterator it) : transcoder_{transcoder}, it_{it} {}
   iterator (iterator const& rhs) = default;
   iterator (iterator&& rhs) noexcept = default;
 
   ~iterator () noexcept = default;
 
+  /// Passes a code unit to the associated transcoder.
+  /// \param value The code unit to be passed to the transcoder.
+  /// \returns \*this
   iterator& operator= (typename Transcoder::input_type const& value) {
     it_ = (*transcoder_) (value, it_);
     return *this;
@@ -470,8 +538,14 @@ public:
   iterator& operator= (iterator const& rhs) = default;
   iterator& operator= (iterator&& rhs) noexcept = default;
 
+  /// \brief no-op
+  /// \returns \*this
   constexpr iterator& operator* () noexcept { return *this; }
+  /// \brief no-op
+  /// \returns \*this
   constexpr iterator& operator++ () noexcept { return *this; }
+  /// \brief no-op
+  /// \returns \*this
   constexpr iterator operator++ (int) noexcept { return *this; }
 
   /// Accesses the underlying iterator.
@@ -486,20 +560,31 @@ private:
   ICUBABY_NO_UNIQUE_ADDRESS OutputIterator it_;
 };
 
+/// A class template argument deduction guide for icubaby::iterator.
 template <typename Transcoder, typename OutputIterator>
 iterator (Transcoder& t, OutputIterator it) -> iterator<Transcoder, OutputIterator>;
 
 /// Takes a sequence of UTF-32 code units and converts them to UTF-8.
 template <> class transcoder<char32_t, char8> {
 public:
+  /// The type of the code units consumed by this transcoder.
   using input_type = char32_t;
+  /// The type of the code units produced by this transcoder.
   using output_type = char8;
 
   constexpr transcoder () noexcept = default;
+  /// Initializes a transcoder instance with an initial value for its "well formed" state. This can be useful if
+  /// converting a stream of data which may be using different encodings.
+  ///
+  /// \param well_formed The initial value for the transcoder's "well formed" state.
   explicit constexpr transcoder (bool well_formed) noexcept : well_formed_{well_formed} {}
 
+  /// Accepts a code unit in the UTF-32 source encoding. As UTF-8 output code units are generated, they are written to
+  /// the output iterator \p dest.
+  ///
   /// \tparam OutputIterator  An output iterator type to which value of type
   ///   output_type can be written.
+  /// \param c  A code unit in the source encoding.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
@@ -537,6 +622,13 @@ public:
     return dest;
   }
 
+  /// Call once the entire input sequence has been fed to operator(). This
+  /// function ensures that the sequence did not end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which value of type
+  ///   output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
@@ -547,6 +639,8 @@ public:
 
   /// \returns True if the input represented well formed UTF-32.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
+  /// \returns True if a partial code-point has been passed to operator() and
+  /// false otherwise.
   [[nodiscard]] static constexpr bool partial () noexcept { return false; }
 
 private:
@@ -581,15 +675,24 @@ private:
 /// Takes a sequence of UTF-8 code units and converts them to UTF-32.
 template <> class transcoder<char8, char32_t> {
 public:
+  /// The type of the code units consumed by this transcoder.
   using input_type = char8;
+  /// The type of the code units produced by this transcoder.
   using output_type = char32_t;
 
   constexpr transcoder () noexcept : transcoder (true) {}
+  /// Initializes a transcoder instance with an initial value for its "well formed" state. This can be useful if
+  /// converting a stream of data which may be using different encodings.
+  ///
+  /// \param well_formed The initial value for the transcoder's "well formed" state.
   explicit constexpr transcoder (bool well_formed) noexcept
       : code_point_{0}, well_formed_{static_cast<uint_least32_t> (well_formed)}, pad_{0}, state_{accept} {
     pad_ = 0;  // Suppress warning about pad_ being unused.
   }
 
+  /// Accepts a code unit in the UTF-8 source encoding. As UTF-32 output code units are generated, they are written to
+  /// the output iterator \p dest.
+  ///
   /// \tparam OutputIterator  An output iterator type to which values of
   ///   output_type can be written.
   /// \param code_unit  A UTF-8 code unit,
@@ -641,6 +744,13 @@ public:
     return dest;
   }
 
+  /// Call once the entire input sequence has been fed to operator(). This
+  /// function ensures that the sequence did not end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which value of type
+  ///   output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
@@ -651,6 +761,8 @@ public:
 
   /// \returns True if the input represented well formed UTF-8.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
+  /// \returns True if a partial code-point has been passed to operator() and
+  /// false otherwise.
   [[nodiscard]] constexpr bool partial () const noexcept { return state_ != accept; }
 
 private:
@@ -686,25 +798,37 @@ private:
 /// Takes a sequence of UTF-32 code units and converts them to UTF-16.
 template <> class transcoder<char32_t, char16_t> {
 public:
+  /// The type of the code units consumed by this transcoder.
   using input_type = char32_t;
+  /// The type of the code units produced by this transcoder.
   using output_type = char16_t;
 
   constexpr transcoder () noexcept = default;
+  /// Initializes a transcoder instance with an initial value for its "well formed" state. This can be useful if
+  /// converting a stream of data which may be using different encodings.
+  ///
+  /// \param well_formed The initial value for the transcoder's "well formed" state.
   explicit constexpr transcoder (bool well_formed) noexcept : well_formed_{well_formed} {}
 
-  /// \param dest  An output iterator to which the output sequence is written.
-  /// \returns  The output iterator.
+  /// Accepts a code unit in the UTF-32 source encoding. As UTF-16 output code units are generated, they are written to
+  /// the output iterator \p dest.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of
+  ///   output_type can be written.
+  /// \param code_unit  A UTF-32 code unit,
+  /// \param dest  Iterator to which the output should be written.
+  /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  OutputIterator operator() (input_type code_point, OutputIterator dest) {
-    if (is_surrogate (code_point) || code_point > max_code_point) {
+  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
+    if (is_surrogate (code_unit) || code_unit > max_code_point) {
       dest = (*this) (replacement_char, dest);
       well_formed_ = false;
-    } else if (code_point <= 0xFFFF) {
-      *(dest++) = static_cast<output_type> (code_point);
+    } else if (code_unit <= 0xFFFF) {
+      *(dest++) = static_cast<output_type> (code_unit);
     } else {
-      *(dest++) = static_cast<output_type> (0xD7C0U + (code_point >> 10U));
-      *(dest++) = static_cast<output_type> (first_low_surrogate + (code_point & 0x3FFU));
+      *(dest++) = static_cast<output_type> (0xD7C0U + (code_unit >> 10U));
+      *(dest++) = static_cast<output_type> (first_low_surrogate + (code_unit & 0x3FFU));
     }
     return dest;
   }
@@ -720,6 +844,13 @@ public:
     return dest;
   }
 
+  /// Call once the entire input sequence has been fed to operator(). This
+  /// function ensures that the sequence did not end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which value of type
+  ///   output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
@@ -730,6 +861,8 @@ public:
 
   /// \returns True if the input represented valid UTF-32.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
+  /// \returns True if a partial code-point has been passed to operator() and
+  /// false otherwise.
   [[nodiscard]] static constexpr bool partial () noexcept { return false; }
 
 private:
@@ -739,15 +872,29 @@ private:
 /// Takes a sequence of UTF-16 code units and converts them to UTF-32.
 template <> class transcoder<char16_t, char32_t> {
 public:
+  /// The type of the code units consumed by this transcoder.
   using input_type = char16_t;
+  /// The type of the code units produced by this transcoder.
   using output_type = char32_t;
 
   constexpr transcoder () noexcept : transcoder (true) {}
+  /// Initializes a transcoder instance with an initial value for its "well formed" state. This can be useful if
+  /// converting a stream of data which may be using different encodings.
+  ///
+  /// \param well_formed The initial value for the transcoder's "well formed" state.
   explicit constexpr transcoder (bool well_formed) noexcept
       : high_{0},
         has_high_{static_cast<uint_least16_t> (false)},
         well_formed_{static_cast<uint_least16_t> (well_formed)} {}
 
+  /// Accepts a code unit in the UTF-16 source encoding. As UTF-32 output code units are generated, they are written to
+  /// the output iterator \p dest.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which value of type
+  ///   output_type can be written.
+  /// \param c  A code unit in the source encoding.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type c, OutputIterator dest) {
@@ -812,6 +959,13 @@ public:
     return dest;
   }
 
+  /// Call once the entire input sequence has been fed to operator(). This
+  /// function ensures that the sequence did not end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which value of type
+  ///   output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
@@ -820,7 +974,10 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
+  /// \returns True if the input represented well formed UTF-16.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
+  /// \returns True if a partial code-point has been passed to operator() and
+  /// false otherwise.
   [[nodiscard]] constexpr bool partial () const noexcept { return has_high_; }
 
 private:
@@ -840,9 +997,20 @@ namespace details {
 
 template <typename From, typename To> class double_transcoder {
 public:
+  /// The type of the code units consumed by this transcoder.
   using input_type = From;
+  /// The type of the code units produced by this transcoder.
   using output_type = To;
 
+  /// Accepts a code unit in the source encoding (as given by double_transcoder::input_type). These are first converted
+  /// to UTF-32 and then to the output encoding (double_transcover::output_type). As output code units are generated,
+  /// they are written to the output iterator \p dest.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which value of type
+  ///   output_type can be written.
+  /// \param c  A code unit in the source encoding.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type c, OutputIterator dest) {
@@ -851,7 +1019,7 @@ public:
     // input is malformed.
     std::array<char32_t, 2> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-    auto begin = std::begin (intermediate);
+    auto const begin = std::begin (intermediate);
     return copy (begin, to_inter_ (c, begin), dest);
   }
 
@@ -867,7 +1035,7 @@ public:
   OutputIterator end_cp (OutputIterator dest) {
     std::array<char32_t, 2> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-    auto begin = std::begin (intermediate);
+    auto const begin = std::begin (intermediate);
     return copy (begin, to_inter_.end_cp (begin), dest);
   }
 
@@ -882,17 +1050,17 @@ public:
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder<From, To>, OutputIterator> end_cp (
       iterator<transcoder<From, To>, OutputIterator> dest) {
-    auto t = dest.transcoder ();
+    auto const t = dest.transcoder ();
     assert (t == this);
     return {t, t->end_cp (dest.base ())};
   }
 
-  /// Returns true if the input passed to operator() was valid.
+  /// \returns True if the input passed to operator() was valid.
   [[nodiscard]] constexpr bool well_formed () const noexcept {
     return to_inter_.well_formed () && to_out_.well_formed ();
   }
 
-  /// Returns true if a partial code-unit has been passed to operator() and
+  /// \returns True if a partial code-point has been passed to operator() and
   /// false otherwise.
   [[nodiscard]] constexpr bool partial () const noexcept { return to_inter_.partial (); }
 
@@ -920,23 +1088,33 @@ template <> class transcoder<char16_t, char16_t> : public details::double_transc
 /// Takes a sequence of UTF-32 code units and converts them to UTF-32.
 template <> class transcoder<char32_t, char32_t> {
 public:
+  /// The type of the code units consumed by this transcoder.
   using input_type = char32_t;
+  /// The type of the code units produced by this transcoder.
   using output_type = char32_t;
 
-  template <typename OutputIt>
-  ICUBABY_REQUIRES ((std::output_iterator<OutputIt, output_type>))
-  OutputIt operator() (input_type c, OutputIt dest) {
+  /// Accepts a code unit in the UTF-32 source encoding. As UTF-32 output code units are generated, they are written to
+  /// the output iterator \p dest.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of
+  ///   output_type can be written.
+  /// \param code_unit  A UTF-32 code unit,
+  /// \param dest  Iterator to which the output should be written.
+  /// \returns  Iterator one past the last element assigned.
+  template <typename OutputIterator>
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     // From D90 in Chapter 3 of Unicode 15.0.0
     // <https://www.unicode.org/versions/Unicode15.0.0/ch03.pdf>:
     //
     // "Because surrogate code points are not included in the set of Unicode
     // scalar values, UTF-32 code units in the range 0000D80016..0000DFFF16 are
     // ill-formed. Any UTF-32 code unit greater than 0x0010FFFF is ill-formed."
-    if (c > max_code_point || is_surrogate (c)) {
+    if (code_unit > max_code_point || is_surrogate (code_unit)) {
       well_formed_ = false;
-      c = replacement_char;
+      code_unit = replacement_char;
     }
-    *(dest++) = c;
+    *(dest++) = code_unit;
     return dest;
   }
 
@@ -951,6 +1129,13 @@ public:
     return dest;
   }
 
+  /// Call once the entire input sequence has been fed to operator(). This
+  /// function ensures that the sequence did not end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which value of type
+  ///   output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
@@ -959,7 +1144,10 @@ public:
     return {t, t->end_cp (dest.base ())};
   }
 
+  /// \returns True if the input represented well formed UTF-32.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
+  /// \returns True if a partial code-point has been passed to operator() and
+  /// false otherwise.
   [[nodiscard]] static constexpr bool partial () noexcept { return false; }
 
 private:
@@ -992,8 +1180,17 @@ using t32_32 = transcoder<char32_t, char32_t>;
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
+/// \brief icubaby C++ 20 ranges support types.
 namespace ranges {
 
+/// \brief A range adaptor for lazily converting between Unicode encodings.
+///
+/// A range adaptor that represents view of an underlying sequence consisting of Unicode code points in the encoding
+/// given by FromEncoding and produces the equivalent code points in the encoding given by ToEncoding.
+///
+/// \tparam FromEncoding  The encoding using by the underlying sequence.
+/// \tparam ToEncoding  The encoding that will be produced by this range adaptor.
+/// \tparam View  The type of the underlying view.
 template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 class transcode_view : public std::ranges::view_interface<transcode_view<FromEncoding, ToEncoding, View>> {
@@ -1001,13 +1198,19 @@ public:
   class iterator;
   class sentinel;
 
+  /// \brief Default initializes the base view of a new transcode_view instance.
   transcode_view () requires std::default_initializable<View> = default;
+  /// \brief Initializes the base view of a new transcode_view instance.
   constexpr explicit transcode_view (View base) : base_ (std::move (base)) {}
 
+  /// \returns The base view.
   constexpr View base () const& requires std::copy_constructible<View> { return base_; }
+  /// \returns Moves the base view out of this object.
   constexpr View base () && { return std::move (base_); }
 
+  /// \brief Obtains the beginning iterator of a transcode_view.
   constexpr auto begin () const { return iterator{*this, std::ranges::begin (base_)}; }
+  /// \brief Obtains the sentinel denoting the end of transcode_view.
   constexpr auto end () const {
     if constexpr (std::ranges::common_range<View>) {
       return iterator{*this, std::ranges::end (base_)};
@@ -1016,6 +1219,7 @@ public:
     }
   }
 
+  /// \returns True if the input processed was well formed.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
 
 private:
@@ -1023,14 +1227,19 @@ private:
   mutable bool well_formed_ = true;
 };
 
+/// \brief The iterator type of transcode_view.
 template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 class transcode_view<FromEncoding, ToEncoding, View>::iterator {
 public:
+  /// Defines this class as fulfilling the requirements of a forward iterator.
   using iterator_category = std::forward_iterator_tag;
+  /// Define this class as following the forward iterator concept.
   using iterator_concept = std::forward_iterator_tag;
 
+  /// The type produced by this iterator.
   using value_type = ToEncoding;
+  /// A type that can be used to identify distance between iterators.
   using difference_type = std::ranges::range_difference_t<View>;
 
   iterator () requires std::default_initializable<std::ranges::iterator_t<View>> = default;
@@ -1042,7 +1251,9 @@ public:
     current_ = state_.fill (parent_);
   }
 
+  /// \brief Returns the underlying view
   constexpr std::ranges::iterator_t<View> const& base () const& noexcept { return current_; }
+  /// \brief Returns the underlying view
   constexpr std::ranges::iterator_t<View> base () && { return std::move (current_); }
 
   constexpr value_type const& operator* () const { return state_.front (); }
@@ -1150,6 +1361,7 @@ constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding,
   return result;
 }
 
+/// \brief The sentinel type of transcode_view when the underlying view is not a common_range.
 template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 class transcode_view<FromEncoding, ToEncoding, View>::sentinel {
@@ -1157,6 +1369,7 @@ public:
   sentinel () = default;
   constexpr explicit sentinel (transcode_view& parent) : end_{std::ranges::end (parent.base_)} {}
   constexpr std::ranges::sentinel_t<View> base () const { return end_; }
+  /// \brief Compares and iterator and sential for equality.
   friend constexpr bool operator== (iterator const& x, sentinel const& y) { return x.current_ == y.end_; }
 
 private:
