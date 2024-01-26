@@ -53,6 +53,8 @@ static_assert (std::is_same_v<icubaby::t8_16::input_type, icubaby::char8> &&
 static_assert (std::is_same_v<icubaby::t8_32::input_type, icubaby::char8> &&
                std::is_same_v<icubaby::t8_32::output_type, char32_t>);
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers, misc-no-recursion)
+
 namespace {
 
 template <typename T> class Utf8 : public testing::Test {
@@ -248,7 +250,7 @@ TYPED_TEST (Utf8, PartialEndCp) {
   auto& output = this->output_;
   auto out = std::back_inserter (output);
 
-  constexpr auto& gothic_letter_hwair = encoded_char<code_point::gothic_letter_hwair, icubaby::char8>::value;
+  constexpr auto const& gothic_letter_hwair = encoded_char<code_point::gothic_letter_hwair, icubaby::char8>::value;
   static_assert (gothic_letter_hwair.size () == 4U, "gothic_letter_hwair should be four UTF-8 code units");
 
   out = transcoder (gothic_letter_hwair.at (0), out);
@@ -653,4 +655,4 @@ FUZZ_TEST (T8, ManualAndRangeAdaptorAlwaysMatch32);
 
 #endif  // ICUBABY_FUZZTEST
 
-// NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers, misc-no-recursion)
