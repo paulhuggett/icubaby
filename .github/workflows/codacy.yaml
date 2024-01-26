@@ -14,11 +14,13 @@ jobs:
     name: clang-tidy to Codacy
     runs-on: ubuntu-latest
     env:
+      BUILD_DIR: build_clangtidy
       CCT_VERSION: 1.3.2
       CCT: codacy-clang-tidy-linux-1.3.2
       CODACY_URL: https://api.codacy.com
       # The path for clang-tidy output.
       CLANG_TIDY_OUT: /tmp/clang-tidy-out
+      CLANG_VERSION: 16
       # The path for codacy-clang-tidy output.
       CCT_OUT: /tmp/cct-out
 
@@ -35,7 +37,16 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake clang++-15 clang-tidy-15
+          sudo apt-get install -y cmake
+
+      - name: Install Dependencies (LLVM)
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          # Force --yes to the end of the add-apt-repository command to
+          # prevent the llvm.sh script hanging.
+          sed -ie "/^add-apt-repository/ s/$/ --yes/" llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh "$CLANG_VERSION" all
 
       - name: Download the codacy-clang-tidy tool
         env:
@@ -47,17 +58,17 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -S .                                 \
-                -B build                             \
-                -D CMAKE_EXPORT_COMPILE_COMMANDS=Yes \
-                -D CMAKE_BUILD_TYPE=Release          \
-                -D CMAKE_C_COMPILER=clang-15         \
-                -D CMAKE_CXX_COMPILER=clang++-15
+          cmake -S .                                       \
+                -B "$BUILD_DIR"                            \
+                -D CMAKE_EXPORT_COMPILE_COMMANDS=Yes       \
+                -D CMAKE_BUILD_TYPE=Release                \
+                -D CMAKE_C_COMPILER="clang-$CLANG_VERSION" \
+                -D CMAKE_CXX_COMPILER="clang++-$CLANG_VERSION"
 
       - name: Run clang-tidy
         run: |
-          find . -name "*.?pp" -not -path "./build*/*" -print0 | \
-          xargs -0 clang-tidy-15 -p=build/compile_commands.json | \
+          find . -name "*.?pp" -not -path "./$BUILD_DIR/*" -print0 | \
+          xargs -0 "clang-tidy-$CLANG_VERSION" -p="$BUILD_DIR/compile_commands.json" | \
           tee -a "${{ env.CLANG_TIDY_OUT }}"
 
       # Convert the clang-tidy output to a format that the Codacy API accepts
