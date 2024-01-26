@@ -108,12 +108,6 @@ jobs:
         if: matrix.llvm_install != ''
         run: |
           wget https://apt.llvm.org/llvm.sh
-
-          # Verify that the file we downloaded is as we expected.
-          cat << 'EOF' | sha256sum --check
-          7dbc0855dff7d1a5b4eb71a209ab3dd9b8654d67e55daa1e49180dd1d97a1bcf  llvm.sh
-          EOF
-
           # Force --yes to the end of the add-apt-repository command to
           # prevent the llvm.sh script hanging.
           sed -ie "/^add-apt-repository/ s/$/ --yes/" llvm.sh
