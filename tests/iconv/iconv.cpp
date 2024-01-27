@@ -24,6 +24,7 @@
 
 #include <bit>
 #include <cassert>
+#include <cstring>
 #include <iostream>
 #include <system_error>
 #include <vector>
@@ -82,6 +83,18 @@ public:
   explicit unsupported_conversion (int erc) : std::system_error{std::error_code{erc, std::generic_category ()}} {}
 };
 
+template <typename ResultType, typename ArgType, typename = std::enable_if_t<std::is_pointer_v<ResultType>>>
+constexpr ResultType pointer_cast (ArgType *const ptr) noexcept {
+#if __cpp_lib_bit_cast >= 201806L
+  return std::bit_cast<ResultType> (ptr);
+#else
+  ResultType result = nullptr;
+  static_assert (sizeof (ptr) == sizeof (result));
+  std::memcpy (&result, &ptr, sizeof (result));
+  return result;
+#endif
+}
+
 // convert using iconv
 // ~~~~~~~~~~~~~~~~~~~
 template <typename C, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<C>>>
@@ -109,9 +122,9 @@ std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
     auto const out_bytes_available = sizeof (C) * out_size - total_out_bytes;
     auto out_bytes_left = out_bytes_available;
     // NOLINTNEXTLINE
-    auto *outbuf = reinterpret_cast<char *> (out.data ()) + total_out_bytes;
+    auto *outbuf = pointer_cast<char *> (out.data ()) + total_out_bytes;
     // NOLINTNEXTLINE
-    if (iconv (cd, reinterpret_cast<char **> (const_cast<from_encoding **> (&inbuf)), &in_bytes_left, &outbuf,
+    if (iconv (cd, pointer_cast<char **> (const_cast<from_encoding **> (&inbuf)), &in_bytes_left, &outbuf,
                &out_bytes_left) == static_cast<std::size_t> (-1)) {
       // E2BIG tells us that the output buffer was too small.
       if (int const erc = errno; erc != E2BIG) {
