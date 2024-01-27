@@ -24,6 +24,7 @@
 
 #include <bit>
 #include <cassert>
+#include <cstring>
 #include <iostream>
 #include <system_error>
 #include <vector>
