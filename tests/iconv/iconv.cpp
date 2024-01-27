@@ -33,7 +33,7 @@
 
 namespace {
 
-#if __cpp_lib_endian
+#if defined(__cpp_lib_endian) && __cpp_lib_endian >= 201907L
 using std::endian;
 #else
 enum class endian {
@@ -85,7 +85,7 @@ public:
 
 template <typename ResultType, typename ArgType, typename = std::enable_if_t<std::is_pointer_v<ResultType>>>
 constexpr ResultType pointer_cast (ArgType *const ptr) noexcept {
-#if __cpp_lib_bit_cast >= 201806L
+#if defined(__cpp_lib_bit_cast) && __cpp_lib_bit_cast >= 201806L
   return std::bit_cast<ResultType> (ptr);
 #else
   ResultType result = nullptr;
