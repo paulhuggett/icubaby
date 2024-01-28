@@ -36,6 +36,10 @@ jobs:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
           submodules: 'True'
 
+      - name: Get branch names
+        id: branch-names
+        uses: tj-actions/branch-names@v8
+
       - name: Install Dependencies
         run: |
           sudo apt-get update
@@ -104,10 +108,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
+          echo "Running on branch: ${{ steps.branch-names.outputs.current_branch }}"
+          echo "Base branch: ${{ steps.branch-names.outputs.base_ref_branch }}"
+
           sonar-scanner \
               -X                                                                             \
-              --define sonar.branch.name="$(git branch --show-current)"                      \
-              --define sonar.branch.target=main                                              \
+              --define sonar.branch.name="${{ steps.branch-names.outputs.current_branch }}"  \
+              --define sonar.branch.target=${{ steps.branch-names.outputs.base_ref_branch }}" \
               --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
               --define sonar.cfamily.llvm-cov.reportPath=coverage.txt                        \
               --define sonar.exclusions='${{ env.BUILD_DIR }}/**/*,docs/**/*'                \
