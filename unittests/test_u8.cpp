@@ -32,6 +32,10 @@
 // Google Test/Mock
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+#ifndef ICUBABY_FUZZTEST
+#define ICUBABY_FUZZTEST (0)
+#endif
 #if ICUBABY_FUZZTEST
 #include "fuzztest/fuzztest.h"
 #endif
@@ -77,7 +81,7 @@ TYPED_TEST (Utf8, DollarSign) {
   EXPECT_FALSE (transcoder.partial ());
 
   std::vector<TypeParam> expected;
-  append<code_point::dollar_sign, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::dollar_sign, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ContainerEq (expected));
 
   transcoder.end_cp (out);
@@ -96,12 +100,13 @@ TYPED_TEST (Utf8, FirstLowSurrogate) {
   it = transcoder (static_cast<icubaby::char8> (0xED), it);
   it = transcoder (static_cast<icubaby::char8> (0xA0), it);
   it = transcoder (static_cast<icubaby::char8> (0x80), it);
-  transcoder.end_cp (it);
+  (void)transcoder.end_cp (it);
   EXPECT_FALSE (transcoder.well_formed ());
 
   std::vector<TypeParam> expected;
-  append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
-  append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::replacement_char, TypeParam> (expected_out);
+  (void)append<code_point::replacement_char, TypeParam> (expected_out);
   EXPECT_THAT (output, ContainerEq (expected));
 }
 
@@ -528,26 +533,28 @@ TYPED_TEST (Utf8, RangesCopy) {
   auto& output = this->output_;
 
   std::vector<icubaby::char8> src;
-  append<code_point::hiragana_letter_ko, icubaby::char8> (std::back_inserter (src));
-  append<code_point::hiragana_letter_n, icubaby::char8> (std::back_inserter (src));
-  append<code_point::hiragana_letter_ni, icubaby::char8> (std::back_inserter (src));
-  append<code_point::hiragana_letter_ti, icubaby::char8> (std::back_inserter (src));
-  append<code_point::hiragana_letter_ha, icubaby::char8> (std::back_inserter (src));
-  append<code_point::cjk_unified_ideograph_4e16, icubaby::char8> (std::back_inserter (src));
-  append<code_point::cjk_unified_ideograph_754c, icubaby::char8> (std::back_inserter (src));
-  append<code_point::line_feed, icubaby::char8> (std::back_inserter (src));
+  auto src_out = std::back_inserter (src);
+  src_out = append<code_point::hiragana_letter_ko, icubaby::char8> (src_out);
+  src_out = append<code_point::hiragana_letter_n, icubaby::char8> (src_out);
+  src_out = append<code_point::hiragana_letter_ni, icubaby::char8> (src_out);
+  src_out = append<code_point::hiragana_letter_ti, icubaby::char8> (src_out);
+  src_out = append<code_point::hiragana_letter_ha, icubaby::char8> (src_out);
+  src_out = append<code_point::cjk_unified_ideograph_4e16, icubaby::char8> (src_out);
+  src_out = append<code_point::cjk_unified_ideograph_754c, icubaby::char8> (src_out);
+  (void)append<code_point::line_feed, icubaby::char8> (src_out);
 
   std::ranges::copy (src | icubaby::ranges::transcode<char8_t, TypeParam>, std::back_inserter (output));
 
   std::vector<TypeParam> expected;
-  append<code_point::hiragana_letter_ko, TypeParam> (std::back_inserter (expected));
-  append<code_point::hiragana_letter_n, TypeParam> (std::back_inserter (expected));
-  append<code_point::hiragana_letter_ni, TypeParam> (std::back_inserter (expected));
-  append<code_point::hiragana_letter_ti, TypeParam> (std::back_inserter (expected));
-  append<code_point::hiragana_letter_ha, TypeParam> (std::back_inserter (expected));
-  append<code_point::cjk_unified_ideograph_4e16, TypeParam> (std::back_inserter (expected));
-  append<code_point::cjk_unified_ideograph_754c, TypeParam> (std::back_inserter (expected));
-  append<code_point::line_feed, TypeParam> (std::back_inserter (expected));
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::hiragana_letter_ko, TypeParam> (expected_out);
+  expected_out = append<code_point::hiragana_letter_n, TypeParam> (expected_out);
+  expected_out = append<code_point::hiragana_letter_ni, TypeParam> (expected_out);
+  expected_out = append<code_point::hiragana_letter_ti, TypeParam> (expected_out);
+  expected_out = append<code_point::hiragana_letter_ha, TypeParam> (expected_out);
+  expected_out = append<code_point::cjk_unified_ideograph_4e16, TypeParam> (expected_out);
+  expected_out = append<code_point::cjk_unified_ideograph_754c, TypeParam> (expected_out);
+  (void)append<code_point::line_feed, TypeParam> (expected_out);
   EXPECT_THAT (output, ContainerEq (expected));
 }
 // NOLINTNEXTLINE
