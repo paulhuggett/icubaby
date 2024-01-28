@@ -32,6 +32,10 @@
 // Google Test/Mock
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+#ifndef ICUBABY_FUZZTEST
+#define ICUBABY_FUZZTEST (0)
+#endif
 #if ICUBABY_FUZZTEST
 #include "fuzztest/fuzztest.h"
 #endif
