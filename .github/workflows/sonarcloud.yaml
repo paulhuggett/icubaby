@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
   workflow_dispatch:
 
 permissions:
@@ -101,6 +106,8 @@ jobs:
         run: |
           sonar-scanner \
               -X                                                                             \
+              --define sonar.branch.name="$(git branch --show-current)"                      \
+              --define sonar.branch.target=main                                              \
               --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
               --define sonar.cfamily.llvm-cov.reportPath=coverage.txt                        \
               --define sonar.exclusions='${{ env.BUILD_DIR }}/**/*,docs/**/*'                \
