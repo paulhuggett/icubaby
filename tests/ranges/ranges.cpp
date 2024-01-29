@@ -24,6 +24,7 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <iterator>
@@ -240,23 +241,34 @@ std::vector<char8_t> convert_16_to_8 (Range const& in) {
 }  // end anonymous namespace
 
 int main () {
-  auto const& in = expected8;
+  int exit_code = EXIT_SUCCESS;
+  try {
+    auto const& in = expected8;
 #if HAVE_CPP_LIB_FORMAT
-  std::cout << std::format ("input length is {} code points\n", icubaby::length (in));
+    std::cout << std::format ("input length is {} code points\n", icubaby::length (in));
 #else
-  std::cout << "input length is " << icubaby::length (in) << " code-points\n";
+    std::cout << "input length is " << icubaby::length (in) << " code-points\n";
 #endif
 
-  auto const out16 = convert_8_to_16 (in);
-  check (out16, expected16);
+    auto const out16 = convert_8_to_16 (in);
+    check (out16, expected16);
 
-  auto const out32 = convert_8_to_32 (in);
-  check (out32, expected32);
+    auto const out32 = convert_8_to_32 (in);
+    check (out32, expected32);
 
-  check (convert_32_to_16 (out32), expected16);
-  check (convert_16_to_32 (out16), expected32);
-  auto const out8 = convert_16_to_8 (out16);
-  assert (std::ranges::equal (in, out8));
+    check (convert_32_to_16 (out32), expected16);
+    check (convert_16_to_32 (out16), expected32);
+
+    auto const out8 = convert_16_to_8 (out16);
+    assert (std::ranges::equal (in, out8));
+  } catch (std::exception const& ex) {
+    std::cerr << "Error: " << ex.what () << '\n';
+    exit_code = EXIT_FAILURE;
+  } catch (...) {
+    std::cerr << "An unknown error was raised\n";
+    exit_code = EXIT_FAILURE;
+  }
+  return exit_code;
 }
 
 #else
