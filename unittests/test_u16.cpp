@@ -73,7 +73,7 @@ TYPED_TEST (Utf16, GoodDollarSign) {
   auto it = transcoder (static_cast<char16_t> (code_point::dollar_sign), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ()) << "input should be well formed";
   EXPECT_FALSE (transcoder.partial ()) << "there were no surrogate code units";
-  transcoder.end_cp (it);
+  (void)transcoder.end_cp (it);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::dollar_sign, TypeParam>));
@@ -88,13 +88,14 @@ TYPED_TEST (Utf16, StartOfHeadingAndText) {
   it = transcoder (static_cast<char16_t> (code_point::start_of_text), it);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  transcoder.end_cp (it);
+  (void)transcoder.end_cp (it);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
   std::vector<TypeParam> expected;
-  append<code_point::start_of_heading, TypeParam> (std::back_inserter (expected));
-  append<code_point::start_of_text, TypeParam> (std::back_inserter (expected));
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::start_of_heading, TypeParam> (expected_out);
+  (void)append<code_point::start_of_text, TypeParam> (expected_out);
   EXPECT_THAT (output, ElementsAreArray (expected));
 }
 // NOLINTNEXTLINE
@@ -104,7 +105,7 @@ TYPED_TEST (Utf16, CharFFFF) {
   auto it = transcoder (static_cast<char16_t> (code_point::code_point_ffff), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  transcoder.end_cp (it);
+  (void)transcoder.end_cp (it);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::code_point_ffff, TypeParam>));
@@ -128,7 +129,7 @@ TYPED_TEST (Utf16, FirstHighLowSurrogatePair) {
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ()) << "partial() should be false after a high/low surrogate pair";
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::linear_b_syllable_b008_a, TypeParam>));
-  transcoder.end_cp (it);
+  (void)transcoder.end_cp (it);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::linear_b_syllable_b008_a, TypeParam>));
@@ -158,7 +159,7 @@ TYPED_TEST (Utf16, HighLowSurrogatePairExample) {
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
-  append<code_point::cuneiform_sign_uru_times_ki, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::cuneiform_sign_uru_times_ki, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ElementsAreArray (expected));
 
   // Repeat the pattern for the second CU pair.
@@ -168,11 +169,11 @@ TYPED_TEST (Utf16, HighLowSurrogatePairExample) {
   it = transcoder (std::get<1> (char2), it);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  append<code_point::last_valid_code_point, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::last_valid_code_point, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ElementsAreArray (expected));
 
   // End of input sequence.
-  transcoder.end_cp (it);
+  (void)transcoder.end_cp (it);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (expected));
@@ -190,8 +191,9 @@ TYPED_TEST (Utf16, HighSurrogateWithoutLow) {
   EXPECT_FALSE (transcoder.partial ());
 
   std::vector<TypeParam> expected;
-  append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
-  append<code_point::dollar_sign, TypeParam> (std::back_inserter (expected));
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::replacement_char, TypeParam> (expected_out);
+  (void)append<code_point::dollar_sign, TypeParam> (expected_out);
   EXPECT_THAT (output, ElementsAreArray (expected));
 }
 // NOLINTNEXTLINE
@@ -231,13 +233,14 @@ TYPED_TEST (Utf16, HighSurrogateFollowedByHighLowPair) {
   EXPECT_FALSE (transcoder.well_formed ()) << "high followed by high is not well formed input";
   EXPECT_FALSE (transcoder.partial ()) << "we saw high followed by low: a complete code point";
 
-  transcoder.end_cp (it);
+  (void)transcoder.end_cp (it);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
   std::vector<TypeParam> expected;
-  append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
-  append<code_point::linear_b_syllable_b008_a, TypeParam> (std::back_inserter (expected));
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::replacement_char, TypeParam> (expected_out);
+  (void)append<code_point::linear_b_syllable_b008_a, TypeParam> (expected_out);
   EXPECT_THAT (output, ElementsAreArray (expected));
 }
 // NOLINTNEXTLINE
@@ -249,7 +252,7 @@ TYPED_TEST (Utf16, LonelyLowSurrogate) {
   auto it = transcoder (static_cast<char16_t> (icubaby::first_low_surrogate), std::back_inserter (output));
   EXPECT_FALSE (transcoder.well_formed ()) << "a low surrogate must be preceeded by a high";
   EXPECT_FALSE (transcoder.partial ());
-  transcoder.end_cp (it);
+  (void)transcoder.end_cp (it);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
@@ -264,7 +267,7 @@ TYPED_TEST (Utf16, LonelyHighSurrogate) {
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_TRUE (transcoder.partial ());
   EXPECT_TRUE (output.empty ());
-  transcoder.end_cp (it);
+  (void)transcoder.end_cp (it);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
@@ -281,7 +284,7 @@ static std::tuple<std::vector<OutputEncoding>, bool> Manual (std::vector<char16_
   for (auto const c : input) {
     out = t (c, out);
   }
-  t.end_cp (out);
+  (void)t.end_cp (out);
   return std::make_tuple (std::move (manout), t.well_formed ());
 }
 
@@ -291,7 +294,7 @@ template <typename OutputEncoding> static void ManualAndIteratorAlwaysMatch (std
   // Use the iterator interface to perform the conversion...
   std::vector<OutputEncoding> it_out;
   icubaby::transcoder<char16_t, OutputEncoding> it_t16;
-  it_t16.end_cp (
+  (void)it_t16.end_cp (
       std::copy (std::begin (input), std::end (input), icubaby::iterator{&it_t16, std::back_inserter (it_out)}));
   EXPECT_EQ (man_well_formed, it_t16.well_formed ());
   EXPECT_THAT (man_out, testing::ContainerEq (it_out));

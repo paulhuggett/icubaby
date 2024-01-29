@@ -84,7 +84,7 @@ TYPED_TEST (Utf8, DollarSign) {
   (void)append<code_point::dollar_sign, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ContainerEq (expected));
 
-  transcoder.end_cp (out);
+  (void)transcoder.end_cp (out);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ContainerEq (expected));
@@ -117,11 +117,11 @@ TYPED_TEST (Utf8, LowestTwoByteSequence) {
   auto it = std::back_inserter (output);
   it = transcoder (static_cast<icubaby::char8> (0xC2), it);
   it = transcoder (static_cast<icubaby::char8> (0x80), it);
-  transcoder.end_cp (it);
+  (void)transcoder.end_cp (it);
   EXPECT_TRUE (transcoder.well_formed ());
 
   std::vector<TypeParam> expected;
-  append<code_point::u80, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::u80, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ContainerEq (expected));
 }
 
@@ -135,7 +135,7 @@ TYPED_TEST (Utf8, CentSign) {
   static_assert (cent_sign.size () == 2U, "cent_sign should be two UTF-8 code units");
 
   std::vector<TypeParam> expected;
-  append<code_point::cent_sign, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::cent_sign, TypeParam> (std::back_inserter (expected));
 
   out = transcoder (cent_sign.at (0), out);
   EXPECT_TRUE (transcoder.well_formed ());
@@ -163,7 +163,7 @@ TYPED_TEST (Utf8, DevanagariLetterHa) {
   static_assert (devanagri_letter_ha.size () == 3U, "devanagri_letter_ha should be three UTF-8 code units");
 
   std::vector<TypeParam> expected;
-  append<code_point::devanagri_letter_ha, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::devanagri_letter_ha, TypeParam> (std::back_inserter (expected));
 
   out = transcoder (devanagri_letter_ha.at (0), out);
   EXPECT_TRUE (transcoder.well_formed ());
@@ -196,7 +196,7 @@ TYPED_TEST (Utf8, GoodGothicLetterHwair) {
   static_assert (gothic_letter_hwair.size () == 4U, "gothic_letter_hwair should be four UTF-8 code units");
 
   std::vector<TypeParam> expected;
-  append<code_point::gothic_letter_hwair, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::gothic_letter_hwair, TypeParam> (std::back_inserter (expected));
 
   out = transcoder (gothic_letter_hwair.at (0), out);
   EXPECT_TRUE (transcoder.well_formed ());
@@ -232,13 +232,13 @@ TYPED_TEST (Utf8, Bad1) {
 
   std::vector<TypeParam> expected;
   out = transcoder (static_cast<icubaby::char8> (0x80), out);
-  append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ContainerEq (expected));
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
   out = transcoder (static_cast<icubaby::char8> (0x24), out);
-  append<code_point::dollar_sign, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::dollar_sign, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ContainerEq (expected));
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
@@ -278,7 +278,7 @@ TYPED_TEST (Utf8, PartialEndCp) {
   EXPECT_TRUE (transcoder.partial ());
 
   std::vector<TypeParam> expected;
-  append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ContainerEq (expected));
 }
 
@@ -322,7 +322,7 @@ private:
     if (num == 0U) {
       return;
     }
-    append<code_point::replacement_char, OutputChar> (std::back_inserter (v));
+    (void)append<code_point::replacement_char, OutputChar> (std::back_inserter (v));
     replacement_chars (v, num - 1U);
   }
 };
@@ -475,8 +475,9 @@ TYPED_TEST (Utf8BadInput, LoneTrailsAfterValidTwoByte) {
   // After valid two-byte (C2 B6 80)
   auto const output = this->convert (0xC2, 0xB6, 0x80);
   std::vector<TypeParam> expected;
-  append<code_point::pilcrow_sign, TypeParam> (std::back_inserter (expected));
-  append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::pilcrow_sign, TypeParam> (expected_out);
+  (void)append<code_point::replacement_char, TypeParam> (expected_out);
   EXPECT_THAT (output, ContainerEq (expected));
 }
 
@@ -484,8 +485,9 @@ TYPED_TEST (Utf8BadInput, LoneTrailsAfterValidThreeByte) {
   // After valid three-byte (E2 98 83 80)
   auto const output = this->convert (0xE2, 0x98, 0x83, 0x80);
   std::vector<TypeParam> expected;
-  append<code_point::snowman, TypeParam> (std::back_inserter (expected));
-  append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::snowman, TypeParam> (expected_out);
+  (void)append<code_point::replacement_char, TypeParam> (expected_out);
   EXPECT_THAT (output, ContainerEq (expected));
 }
 
@@ -493,8 +495,9 @@ TYPED_TEST (Utf8BadInput, LoneTrailsAfterValidFourByte) {
   // After valid four-byte (F0 9F 92 A9 80)
   auto const output = this->convert (0xF0, 0x9F, 0x92, 0xA9, 0x80);
   std::vector<TypeParam> expected;
-  append<code_point::pile_of_poop, TypeParam> (std::back_inserter (expected));
-  append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::pile_of_poop, TypeParam> (expected_out);
+  (void)append<code_point::replacement_char, TypeParam> (expected_out);
   EXPECT_THAT (output, ContainerEq (expected));
 }
 
@@ -543,7 +546,7 @@ TYPED_TEST (Utf8, RangesCopy) {
   src_out = append<code_point::cjk_unified_ideograph_754c, icubaby::char8> (src_out);
   (void)append<code_point::line_feed, icubaby::char8> (src_out);
 
-  std::ranges::copy (src | icubaby::ranges::transcode<char8_t, TypeParam>, std::back_inserter (output));
+  (void)std::ranges::copy (src | icubaby::ranges::transcode<char8_t, TypeParam>, std::back_inserter (output));
 
   std::vector<TypeParam> expected;
   auto expected_out = std::back_inserter (expected);
@@ -563,11 +566,11 @@ TYPED_TEST (Utf8, RangesBadInput) {
 
   std::array const bad_input{static_cast<icubaby::char8> (0xC3), static_cast<icubaby::char8> (0x28)};
   auto r = bad_input | icubaby::ranges::transcode<char8_t, TypeParam>;
-  std::ranges::copy (r, std::back_inserter (output));
+  (void)std::ranges::copy (r, std::back_inserter (output));
   EXPECT_FALSE (r.well_formed ());
 
   std::vector<TypeParam> expected;
-  append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
+  (void)append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ContainerEq (expected));
 }
 
@@ -582,7 +585,7 @@ TEST (Utf8To32, RangesBadInput) {
   // clang-format on
   std::vector<char32_t> out32;
   auto const r = in | icubaby::ranges::transcode<char8_t, char32_t>;
-  std::ranges::copy (r, std::back_inserter (out32));
+  (void)std::ranges::copy (r, std::back_inserter (out32));
   EXPECT_THAT (out32, ElementsAre (char32_t{icubaby::replacement_char}));
   EXPECT_FALSE (r.well_formed ());
 }
@@ -598,7 +601,7 @@ static std::tuple<std::vector<OutputEncoding>, bool> Manual (std::vector<icubaby
   for (auto const c : input) {
     out = t (c, out);
   }
-  t.end_cp (out);
+  (void)t.end_cp (out);
   return std::make_tuple (std::move (manout), t.well_formed ());
 }
 
@@ -608,7 +611,7 @@ template <typename OutputEncoding> static void ManualAndIteratorAlwaysMatch (std
   // Use the iterator interface to perform the conversion...
   std::vector<OutputEncoding> it_out;
   icubaby::transcoder<icubaby::char8, OutputEncoding> it_t16;
-  it_t16.end_cp (
+  (void)it_t16.end_cp (
       std::copy (std::begin (input), std::end (input), icubaby::iterator{&it_t16, std::back_inserter (it_out)}));
   EXPECT_EQ (man_well_formed, it_t16.well_formed ());
   EXPECT_THAT (man_out, ContainerEq (it_out));
