@@ -47,7 +47,7 @@ template <typename StringType> void show (std::ostream& os, StringType const& st
   for (auto const c : str) {
     os << separator;
     if constexpr (sizeof (c) == 1) {
-      os << std::format ("{:02X}", static_cast<unsigned> (c));
+      os << std::format ("{:02X}", static_cast<std::uint_least8_t> (c));
     } else {
       os << std::format ("{:04X}", static_cast<std::uint_least16_t> (c));
     }
@@ -99,7 +99,7 @@ std::optional<std::u16string> convert (std::basic_string_view<icubaby::char8> co
   icubaby::t8_16 utf_8_to_16;
   auto it = icubaby::iterator{&utf_8_to_16, std::back_inserter (out)};
   it = std::copy (std::begin (src), std::end (src), it);
-  utf_8_to_16.end_cp (it);
+  (void)utf_8_to_16.end_cp (it);
   if (!utf_8_to_16.well_formed ()) {
     // The input was malformed or ended with a partial character.
     return std::nullopt;
@@ -120,7 +120,7 @@ std::optional<std::u16string> convert2 (std::basic_string_view<icubaby::char8> c
     }
   }
   // Check that the input finished with a complete character.
-  it = utf_8_to_16.end_cp (it);
+  (void)utf_8_to_16.end_cp (it);
   if (!utf_8_to_16.well_formed ()) {
     return std::nullopt;
   }
@@ -132,7 +132,7 @@ void c3 () {
   std::vector<char16_t> out;
   auto it = icubaby::iterator{&t, std::back_inserter (out)};
   *(it++) = icubaby::char8{'A'};
-  t.end_cp (std::back_inserter (out));
+  (void)t.end_cp (std::back_inserter (out));
   show (std::cout, out);
 }
 
@@ -145,7 +145,7 @@ void c4 () {
   for (auto cu : in) {
     *(it++) = cu;
   }
-  it = t.end_cp (it);
+  (void)t.end_cp (it);
   show (std::cout, out);
 }
 
@@ -159,7 +159,7 @@ void c5 () {
 #else
   auto it = std::copy (std::begin (in), std::end (in), icubaby::iterator{&t, std::back_inserter (out)});
 #endif
-  t.end_cp (it);
+  (void)t.end_cp (it);
 }
 
 }  // namespace

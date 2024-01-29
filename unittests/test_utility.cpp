@@ -173,7 +173,7 @@ template <typename T> struct Hiragana : testing::Test {
     it = append<code_point::hiragana_letter_za, T> (it);
     it = append<code_point::hiragana_letter_i, T> (it);
     it = append<code_point::hiragana_letter_ma, T> (it);
-    append<code_point::hiragana_letter_su, T> (it);
+    (void)append<code_point::hiragana_letter_su, T> (it);
   }
   std::vector<T> CUs;
 };
@@ -218,7 +218,7 @@ template <typename T> struct CjkUnifiedIdeographCodePoints : testing::Test {
     auto it = append<code_point::cjk_unified_ideograph_2070e, T> (std::back_inserter (CUs));
     it = append<code_point::cjk_unified_ideograph_20731, T> (it);
     it = append<code_point::cjk_unified_ideograph_20779, T> (it);
-    append<code_point::cjk_unified_ideograph_20c53, T> (it);
+    (void)append<code_point::cjk_unified_ideograph_20c53, T> (it);
   }
 
   std::vector<T> CUs;

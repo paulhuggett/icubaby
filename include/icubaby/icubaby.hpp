@@ -1070,7 +1070,7 @@ private:
 
   template <typename InputIterator, typename OutputIterator>
   OutputIterator copy (InputIterator first, InputIterator last, OutputIterator dest) {
-    std::for_each (first, last, [this, &dest] (char32_t c) { dest = to_out_ (c, dest); });
+    (void)std::for_each (first, last, [this, &dest] (char32_t c) { dest = to_out_ (c, dest); });
     return dest;
   }
 };
@@ -1303,13 +1303,15 @@ private:
     constexpr state () : state{std::ranges::iterator_t<View>{}} {}
 
     [[nodiscard]] constexpr bool empty () const noexcept { return valid_.empty (); }
+    /// Returns the first element from the range of code units forming the current code point.
     [[nodiscard]] constexpr auto& front () const noexcept {
       assert (!valid_.empty ());
       return valid_.front ();
     }
+    /// Removes the first element from the range of code units forming the current code point.
     constexpr void advance () noexcept {
       assert (!valid_.empty ());
-      valid_.advance (1);
+      (void)valid_.advance (1);
     }
 
     /// Consumes enough code-units from the base iterator to form a single code-point. The resulting

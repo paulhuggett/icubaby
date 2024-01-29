@@ -243,7 +243,7 @@ TYPED_TEST (Utf8, Bad1) {
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
-  transcoder.end_cp (out);
+  (void)transcoder.end_cp (out);
   EXPECT_THAT (output, ContainerEq (expected));
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
@@ -291,7 +291,7 @@ protected:
   template <typename... Args> static std::vector<OutputChar> convert (Args&&... args) {
     icubaby::transcoder<icubaby::char8, OutputChar> transcoder;
     std::vector<OutputChar> output;
-    add8 (transcoder, std::back_inserter (output), std::forward<Args> (args)...);
+    (void)add8 (transcoder, std::back_inserter (output), std::forward<Args> (args)...);
     return output;
   }
 

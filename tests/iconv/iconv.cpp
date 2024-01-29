@@ -90,7 +90,7 @@ constexpr ResultType pointer_cast (ArgType *const ptr) noexcept {
 #else
   ResultType result = nullptr;
   static_assert (sizeof (ptr) == sizeof (result));
-  std::memcpy (&result, &ptr, sizeof (result));
+  (void)std::memcpy (&result, &ptr, sizeof (result));
   return result;
 #endif
 }
@@ -122,9 +122,8 @@ std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
     auto const out_bytes_available = sizeof (C) * out_size - total_out_bytes;
     auto out_bytes_left = out_bytes_available;
     // NOLINTNEXTLINE
-    auto *outbuf = pointer_cast<char *> (out.data ()) + total_out_bytes;
-    // NOLINTNEXTLINE
-    if (iconv (cd, pointer_cast<char **> (const_cast<from_encoding **> (&inbuf)), &in_bytes_left, &outbuf,
+    if (auto *outbuf = pointer_cast<char *> (out.data ()) + total_out_bytes;
+        iconv (cd, pointer_cast<char **> (const_cast<from_encoding **> (&inbuf)), &in_bytes_left, &outbuf,
                &out_bytes_left) == static_cast<std::size_t> (-1)) {
       // E2BIG tells us that the output buffer was too small.
       if (int const erc = errno; erc != E2BIG) {
@@ -137,7 +136,10 @@ std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
   }
   assert (total_out_bytes % sizeof (C) == 0);
   out.resize (total_out_bytes / sizeof (C));
-  iconv_close (cd);
+  if (iconv_close (cd) != 0) {
+    int const erc = errno;
+    throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv_close"};
+  }
   return out;
 }
 
