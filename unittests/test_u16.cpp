@@ -186,7 +186,7 @@ TYPED_TEST (Utf16, HighSurrogateWithoutLow) {
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_TRUE (transcoder.partial ());
   EXPECT_TRUE (output.empty ());
-  transcoder (static_cast<char16_t> (code_point::dollar_sign), it);
+  (void)transcoder (static_cast<char16_t> (code_point::dollar_sign), it);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
