@@ -119,8 +119,10 @@ TEST (IsCodePointStart, Utf32) {
 namespace {
 
 struct AsciiUtf8 : testing::Test {
-  std::vector<icubaby::char8> const CUs{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'};
+  static std::array<icubaby::char8, 11> const CUs;
 };
+
+std::array<icubaby::char8, 11> const AsciiUtf8::CUs{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'};
 
 }  // end anonymous namespace
 
@@ -130,9 +132,11 @@ TEST_F (AsciiUtf8, Length) {
 }
 // NOLINTNEXTLINE
 TEST_F (AsciiUtf8, Index) {
-  auto begin = std::begin (CUs);
-  auto end = std::end (CUs);
+  // NOLINTBEGIN(llvm-qualified-auto,readability-qualified-auto)
+  auto const begin = std::begin (CUs);
+  auto const end = std::end (CUs);
   auto it = begin;
+  // NOLINTEND(llvm-qualified-auto,readability-qualified-auto)
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{0}));
   std::advance (it, 1);
   EXPECT_EQ (it, icubaby::index (begin, end, size_t{1}));
@@ -175,6 +179,8 @@ template <typename T> struct Hiragana : testing::Test {
     it = append<code_point::hiragana_letter_ma, T> (it);
     (void)append<code_point::hiragana_letter_su, T> (it);
   }
+
+  // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
   std::vector<T> CUs;
 };
 
@@ -221,6 +227,7 @@ template <typename T> struct CjkUnifiedIdeographCodePoints : testing::Test {
     (void)append<code_point::cjk_unified_ideograph_20c53, T> (it);
   }
 
+  // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
   std::vector<T> CUs;
 };
 

@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef UNITTESTS_TYPED_TEST_HPP
-#define UNITTESTS_TYPED_TEST_HPP
+#ifndef ICUBABY_UNITTESTS_TYPED_TEST_HPP
+#define ICUBABY_UNITTESTS_TYPED_TEST_HPP
 
 #include <gtest/gtest.h>
 
@@ -29,10 +29,9 @@
 
 #include "icubaby/icubaby.hpp"
 
-// TODO: Remove this code!
-// A specialization of the gtest GetTypeName<char8_t>() function. This is
-// required for compiling with Xcode 14.1 where we have a link error due to
-// missing typeinfo for char8_t.
+// TODO(paul): Remove this code!
+// A specialization of the gtest GetTypeName<char8_t>() function. This is required for compiling with (at least)
+// Xcode 14.1/15.2 where we have a link error due to missing typeinfo for char8_t.
 #if defined(__cpp_char8_t) && defined(__cpp_lib_char8_t)
 namespace testing::internal {
 
@@ -44,8 +43,7 @@ template <> inline std::string GetTypeName<char8_t> () {
 #endif
 
 [[noreturn, maybe_unused]] inline void unreachable () {
-  // Uses compiler specific extensions if possible.
-  // Even if no extension is used, undefined behavior is still raised by
+  // Uses compiler specific extensions if possible. Even if no extension is used, undefined behavior is still raised by
   // an empty function body and the noreturn attribute.
 #ifdef __GNUC__  // GCC, Clang, ICC
   __builtin_unreachable ();
@@ -77,4 +75,4 @@ public:
 
 using OutputTypes = testing::Types<icubaby::char8, char16_t, char32_t>;
 
-#endif  // UNITTESTS_TYPED_TEST_HPP
+#endif  // ICUBABY_UNITTESTS_TYPED_TEST_HPP

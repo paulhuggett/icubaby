@@ -91,6 +91,13 @@ template <typename StringType> void show (std::ostream& os, StringType const& st
 
 #endif  // HAVE_CPP_LIB_FORMAT
 
+template <typename StringType> void show (std::ostream& os, std::optional<StringType> const& str) {
+  if (!str) {
+    return;  // do something.
+  }
+  show (os, *str);
+}
+
 std::optional<std::u16string> convert (std::basic_string_view<icubaby::char8> const& src) {
   std::u16string out;
 
@@ -167,18 +174,25 @@ void c5 () {
 int main () {
   icubaby::char8 const* in = u8"こんにちは世界\n";
   show (std::cout, std::basic_string_view (in));
-  show (std::cout, *convert (in));
-  show (std::cout, *convert2 (in));
+  show (std::cout, convert (in));
+  show (std::cout, convert2 (in));
   c3 ();
   c4 ();
   c5 ();
 
+  enum class code_point : char32_t {
+    cjk_unified_ideograph_2070e = char32_t{0x2070E},
+    cjk_unified_ideograph_20731 = char32_t{0x20731},
+    cjk_unified_ideograph_20779 = char32_t{0x20779},
+    cjk_unified_ideograph_20c53 = char32_t{0x20C53},
+  };
+
   icubaby::t32_16 t;
   std::vector<char16_t> out;
   auto it = std::back_inserter (out);
-  it = t (char32_t{0x2070E}, it);
-  it = t (char32_t{0x20731}, it);
-  it = t (char32_t{0x20779}, it);
-  it = t (char32_t{0x20C53}, it);
+  it = t (static_cast<char32_t> (code_point::cjk_unified_ideograph_2070e), it);
+  it = t (static_cast<char32_t> (code_point::cjk_unified_ideograph_20731), it);
+  it = t (static_cast<char32_t> (code_point::cjk_unified_ideograph_20779), it);
+  it = t (static_cast<char32_t> (code_point::cjk_unified_ideograph_20c53), it);
   show (std::cout, out);
 }

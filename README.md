@@ -12,6 +12,7 @@ does not allocate dynamic memory and neither throws or catches exceptions.
 
 | Category | Badges |
 | --- | --- |
+| License | [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) |
 | Continuous Integration | [![CI Build & Test](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml) |
 | Static Analysis | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=paulhuggett_icubaby&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=paulhuggett_icubaby) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d7aafd88d8ef4be7b03b568e957f0103)](https://app.codacy.com/gh/paulhuggett/icubaby/dashboard) [![CodeQL](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml) [![Microsoft C++ Code Analysis](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml) [![Coverity](https://img.shields.io/coverity/scan/29639.svg)](https://scan.coverity.com/projects/paulhuggett-icubaby)
 | Runtime Analysis | [![Fuzz Test](https://github.com/paulhuggett/icubaby/actions/workflows/fuzztest.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/fuzztest.yaml) [![codecov](https://codecov.io/gh/paulhuggett/icubaby/graph/badge.svg?token=YFO0SOXQE9)](https://codecov.io/gh/paulhuggett/icubaby)
