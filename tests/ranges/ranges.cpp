@@ -20,14 +20,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <iostream>
+
+#include "icubaby/icubaby.hpp"
+
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
 #include <functional>
-#include <iostream>
 #include <iterator>
+#include <ranges>
 #include <vector>
 #include <version>
 
@@ -40,52 +46,7 @@
 #include <iomanip>
 #endif
 
-// Do we have library support for C++ 20 ranges?
-#if defined(__cpp_lib_ranges) && __cpp_lib_ranges > 201811L
-#include <ranges>
-#endif
-
-#include "icubaby/icubaby.hpp"
-
-#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
-
 namespace {
-
-std::array const expected8{
-    char8_t{0xE3}, char8_t{0x81}, char8_t{0x93},                 // U+3053 HIRAGANA LETTER KO
-    char8_t{0xE3}, char8_t{0x82}, char8_t{0x93},                 // U+3093 HIRAGANA LETTER N
-    char8_t{0xE3}, char8_t{0x81}, char8_t{0xAB},                 // U+306B HIRAGANA LETTER NI
-    char8_t{0xE3}, char8_t{0x81}, char8_t{0xA1},                 // U+3061 HIRAGANA LETTER TI
-    char8_t{0xE3}, char8_t{0x81}, char8_t{0xAF},                 // U+306F HIRAGANA LETTER HA
-    char8_t{0xE4}, char8_t{0xB8}, char8_t{0x96},                 // U+4E16 CJK UNIFIED IDEOGRAPH-4E16
-    char8_t{0xE7}, char8_t{0x95}, char8_t{0x8C},                 // U+754C CJK UNIFIED IDEOGRAPH-754C
-    char8_t{0xF0}, char8_t{0x9F}, char8_t{0x98}, char8_t{0x80},  // U+1F600 GRINNING FACE
-    char8_t{0x0A}                                                // U+000A LINE FEED
-};
-
-std::array const expected16{
-    char16_t{0x3053},                    // U+3053 HIRAGANA LETTER KO
-    char16_t{0x3093},                    // U+3093 HIRAGANA LETTER N
-    char16_t{0x306B},                    // U+306B HIRAGANA LETTER NI
-    char16_t{0x3061},                    // U+3061 HIRAGANA LETTER TI
-    char16_t{0x306F},                    // U+306F HIRAGANA LETTER HA
-    char16_t{0x4E16},                    // U+4E16 CJK UNIFIED IDEOGRAPH-4E16
-    char16_t{0x754C},                    // U+754C CJK UNIFIED IDEOGRAPH-754C
-    char16_t{0xD83D}, char16_t{0xDE00},  // U+1F600 GRINNING FACE
-    char16_t{0x000A}                     // U+000A LINE FEED
-};
-
-std::array const expected32{
-    char32_t{0x3053},   // U+3053 HIRAGANA LETTER KO
-    char32_t{0x3093},   // U+3093 HIRAGANA LETTER N
-    char32_t{0x306B},   // U+306B HIRAGANA LETTER NI
-    char32_t{0x3061},   // U+3061 HIRAGANA LETTER TI
-    char32_t{0x306F},   // U+306F HIRAGANA LETTER HA
-    char32_t{0x4E16},   // U+4E16 CJK UNIFIED IDEOGRAPH-4E16
-    char32_t{0x754C},   // U+754C CJK UNIFIED IDEOGRAPH-754C
-    char32_t{0x1F600},  // U+1F600 GRINNING FACE
-    char32_t{0x000A}    // U+000A LINE FEED
-};
 
 template <icubaby::unicode_char_type CharType> struct char_to_output_type {};
 template <> struct char_to_output_type<char8_t> {
@@ -161,11 +122,12 @@ void dump_well_formed (std::ostream& os, bool well_formed) {
 
 template <std::ranges::input_range ActualRange, std::ranges::input_range ExpectedRange>
   requires std::is_same_v<std::ranges::range_value_t<ActualRange>, std::ranges::range_value_t<ExpectedRange>>
-void check (ActualRange const& actual, ExpectedRange const& expected) {
+[[nodiscard]] bool check (ActualRange const& actual, ExpectedRange const& expected) {
   if (!std::ranges::equal (actual, expected)) {
     std::cerr << "Actual range did not equal the expected!\n";
-    std::exit (EXIT_FAILURE);  // NOLINT(concurrency-mt-unsafe)
+    return false;
   }
+  return true;
 }
 
 template <std::ranges::input_range Range>
@@ -238,6 +200,40 @@ std::vector<char8_t> convert_16_to_8 (Range const& in) {
   return out8;
 }
 
+std::array const expected32{
+    char32_t{0x3053},   // U+3053 HIRAGANA LETTER KO
+    char32_t{0x3093},   // U+3093 HIRAGANA LETTER N
+    char32_t{0x306B},   // U+306B HIRAGANA LETTER NI
+    char32_t{0x3061},   // U+3061 HIRAGANA LETTER TI
+    char32_t{0x306F},   // U+306F HIRAGANA LETTER HA
+    char32_t{0x4E16},   // U+4E16 CJK UNIFIED IDEOGRAPH-4E16
+    char32_t{0x754C},   // U+754C CJK UNIFIED IDEOGRAPH-754C
+    char32_t{0x1F600},  // U+1F600 GRINNING FACE
+    char32_t{0x000A}    // U+000A LINE FEED
+};
+std::array const expected16{
+    char16_t{0x3053},                    // U+3053 HIRAGANA LETTER KO
+    char16_t{0x3093},                    // U+3093 HIRAGANA LETTER N
+    char16_t{0x306B},                    // U+306B HIRAGANA LETTER NI
+    char16_t{0x3061},                    // U+3061 HIRAGANA LETTER TI
+    char16_t{0x306F},                    // U+306F HIRAGANA LETTER HA
+    char16_t{0x4E16},                    // U+4E16 CJK UNIFIED IDEOGRAPH-4E16
+    char16_t{0x754C},                    // U+754C CJK UNIFIED IDEOGRAPH-754C
+    char16_t{0xD83D}, char16_t{0xDE00},  // U+1F600 GRINNING FACE
+    char16_t{0x000A}                     // U+000A LINE FEED
+};
+std::array const expected8{
+    char8_t{0xE3}, char8_t{0x81}, char8_t{0x93},                 // U+3053 HIRAGANA LETTER KO
+    char8_t{0xE3}, char8_t{0x82}, char8_t{0x93},                 // U+3093 HIRAGANA LETTER N
+    char8_t{0xE3}, char8_t{0x81}, char8_t{0xAB},                 // U+306B HIRAGANA LETTER NI
+    char8_t{0xE3}, char8_t{0x81}, char8_t{0xA1},                 // U+3061 HIRAGANA LETTER TI
+    char8_t{0xE3}, char8_t{0x81}, char8_t{0xAF},                 // U+306F HIRAGANA LETTER HA
+    char8_t{0xE4}, char8_t{0xB8}, char8_t{0x96},                 // U+4E16 CJK UNIFIED IDEOGRAPH-4E16
+    char8_t{0xE7}, char8_t{0x95}, char8_t{0x8C},                 // U+754C CJK UNIFIED IDEOGRAPH-754C
+    char8_t{0xF0}, char8_t{0x9F}, char8_t{0x98}, char8_t{0x80},  // U+1F600 GRINNING FACE
+    char8_t{0x0A}                                                // U+000A LINE FEED
+};
+
 }  // end anonymous namespace
 
 int main () {
@@ -251,16 +247,24 @@ int main () {
 #endif
 
     auto const out16 = convert_8_to_16 (in);
-    check (out16, expected16);
+    if (!check (out16, expected16)) {
+      exit_code = EXIT_FAILURE;
+    }
 
     auto const out32 = convert_8_to_32 (in);
-    check (out32, expected32);
+    if (!check (out32, expected32)) {
+      exit_code = EXIT_FAILURE;
+    }
 
-    check (convert_32_to_16 (out32), expected16);
-    check (convert_16_to_32 (out16), expected32);
-
-    auto const out8 = convert_16_to_8 (out16);
-    assert (std::ranges::equal (in, out8));
+    if (!check (convert_32_to_16 (out32), expected16)) {
+      exit_code = EXIT_FAILURE;
+    }
+    if (!check (convert_16_to_32 (out16), expected32)) {
+      exit_code = EXIT_FAILURE;
+    }
+    if (!check (convert_16_to_8 (out16), in)) {
+      exit_code = EXIT_FAILURE;
+    }
   } catch (std::exception const& ex) {
     std::cerr << "Error: " << ex.what () << '\n';
     exit_code = EXIT_FAILURE;
@@ -277,4 +281,4 @@ int main () {
   std::cout << "Sorry, icubaby C++ 20 ranges aren't supported by your build.\n";
 }
 
-#endif
+#endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
