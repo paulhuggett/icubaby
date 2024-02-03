@@ -35,7 +35,7 @@
 #if defined(__cpp_char8_t) && defined(__cpp_lib_char8_t)
 namespace testing::internal {
 
-template <> constexpr std::string GetTypeName<char8_t> () {
+template <> inline std::string GetTypeName<char8_t> () {
   return "char8_t";
 }
 
