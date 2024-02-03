@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef UNITTESTS_ENCODED_CHAR_HPP
-#define UNITTESTS_ENCODED_CHAR_HPP
+#ifndef ICUBABY_UNITTESTS_ENCODED_CHAR_HPP
+#define ICUBABY_UNITTESTS_ENCODED_CHAR_HPP
 
 #include <array>
 
@@ -486,4 +486,4 @@ template <code_point C, typename To, typename OutputIterator> OutputIterator app
   return std::copy (std::begin (code_units), std::end (code_units), out);
 }
 
-#endif  // UNITTESTS_ENCODED_CHAR_HPP
+#endif  // ICUBABY_UNITTESTS_ENCODED_CHAR_HPP

@@ -286,7 +286,12 @@ namespace {
 
 // The tests built with this fixture are derived from the "broken UTF-8" test page
 // found here <https://hsivonen.fi/broken-utf-8/test.html>
-template <typename OutputChar> class Utf8BadInput : public testing::Test {
+#if ICUBABY_HAVE_CONCEPTS
+template <icubaby::unicode_char_type OutputChar>
+#else
+template <typename OutputChar>
+#endif  // ICUBABY_HAVE_CONCEPTS
+class Utf8BadInput : public testing::Test {
 protected:
   template <typename... Args> static std::vector<OutputChar> convert (Args&&... args) {
     icubaby::transcoder<icubaby::char8, OutputChar> transcoder;
@@ -295,30 +300,33 @@ protected:
     return output;
   }
 
-  static auto is_expected (std::size_t num) {
+  static auto is_expected (std::size_t const num) {
     std::vector<OutputChar> expected;
     replacement_chars (expected, num);
     return ContainerEq (expected);
   }
 
 private:
-  template <typename OutputIterator>
-  static OutputIterator add8 (icubaby::transcoder<icubaby::char8, OutputChar>& transcoder, OutputIterator out, int c) {
-    if (c < 0 || c > 255) {
-      throw std::range_error ("character value out of range");
-    }
-    return transcoder.end_cp (transcoder (static_cast<icubaby::char8> (c), out));
+  // A transcoder which converts from UTF-8 to the OutputChar encoding.
+  using transcoder_8_x = icubaby::transcoder<icubaby::char8, OutputChar>;
+
+  template <typename OutputIterator> static OutputIterator add8 (transcoder_8_x& transcoder, OutputIterator const out) {
+    return transcoder.end_cp (out);
   }
-  template <typename OutputIterator, typename... Args>
-  static OutputIterator add8 (icubaby::transcoder<icubaby::char8, OutputChar>& transcoder, OutputIterator out, int c,
-                              Args... args) {
-    if (c < 0 || c > 255) {
+
+#if ICUBABY_HAVE_CONCEPTS
+  template <typename OutputIterator, std::integral T, typename... Args>
+#else
+  template <typename OutputIterator, typename T, typename... Args>
+#endif  // ICUBABY_HAVE_CONCEPTS
+  static OutputIterator add8 (transcoder_8_x& transcoder, OutputIterator const out, T const c, Args... args) {
+    if (c < T{0} || c > T{0xFF}) {
       throw std::range_error ("character value out of range");
     }
     return add8 (transcoder, transcoder (static_cast<icubaby::char8> (c), out), args...);
   }
 
-  static void replacement_chars (std::vector<OutputChar>& v, std::size_t num) {
+  static void replacement_chars (std::vector<OutputChar>& v, std::size_t const num) {
     if (num == 0U) {
       return;
     }

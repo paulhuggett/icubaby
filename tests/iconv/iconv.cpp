@@ -121,10 +121,11 @@ std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
     auto const out_size = out.size ();
     auto const out_bytes_available = sizeof (C) * out_size - total_out_bytes;
     auto out_bytes_left = out_bytes_available;
-    // NOLINTNEXTLINE
+    // NOLINTBEGIN(cppcoreguidelines-pro-type-const-cast)
     if (auto *outbuf = pointer_cast<char *> (out.data ()) + total_out_bytes;
         iconv (cd, pointer_cast<char **> (const_cast<from_encoding **> (&inbuf)), &in_bytes_left, &outbuf,
                &out_bytes_left) == static_cast<std::size_t> (-1)) {
+      // NOLINTEND(cppcoreguidelines-pro-type-const-cast)
       // E2BIG tells us that the output buffer was too small.
       if (int const erc = errno; erc != E2BIG) {
         throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv"};

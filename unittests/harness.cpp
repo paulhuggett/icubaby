@@ -23,6 +23,17 @@
 #include <algorithm>
 #include <cstring>
 #include <memory>
+#include <version>
+
+#if defined(__cpp_lib_span) && __cpp_lib_span >= 202002L
+#define HAVE_SPAN (1)
+#else
+#define HAVE_SPAN (0)
+#endif
+
+#if HAVE_SPAN
+#include <span>
+#endif
 
 #if defined(_WIN32)
 #define NOMINMAX
@@ -42,14 +53,27 @@ using testing::UnitTest;
 
 namespace {
 
-bool loud_mode_enabled (int argc, char **argv) {
-  if (argc < 2) {
-    return false;
-  }
-  return std::any_of (&argv[1], &argv[argc], [] (char const *a) { return std::strcmp (a, "--loud") == 0; });
+constexpr bool is_loud (std::string_view const a) {
+  return a == "--loud";
 }
 
-class quiet_listener : public TestEventListener {
+#if HAVE_SPAN
+bool loud_mode_enabled (std::span<char *> const argv) {
+  if (argv.size () < 2U) {
+    return false;
+  }
+  return std::any_of (argv.begin () + 1, argv.end (), is_loud);
+}
+#else
+bool loud_mode_enabled (char **first, char **last) {
+  if (last < first || last - first < 2) {
+    return false;
+  }
+  return std::any_of (first + 1, last, is_loud);
+}
+#endif  // HAVE_SPAN
+
+class quiet_listener final : public TestEventListener {
 public:
   explicit quiet_listener (TestEventListener *const listener) : listener_{listener} {}
   quiet_listener (quiet_listener const &) = delete;
@@ -95,7 +119,14 @@ int main (int argc, char **argv) {
     // Unless the user enables "loud mode" by passing the appropriate switch, we
     // silence much of google test/mock's output so that we only see detailed
     // information about tests that fail.
-    if (!loud_mode_enabled (argc, argv)) {
+#if HAVE_SPAN
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    bool const loud = loud_mode_enabled (std::span<char *> (argv, argv + argc));
+#else
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    bool const loud = loud_mode_enabled (argv, argv + argc);
+#endif  // HAVE_SPAN
+    if (!loud) {
       // Remove the default listener
       auto &listeners = UnitTest::GetInstance ()->listeners ();
       auto *const default_printer = listeners.Release (listeners.default_result_printer ());
@@ -108,6 +139,7 @@ int main (int argc, char **argv) {
       // [==========] 149 tests from 53 test cases ran. (1 ms total)
       // [  PASSED  ] 149 tests.
 
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       listeners.Append (new quiet_listener (default_printer));
     }
 
@@ -123,8 +155,8 @@ int main (int argc, char **argv) {
     _CrtSetReportFile (_CRT_ERROR, _CRTDBG_FILE_STDERR);
     _CrtSetReportMode (_CRT_ASSERT, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
     _CrtSetReportFile (_CRT_ASSERT, _CRTDBG_FILE_STDERR);
-#endif
-#endif
+#endif  // _MSC_VER
+#endif  // _WIN32
     return RUN_ALL_TESTS ();
   } catch (std::exception const &ex) {
     std::cerr << "Error: " << ex.what () << '\n';

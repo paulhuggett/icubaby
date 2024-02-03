@@ -164,7 +164,7 @@ template <std::ranges::input_range ActualRange, std::ranges::input_range Expecte
 void check (ActualRange const& actual, ExpectedRange const& expected) {
   if (!std::ranges::equal (actual, expected)) {
     std::cerr << "Actual range did not equal the expected!\n";
-    std::exit (EXIT_FAILURE);
+    std::exit (EXIT_FAILURE);  // NOLINT(concurrency-mt-unsafe)
   }
 }
 

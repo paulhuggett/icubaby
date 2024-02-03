@@ -117,14 +117,15 @@
 #endif
 
 /// \brief A macro that evaluates true if the compiler and library have support for C++ 20 concepts.
-#define ICUBABY_HAVE_CONCEPTS \
-  (ICUBABY_CPP_CONCEPTS_DEFINED && __cpp_concepts >= 201907L && ICUBABY_CPP_LIB_CONCEPTS_DEFINED)
+#define ICUBABY_HAVE_CONCEPTS                                                                       \
+  (ICUBABY_CPP_CONCEPTS_DEFINED && __cpp_concepts >= 201907L && ICUBABY_CPP_LIB_CONCEPTS_DEFINED && \
+   __cpp_lib_concepts >= 202002L)
 #if ICUBABY_HAVE_CONCEPTS
 #include <concepts>
-// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 /// \brief Defined as `requires x` if concepts are supported and as nothing
 ///   otherwise.
 /// \hideinitializer
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define ICUBABY_REQUIRES(x) requires x
 #else
 #define ICUBABY_REQUIRES(x)
@@ -687,6 +688,7 @@ public:
   /// \param well_formed The initial value for the transcoder's "well formed" state.
   explicit constexpr transcoder (bool well_formed) noexcept
       : code_point_{0}, well_formed_{static_cast<uint_least32_t> (well_formed)}, pad_{0}, state_{accept} {
+    // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
     pad_ = 0;  // Suppress warning about pad_ being unused.
   }
 
