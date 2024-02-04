@@ -35,30 +35,23 @@ namespace {
 
 #if defined(__cpp_lib_endian) && __cpp_lib_endian >= 201907L
 using std::endian;
+#elif defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__) && defined(__BYTE_ORDER__)
+enum class endian { little = __ORDER_LITTLE_ENDIAN__, big = __ORDER_BIG_ENDIAN__, native = __BYTE_ORDER__ };
+#elif defined(_WIN32) || defined(__i386__) || defined(__x86_64__)
+enum class endian { little = 0, big = 1, native = little };
 #else
-enum class endian {
-#ifdef _WIN32
-  little = 0,
-  big = 1,
-  native = little
-#else
-  little = __ORDER_LITTLE_ENDIAN__,
-  big = __ORDER_BIG_ENDIAN__,
-  native = __BYTE_ORDER__
+#error "Can't determine endianness of the target system"
 #endif
-};
-#endif  // __cpp_lib_endian
+static_assert (endian::native == endian::big || endian::native == endian::little, "Endianness must be big or little.");
 
 // char to code
 // ~~~~~~~~~~~~
 template <typename C> struct char_to_code;
 template <> struct char_to_code<icubaby::char8> {
-  static constexpr auto code () { return "UTF-8"; }
+  [[nodiscard]] static constexpr auto code () noexcept { return "UTF-8"; }
 };
 template <> struct char_to_code<char16_t> {
-  static constexpr auto code () {
-    static_assert (endian::native == endian::little || endian::native == endian::big,
-                   "Don't know the iconv encoding name for a mixed endian system");
+  [[nodiscard]] static constexpr auto code () noexcept {
     if constexpr (endian::native == endian::little) {
       return "UTF16LE";
     } else {
@@ -67,20 +60,13 @@ template <> struct char_to_code<char16_t> {
   }
 };
 template <> struct char_to_code<char32_t> {
-  static constexpr auto code () {
-    static_assert (endian::native == endian::little || endian::native == endian::big,
-                   "Don't know the iconv encoding name for a mixed endian system");
+  [[nodiscard]] static constexpr auto code () noexcept {
     if constexpr (endian::native == endian::little) {
       return "UTF32LE";
     } else {
       return "UTF32BE";
     }
   }
-};
-
-class unsupported_conversion : public std::system_error {
-public:
-  explicit unsupported_conversion (int erc) : std::system_error{std::error_code{erc, std::generic_category ()}} {}
 };
 
 template <typename ResultType, typename ArgType, typename = std::enable_if_t<std::is_pointer_v<ResultType>>>
@@ -95,65 +81,136 @@ constexpr ResultType pointer_cast (ArgType *const ptr) noexcept {
 #endif
 }
 
-// convert using iconv
-// ~~~~~~~~~~~~~~~~~~~
-template <typename C, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<C>>>
-std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
-  using from_encoding = char32_t;
-  iconv_t cd = iconv_open (char_to_code<C>::code (), char_to_code<from_encoding>::code ());
-  // NOLINTNEXTLINE
-  if (cd == reinterpret_cast<iconv_t> (-1)) {
-    int const erc = errno;
+class iconv_unsupported_conversion : public std::invalid_argument {
+public:
+  iconv_unsupported_conversion () : std::invalid_argument{"conversion is not supported by iconv"} {}
+};
+
+template <typename FromEncoding, typename ToEncoding> class iconv_converter {
+public:
+  iconv_converter ();
+  iconv_converter (iconv_converter const &) = delete;
+  iconv_converter (iconv_converter &&) noexcept = delete;
+
+  ~iconv_converter () noexcept;
+
+  iconv_converter &operator= (iconv_converter const &) = delete;
+  iconv_converter &operator= (iconv_converter &&) noexcept = delete;
+
+  /// Convert a container full of code-points in FromEncoding to a new container full of ToEncoding code-points.
+  std::vector<ToEncoding> convert (std::vector<FromEncoding> const &in);
+  /// Close the iconv conversion descriptor. It is safe to call this function more than once.
+  void close ();
+
+private:
+  /// \returns The value (iconv_t)-1 which the iconv library uses to indicate failure.
+  static constexpr iconv_t bad () noexcept;
+
+  iconv_t descriptor_;
+};
+
+// (ctor)
+// ~~~~~~
+template <typename FromEncoding, typename ToEncoding>
+iconv_converter<FromEncoding, ToEncoding>::iconv_converter ()
+    : descriptor_{iconv_open (char_to_code<ToEncoding>::code (), char_to_code<FromEncoding>::code ())} {
+  if (descriptor_ == bad ()) {
+    auto const erc = errno;
+    static_assert (std::is_integral_v<decltype (erc)>);
     if (erc == EINVAL) {
-      throw unsupported_conversion{EINVAL};
+      throw iconv_unsupported_conversion{};
     }
     throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv_open"};
   }
+}
 
-  std::vector<C> out;
-  // The initial output buffer. We guess that the output is likely to require
-  // at least twice as many code units as the input...
-  out.resize (in.size () * 2);
+// (dtor)
+// ~~~~~~
+template <typename FromEncoding, typename ToEncoding>
+iconv_converter<FromEncoding, ToEncoding>::~iconv_converter () noexcept {
+  if (descriptor_ != bad ()) {
+    // Note that we don't throw in the event of an error here.
+    iconv_close (descriptor_);
+  }
+}
+
+// convert
+// ~~~~~~~
+template <typename FromEncoding, typename ToEncoding>
+std::vector<ToEncoding> iconv_converter<FromEncoding, ToEncoding>::convert (std::vector<FromEncoding> const &in) {
+  std::vector<ToEncoding> out;
+  out.resize (in.size ());
   auto total_out_bytes = std::size_t{0};
   auto const *inbuf = in.data ();
-  std::size_t in_bytes_left = sizeof (from_encoding) * in.size ();
+  std::size_t in_bytes_left = sizeof (FromEncoding) * in.size ();
   while (in_bytes_left > 0) {
     auto const out_size = out.size ();
-    auto const out_bytes_available = sizeof (C) * out_size - total_out_bytes;
-    auto out_bytes_left = out_bytes_available;
+    auto const out_bytes_available = sizeof (ToEncoding) * out_size - total_out_bytes;
+    std::size_t out_bytes_left = out_bytes_available;
     // NOLINTBEGIN(cppcoreguidelines-pro-type-const-cast)
     if (auto *outbuf = pointer_cast<char *> (out.data ()) + total_out_bytes;
-        iconv (cd, pointer_cast<char **> (const_cast<from_encoding **> (&inbuf)), &in_bytes_left, &outbuf,
+        iconv (descriptor_, pointer_cast<char **> (const_cast<FromEncoding **> (&inbuf)), &in_bytes_left, &outbuf,
                &out_bytes_left) == static_cast<std::size_t> (-1)) {
       // NOLINTEND(cppcoreguidelines-pro-type-const-cast)
       // E2BIG tells us that the output buffer was too small.
-      if (int const erc = errno; erc != E2BIG) {
-        throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv"};
+      auto const erc = errno;
+      static_assert (std::is_integral_v<decltype (erc)>);
+      if (erc != E2BIG) {
+        throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv failed"};
       }
       // The output buffer did not have enough space, so we increase it by 50%.
       out.resize (out_size + out_size / 2);
     }
     total_out_bytes += out_bytes_available - out_bytes_left;
   }
-  assert (total_out_bytes % sizeof (C) == 0);
-  out.resize (total_out_bytes / sizeof (C));
-  if (iconv_close (cd) != 0) {
-    int const erc = errno;
-    throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv_close"};
-  }
+  assert (total_out_bytes % sizeof (ToEncoding) == 0);
+  out.resize (total_out_bytes / sizeof (ToEncoding));
   return out;
+}
+
+// close
+// ~~~~~
+template <typename FromEncoding, typename ToEncoding> void iconv_converter<FromEncoding, ToEncoding>::close () {
+  if (descriptor_ == bad ()) {
+    return;
+  }
+  auto const good = iconv_close (descriptor_) == 0;
+  descriptor_ = bad ();
+  if (!good) {
+    throw std::system_error{std::error_code{errno, std::generic_category ()}, "iconv_close failed"};
+  }
+}
+
+template <typename FromEncoding, typename ToEncoding>
+constexpr iconv_t iconv_converter<FromEncoding, ToEncoding>::bad () noexcept {
+#if defined(__cpp_lib_bit_cast) && __cpp_lib_bit_cast >= 201806L
+  return std::bit_cast<iconv_t> (std::intptr_t{-1});
+#else
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,performance-no-int-to-ptr)
+  return reinterpret_cast<iconv_t> (std::intptr_t{-1});
+#endif
+}
+
+// convert using iconv
+// ~~~~~~~~~~~~~~~~~~~
+template <typename C, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<C>>>
+std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
+  iconv_converter<char32_t, C> converter;
+  auto result = converter.convert (in);
+  converter.close ();
+  return result;
 }
 
 // convert using icubaby
 // ~~~~~~~~~~~~~~~~~~~~~
-template <typename C, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<C>>>
-std::vector<C> convert_using_icubaby (std::vector<char32_t> const &in) {
-  std::vector<C> out;
-  out.reserve (in.size () * icubaby::longest_sequence_v<C>);
-  icubaby::transcoder<char32_t, C> convert_32_8;
-  auto it = std::copy (std::begin (in), std::end (in), icubaby::iterator{&convert_32_8, std::back_inserter (out)});
-  it = convert_32_8.end_cp (it);
-  assert (convert_32_8.well_formed ());
+template <typename ToEncoding, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<ToEncoding>>>
+std::vector<ToEncoding> convert_using_icubaby (std::vector<char32_t> const &in) {
+  std::vector<ToEncoding> out;
+  out.reserve (in.size () * icubaby::longest_sequence_v<ToEncoding>);
+  icubaby::transcoder<char32_t, ToEncoding> convert_32_x;
+  auto it = std::copy (std::begin (in), std::end (in), icubaby::iterator{&convert_32_x, std::back_inserter (out)});
+  (void)convert_32_x.end_cp (it);
+  assert (convert_32_x.well_formed ());
   return out;
 }
 
@@ -161,9 +218,9 @@ std::vector<C> convert_using_icubaby (std::vector<char32_t> const &in) {
 // ~~~~~~~~~~~~~~~
 std::vector<char32_t> all_code_points () {
   std::vector<char32_t> result;
-  for (auto cp = char32_t{0}; cp <= icubaby::max_code_point; ++cp) {
-    if (!icubaby::is_surrogate (cp) && cp != icubaby::byte_order_mark) {
-      result.push_back (cp);
+  for (auto code_point = char32_t{0}; code_point <= icubaby::max_code_point; ++code_point) {
+    if (!icubaby::is_surrogate (code_point) && code_point != icubaby::byte_order_mark) {
+      result.push_back (code_point);
     }
   }
   return result;
@@ -184,9 +241,8 @@ void show_diff (std::ostream &os, std::vector<C> const &iconv_out, std::vector<C
   auto const end = iconv_pos + static_cast<difference_type> (std::min (iconv_out.size (), baby_out.size ()));
   while (iconv_pos != end) {
     if (*iconv_pos != *baby_pos) {
-      os << std::hex << ctr << ": "
-         << std::hex << static_cast<unsigned> (*iconv_pos) << ' '
-         << std::hex << static_cast<unsigned> (baby_out[ctr]) << '\n';
+      os << std::hex << ctr << ": " << std::hex << static_cast<std::uint_least32_t> (*iconv_pos) << ' ' << std::hex
+         << static_cast<std::uint_least32_t> (baby_out[ctr]) << '\n';
     }
     ++iconv_pos;
     ++baby_pos;
@@ -215,8 +271,8 @@ template <typename T, typename = std::enable_if_t<icubaby::is_unicode_char_type_
       }
       return false;
     }
-  } catch (unsupported_conversion const &) {
-    std::cout << "Skipping " << char_to_code<T>::code () << " iconv test: conversion not supported\n";
+  } catch (iconv_unsupported_conversion const &ex) {
+    std::cout << "Skipping " << char_to_code<T>::code () << " iconv test: " << ex.what () << '\n';
   }
   return true;
 }
