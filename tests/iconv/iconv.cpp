@@ -103,28 +103,18 @@ public:
   void close ();
 
 private:
-  /// Has the value (iconv_t)-1 which the iconv library uses to indicate failure.
-  // NOLINTNEXTLINE(misc-misplaced-const)
-  static iconv_t const bad_;
-  iconv_t descriptor_ = bad_;
-};
+  /// \returns The value (iconv_t)-1 which the iconv library uses to indicate failure.
+  static constexpr iconv_t bad () noexcept;
 
-template <typename FromEncoding, typename ToEncoding>
-// NOLINTNEXTLINE(misc-misplaced-const)
-iconv_t const iconv_converter<FromEncoding, ToEncoding>::bad_ =
-#if defined(__cpp_lib_bit_cast) && __cpp_lib_bit_cast >= 201806L
-    std::bit_cast<iconv_t> (std::intptr_t{-1});
-#else
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,performance-no-int-to-ptr)
-    reinterpret_cast<iconv_t> (std::intptr_t{-1});
-#endif
+  iconv_t descriptor_;
+};
 
 // (ctor)
 // ~~~~~~
 template <typename FromEncoding, typename ToEncoding>
 iconv_converter<FromEncoding, ToEncoding>::iconv_converter ()
     : descriptor_{iconv_open (char_to_code<ToEncoding>::code (), char_to_code<FromEncoding>::code ())} {
-  if (descriptor_ == bad_) {
+  if (descriptor_ == bad ()) {
     auto const erc = errno;
     static_assert (std::is_integral_v<decltype (erc)>);
     if (erc == EINVAL) {
@@ -138,10 +128,9 @@ iconv_converter<FromEncoding, ToEncoding>::iconv_converter ()
 // ~~~~~~
 template <typename FromEncoding, typename ToEncoding>
 iconv_converter<FromEncoding, ToEncoding>::~iconv_converter () noexcept {
-  try {
-    // Ensure that the iconv conversion descriptor is closed no matter what happens.
-    this->close ();
-  } catch (...) {
+  if (descriptor_ != bad ()) {
+    // Note that we don't throw in the event of an error here.
+    iconv_close (descriptor_);
   }
 }
 
@@ -182,14 +171,24 @@ std::vector<ToEncoding> iconv_converter<FromEncoding, ToEncoding>::convert (std:
 // close
 // ~~~~~
 template <typename FromEncoding, typename ToEncoding> void iconv_converter<FromEncoding, ToEncoding>::close () {
-  if (descriptor_ == bad_) {
+  if (descriptor_ == bad ()) {
     return;
   }
   auto const good = iconv_close (descriptor_) == 0;
-  descriptor_ = bad_;
+  descriptor_ = bad ();
   if (!good) {
     throw std::system_error{std::error_code{errno, std::generic_category ()}, "iconv_close failed"};
   }
+}
+
+template <typename FromEncoding, typename ToEncoding>
+constexpr iconv_t iconv_converter<FromEncoding, ToEncoding>::bad () noexcept {
+#if defined(__cpp_lib_bit_cast) && __cpp_lib_bit_cast >= 201806L
+  return std::bit_cast<iconv_t> (std::intptr_t{-1});
+#else
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,performance-no-int-to-ptr)
+  return reinterpret_cast<iconv_t> (std::intptr_t{-1});
+#endif
 }
 
 // convert using iconv
