@@ -95,12 +95,12 @@ TYPED_TEST (Utf8, FirstLowSurrogate) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
 
-  auto it = std::back_inserter (output);
+  auto actual_out = std::back_inserter (output);
   // Illegal UTF-8 for U+D800: the first low surrogate code point.
-  it = transcoder (static_cast<icubaby::char8> (0xED), it);
-  it = transcoder (static_cast<icubaby::char8> (0xA0), it);
-  it = transcoder (static_cast<icubaby::char8> (0x80), it);
-  (void)transcoder.end_cp (it);
+  actual_out = transcoder (static_cast<icubaby::char8> (0xED), actual_out);
+  actual_out = transcoder (static_cast<icubaby::char8> (0xA0), actual_out);
+  actual_out = transcoder (static_cast<icubaby::char8> (0x80), actual_out);
+  (void)transcoder.end_cp (actual_out);
   EXPECT_FALSE (transcoder.well_formed ());
 
   std::vector<TypeParam> expected;
@@ -114,10 +114,10 @@ TYPED_TEST (Utf8, FirstLowSurrogate) {
 TYPED_TEST (Utf8, LowestTwoByteSequence) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
-  auto it = std::back_inserter (output);
-  it = transcoder (static_cast<icubaby::char8> (0xC2), it);
-  it = transcoder (static_cast<icubaby::char8> (0x80), it);
-  (void)transcoder.end_cp (it);
+  auto actual_out = std::back_inserter (output);
+  actual_out = transcoder (static_cast<icubaby::char8> (0xC2), actual_out);
+  actual_out = transcoder (static_cast<icubaby::char8> (0x80), actual_out);
+  (void)transcoder.end_cp (actual_out);
   EXPECT_TRUE (transcoder.well_formed ());
 
   std::vector<TypeParam> expected;
@@ -319,19 +319,19 @@ private:
 #else
   template <typename OutputIterator, typename T, typename... Args>
 #endif  // ICUBABY_HAVE_CONCEPTS
-  static OutputIterator add8 (transcoder_8_x& transcoder, OutputIterator const out, T const c, Args... args) {
-    if (c < T{0} || c > T{0xFF}) {
+  static OutputIterator add8 (transcoder_8_x& transcoder, OutputIterator const out, T const code_unit, Args... args) {
+    if (code_unit < T{0} || code_unit > T{0xFF}) {
       throw std::range_error ("character value out of range");
     }
-    return add8 (transcoder, transcoder (static_cast<icubaby::char8> (c), out), args...);
+    return add8 (transcoder, transcoder (static_cast<icubaby::char8> (code_unit), out), args...);
   }
 
-  static void replacement_chars (std::vector<OutputChar>& v, std::size_t const num) {
+  static void replacement_chars (std::vector<OutputChar>& container, std::size_t const num) {
     if (num == 0U) {
       return;
     }
-    (void)append<code_point::replacement_char, OutputChar> (std::back_inserter (v));
-    replacement_chars (v, num - 1U);
+    (void)append<code_point::replacement_char, OutputChar> (std::back_inserter (container));
+    replacement_chars (container, num - 1U);
   }
 };
 
@@ -573,9 +573,9 @@ TYPED_TEST (Utf8, RangesBadInput) {
   auto& output = this->output_;
 
   std::array const bad_input{static_cast<icubaby::char8> (0xC3), static_cast<icubaby::char8> (0x28)};
-  auto r = bad_input | icubaby::ranges::transcode<char8_t, TypeParam>;
-  (void)std::ranges::copy (r, std::back_inserter (output));
-  EXPECT_FALSE (r.well_formed ());
+  auto range = bad_input | icubaby::ranges::transcode<char8_t, TypeParam>;
+  (void)std::ranges::copy (range, std::back_inserter (output));
+  EXPECT_FALSE (range.well_formed ());
 
   std::vector<TypeParam> expected;
   (void)append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
@@ -585,17 +585,18 @@ TYPED_TEST (Utf8, RangesBadInput) {
 #endif  // __cpp_lib_ranges
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+// NOLINTNEXTLINE
 TEST (Utf8To32, RangesBadInput) {
   // clang-format off
-  std::vector const in{
+  std::vector const input{
     char8_t{0xF3}, char8_t{0x81},
   };
   // clang-format on
   std::vector<char32_t> out32;
-  auto const r = in | icubaby::ranges::transcode<char8_t, char32_t>;
-  (void)std::ranges::copy (r, std::back_inserter (out32));
+  auto const range = input | icubaby::ranges::transcode<char8_t, char32_t>;
+  (void)std::ranges::copy (range, std::back_inserter (out32));
   EXPECT_THAT (out32, ElementsAre (char32_t{icubaby::replacement_char}));
-  EXPECT_FALSE (r.well_formed ());
+  EXPECT_FALSE (range.well_formed ());
 }
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 

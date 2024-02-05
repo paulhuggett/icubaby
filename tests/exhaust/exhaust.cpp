@@ -45,24 +45,22 @@ void check_each_code_point () {
   std::vector<typename Encoder::output_type> encoded;
   std::vector<typename Decoder::output_type> output;
 
-  for (auto cp = char32_t{0}; cp <= icubaby::max_code_point; ++cp) {
-    if (icubaby::is_surrogate (cp)) {
+  for (auto code_point = char32_t{0}; code_point <= icubaby::max_code_point; ++code_point) {
+    if (icubaby::is_surrogate (code_point)) {
       continue;
     }
 
-    auto encoded_it = std::back_inserter (encoded);
     encoded.clear ();
-    (void)encode.end_cp (encode (cp, encoded_it));
+    (void)encode.end_cp (encode (code_point, std::back_inserter (encoded)));
     assert (encode.well_formed ());
 
     output.clear ();
-    auto it = icubaby::iterator{&decode, std::back_inserter (output)};
-    std::copy (std::begin (encoded), std::end (encoded), it);
-    (void)decode.end_cp (it);
+    (void)decode.end_cp (
+        std::copy (std::begin (encoded), std::end (encoded), icubaby::iterator{&decode, std::back_inserter (output)}));
     assert (decode.well_formed ());
 
     assert (output.size () == 1);
-    assert (output.front () == cp);
+    assert (output.front () == code_point);
   }
 }
 

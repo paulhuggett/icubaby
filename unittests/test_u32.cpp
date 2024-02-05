@@ -75,10 +75,10 @@ TYPED_TEST (Utf32, GoodDollarSign) {
   auto& output = this->output_;
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  auto it = transcoder (static_cast<char32_t> (code_point::dollar_sign), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char32_t> (code_point::dollar_sign), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ()) << "input should be well formed";
   EXPECT_FALSE (transcoder.partial ()) << "there were no surrogate code units";
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::dollar_sign, TypeParam>));
@@ -87,13 +87,13 @@ TYPED_TEST (Utf32, GoodDollarSign) {
 TYPED_TEST (Utf32, StartOfHeadingAndText) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
-  auto it = transcoder (static_cast<char32_t> (code_point::start_of_heading), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char32_t> (code_point::start_of_heading), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  it = transcoder (static_cast<char32_t> (code_point::start_of_text), it);
+  pos = transcoder (static_cast<char32_t> (code_point::start_of_text), pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
@@ -107,10 +107,10 @@ TYPED_TEST (Utf32, StartOfHeadingAndText) {
 TYPED_TEST (Utf32, CharFFFF) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
-  auto it = transcoder (static_cast<char32_t> (code_point::code_point_ffff), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char32_t> (code_point::code_point_ffff), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::code_point_ffff, TypeParam>));
@@ -120,10 +120,10 @@ TYPED_TEST (Utf32, FirstHighSurrogate) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
 
-  auto it = transcoder (icubaby::first_high_surrogate, std::back_inserter (output));
+  auto pos = transcoder (icubaby::first_high_surrogate, std::back_inserter (output));
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
@@ -133,10 +133,10 @@ TYPED_TEST (Utf32, LastHighSurrogate) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
 
-  auto it = transcoder (icubaby::last_high_surrogate, std::back_inserter (output));
+  auto pos = transcoder (icubaby::last_high_surrogate, std::back_inserter (output));
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
@@ -146,10 +146,10 @@ TYPED_TEST (Utf32, FirstLowSurrogate) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
 
-  auto it = transcoder (icubaby::first_low_surrogate, std::back_inserter (output));
+  auto pos = transcoder (icubaby::first_low_surrogate, std::back_inserter (output));
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
@@ -159,10 +159,10 @@ TYPED_TEST (Utf32, LastLowSurrogate) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
 
-  auto it = transcoder (icubaby::last_low_surrogate, std::back_inserter (output));
+  auto pos = transcoder (icubaby::last_low_surrogate, std::back_inserter (output));
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
@@ -172,10 +172,10 @@ TYPED_TEST (Utf32, MaxCodePoint) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
 
-  auto it = transcoder (icubaby::max_code_point, std::back_inserter (output));
+  auto pos = transcoder (icubaby::max_code_point, std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
@@ -186,11 +186,11 @@ TYPED_TEST (Utf32, BeyondMaxCodePoint) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
 
-  auto it = transcoder (static_cast<char32_t> (static_cast<std::uint_least32_t> (icubaby::max_code_point) + 1U),
-                        std::back_inserter (output));
+  auto pos = transcoder (static_cast<char32_t> (static_cast<std::uint_least32_t> (icubaby::max_code_point) + 1U),
+                         std::back_inserter (output));
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
@@ -203,7 +203,7 @@ TYPED_TEST (Utf32, BeyondMaxCodePoint) {
 TYPED_TEST (Utf32, RangesCopy) {
   auto& output = this->output_;
 
-  std::vector const in{
+  std::vector const input{
       static_cast<char32_t> (code_point::cjk_unified_ideograph_2070e),
       static_cast<char32_t> (code_point::code_point_ffff),
       static_cast<char32_t> (code_point::cuneiform_sign_uru_times_ki),
@@ -222,8 +222,8 @@ TYPED_TEST (Utf32, RangesCopy) {
       static_cast<char32_t> (code_point::start_of_text),
   };
 
-  auto r = in | icubaby::ranges::transcode<char32_t, TypeParam>;
-  (void)std::ranges::copy (r, std::back_inserter (output));
+  auto range = input | icubaby::ranges::transcode<char32_t, TypeParam>;
+  (void)std::ranges::copy (range, std::back_inserter (output));
 
   std::vector<TypeParam> expected;
   auto expected_out = std::back_inserter (expected);
@@ -244,16 +244,16 @@ TYPED_TEST (Utf32, RangesCopy) {
   expected_out = append<code_point::start_of_heading, TypeParam> (expected_out);
   (void)append<code_point::start_of_text, TypeParam> (expected_out);
   EXPECT_THAT (output, ElementsAreArray (expected));
-  EXPECT_TRUE (r.well_formed ());
+  EXPECT_TRUE (range.well_formed ());
 }
 // NOLINTNEXTLINE
 TYPED_TEST (Utf32, RangesBadInput) {
   auto& output = this->output_;
-  std::vector const in{char32_t{0xFFFFFFFF}};
-  auto const r = in | icubaby::ranges::transcode<char32_t, TypeParam>;
-  (void)std::ranges::copy (r, std::back_inserter (output));
+  std::vector const input{char32_t{0xFFFFFFFF}};
+  auto const range = input | icubaby::ranges::transcode<char32_t, TypeParam>;
+  (void)std::ranges::copy (range, std::back_inserter (output));
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
-  EXPECT_FALSE (r.well_formed ());
+  EXPECT_FALSE (range.well_formed ());
 }
 
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS

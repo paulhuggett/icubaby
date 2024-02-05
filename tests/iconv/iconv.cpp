@@ -98,7 +98,7 @@ public:
   iconv_converter &operator= (iconv_converter &&) noexcept = delete;
 
   /// Convert a container full of code-points in FromEncoding to a new container full of ToEncoding code-points.
-  std::vector<ToEncoding> convert (std::vector<FromEncoding> const &in);
+  std::vector<ToEncoding> convert (std::vector<FromEncoding> const &input);
   /// Close the iconv conversion descriptor. It is safe to call this function more than once.
   void close ();
 
@@ -106,14 +106,12 @@ private:
   /// \returns The value (iconv_t)-1 which the iconv library uses to indicate failure.
   static constexpr iconv_t bad () noexcept;
 
-  iconv_t descriptor_;
+  iconv_t descriptor_ = iconv_open (char_to_code<ToEncoding>::code (), char_to_code<FromEncoding>::code ());
 };
 
 // (ctor)
 // ~~~~~~
-template <typename FromEncoding, typename ToEncoding>
-iconv_converter<FromEncoding, ToEncoding>::iconv_converter ()
-    : descriptor_{iconv_open (char_to_code<ToEncoding>::code (), char_to_code<FromEncoding>::code ())} {
+template <typename FromEncoding, typename ToEncoding> iconv_converter<FromEncoding, ToEncoding>::iconv_converter () {
   if (descriptor_ == bad ()) {
     auto const erc = errno;
     static_assert (std::is_integral_v<decltype (erc)>);
@@ -130,19 +128,19 @@ template <typename FromEncoding, typename ToEncoding>
 iconv_converter<FromEncoding, ToEncoding>::~iconv_converter () noexcept {
   if (descriptor_ != bad ()) {
     // Note that we don't throw in the event of an error here.
-    iconv_close (descriptor_);
+    (void)iconv_close (descriptor_);
   }
 }
 
 // convert
 // ~~~~~~~
 template <typename FromEncoding, typename ToEncoding>
-std::vector<ToEncoding> iconv_converter<FromEncoding, ToEncoding>::convert (std::vector<FromEncoding> const &in) {
+std::vector<ToEncoding> iconv_converter<FromEncoding, ToEncoding>::convert (std::vector<FromEncoding> const &input) {
   std::vector<ToEncoding> out;
-  out.resize (in.size ());
+  out.resize (input.size ());
   auto total_out_bytes = std::size_t{0};
-  auto const *inbuf = in.data ();
-  std::size_t in_bytes_left = sizeof (FromEncoding) * in.size ();
+  auto const *inbuf = input.data ();
+  std::size_t in_bytes_left = sizeof (FromEncoding) * input.size ();
   while (in_bytes_left > 0) {
     auto const out_size = out.size ();
     auto const out_bytes_available = sizeof (ToEncoding) * out_size - total_out_bytes;
@@ -194,9 +192,9 @@ constexpr iconv_t iconv_converter<FromEncoding, ToEncoding>::bad () noexcept {
 // convert using iconv
 // ~~~~~~~~~~~~~~~~~~~
 template <typename C, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<C>>>
-std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
+std::vector<C> convert_using_iconv (std::vector<char32_t> const &input) {
   iconv_converter<char32_t, C> converter;
-  auto result = converter.convert (in);
+  auto result = converter.convert (input);
   converter.close ();
   return result;
 }
@@ -204,12 +202,13 @@ std::vector<C> convert_using_iconv (std::vector<char32_t> const &in) {
 // convert using icubaby
 // ~~~~~~~~~~~~~~~~~~~~~
 template <typename ToEncoding, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<ToEncoding>>>
-std::vector<ToEncoding> convert_using_icubaby (std::vector<char32_t> const &in) {
+std::vector<ToEncoding> convert_using_icubaby (std::vector<char32_t> const &input) {
   std::vector<ToEncoding> out;
-  out.reserve (in.size () * icubaby::longest_sequence_v<ToEncoding>);
+  out.reserve (input.size () * icubaby::longest_sequence_v<ToEncoding>);
   icubaby::transcoder<char32_t, ToEncoding> convert_32_x;
-  auto it = std::copy (std::begin (in), std::end (in), icubaby::iterator{&convert_32_x, std::back_inserter (out)});
-  (void)convert_32_x.end_cp (it);
+  auto pos =
+      std::copy (std::begin (input), std::end (input), icubaby::iterator{&convert_32_x, std::back_inserter (out)});
+  (void)convert_32_x.end_cp (pos);
   assert (convert_32_x.well_formed ());
   return out;
 }
@@ -229,9 +228,9 @@ std::vector<char32_t> all_code_points () {
 // show diff
 // ~~~~~~~~~
 template <typename C, typename = std::enable_if_t<icubaby::is_unicode_char_type_v<C>>>
-void show_diff (std::ostream &os, std::vector<C> const &iconv_out, std::vector<C> const &baby_out) {
-  os << "iconv output size=" << iconv_out.size () << '\n';
-  os << "icubaby output size=" << baby_out.size () << '\n';
+void show_diff (std::ostream &stream, std::vector<C> const &iconv_out, std::vector<C> const &baby_out) {
+  stream << "iconv output size=" << iconv_out.size () << '\n';
+  stream << "icubaby output size=" << baby_out.size () << '\n';
 
   auto iconv_pos = std::begin (iconv_out);
   auto baby_pos = std::begin (baby_out);
@@ -241,8 +240,8 @@ void show_diff (std::ostream &os, std::vector<C> const &iconv_out, std::vector<C
   auto const end = iconv_pos + static_cast<difference_type> (std::min (iconv_out.size (), baby_out.size ()));
   while (iconv_pos != end) {
     if (*iconv_pos != *baby_pos) {
-      os << std::hex << ctr << ": " << std::hex << static_cast<std::uint_least32_t> (*iconv_pos) << ' ' << std::hex
-         << static_cast<std::uint_least32_t> (baby_out[ctr]) << '\n';
+      stream << std::hex << ctr << ": " << std::hex << static_cast<std::uint_least32_t> (*iconv_pos) << ' ' << std::hex
+             << static_cast<std::uint_least32_t> (baby_out[ctr]) << '\n';
     }
     ++iconv_pos;
     ++baby_pos;

@@ -70,10 +70,10 @@ TYPED_TEST (Utf16, GoodDollarSign) {
   auto& output = this->output_;
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  auto it = transcoder (static_cast<char16_t> (code_point::dollar_sign), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char16_t> (code_point::dollar_sign), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ()) << "input should be well formed";
   EXPECT_FALSE (transcoder.partial ()) << "there were no surrogate code units";
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::dollar_sign, TypeParam>));
@@ -82,13 +82,13 @@ TYPED_TEST (Utf16, GoodDollarSign) {
 TYPED_TEST (Utf16, StartOfHeadingAndText) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
-  auto it = transcoder (static_cast<char16_t> (code_point::start_of_heading), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char16_t> (code_point::start_of_heading), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  it = transcoder (static_cast<char16_t> (code_point::start_of_text), it);
+  pos = transcoder (static_cast<char16_t> (code_point::start_of_text), pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
@@ -102,10 +102,10 @@ TYPED_TEST (Utf16, StartOfHeadingAndText) {
 TYPED_TEST (Utf16, CharFFFF) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
-  auto it = transcoder (static_cast<char16_t> (code_point::code_point_ffff), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char16_t> (code_point::code_point_ffff), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::code_point_ffff, TypeParam>));
@@ -121,15 +121,15 @@ TYPED_TEST (Utf16, FirstHighLowSurrogatePair) {
   static_assert (icubaby::is_high_surrogate (std::get<0> (code_units)));
   static_assert (icubaby::is_low_surrogate (std::get<1> (code_units)));
 
-  auto it = transcoder (std::get<0> (code_units), std::back_inserter (output));
+  auto pos = transcoder (std::get<0> (code_units), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ()) << "input is well formed after just a high surrogate";
   EXPECT_TRUE (transcoder.partial ()) << "partial() should be true after a high surrogate";
   EXPECT_TRUE (output.empty ()) << "there should be no output after a high surrogate";
-  it = transcoder (std::get<1> (code_units), it);
+  pos = transcoder (std::get<1> (code_units), pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ()) << "partial() should be false after a high/low surrogate pair";
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::linear_b_syllable_b008_a, TypeParam>));
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::linear_b_syllable_b008_a, TypeParam>));
@@ -150,12 +150,12 @@ TYPED_TEST (Utf16, HighLowSurrogatePairExample) {
   static_assert (icubaby::is_low_surrogate (std::get<1> (char2)));
 
   std::vector<TypeParam> expected;
-  auto it = transcoder (std::get<0> (char1), std::back_inserter (output));
+  auto pos = transcoder (std::get<0> (char1), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_TRUE (transcoder.partial ()) << "a high surrogate means we have a partial code point";
   EXPECT_TRUE (output.empty ()) << "there should be no output after a high surrogate";
 
-  it = transcoder (std::get<1> (char1), it);
+  pos = transcoder (std::get<1> (char1), pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
@@ -163,17 +163,17 @@ TYPED_TEST (Utf16, HighLowSurrogatePairExample) {
   EXPECT_THAT (output, ElementsAreArray (expected));
 
   // Repeat the pattern for the second CU pair.
-  it = transcoder (std::get<0> (char2), it);
+  pos = transcoder (std::get<0> (char2), pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_TRUE (transcoder.partial ());
-  it = transcoder (std::get<1> (char2), it);
+  pos = transcoder (std::get<1> (char2), pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   (void)append<code_point::last_valid_code_point, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ElementsAreArray (expected));
 
   // End of input sequence.
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (expected));
@@ -182,11 +182,11 @@ TYPED_TEST (Utf16, HighLowSurrogatePairExample) {
 TYPED_TEST (Utf16, HighSurrogateWithoutLow) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
-  auto it = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_TRUE (transcoder.partial ());
   EXPECT_TRUE (output.empty ());
-  (void)transcoder (static_cast<char16_t> (code_point::dollar_sign), it);
+  (void)transcoder (static_cast<char16_t> (code_point::dollar_sign), pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
@@ -200,11 +200,11 @@ TYPED_TEST (Utf16, HighSurrogateWithoutLow) {
 TYPED_TEST (Utf16, HighSurrogateFollowedbyAnotherHigh) {
   auto& transcoder = this->transcoder_;
   auto& output = this->output_;
-  auto it = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_TRUE (transcoder.partial ());
   EXPECT_TRUE (output.empty ());
-  it = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), it);
+  pos = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_TRUE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
@@ -215,25 +215,25 @@ TYPED_TEST (Utf16, HighSurrogateFollowedByHighLowPair) {
   auto& output = this->output_;
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  auto it = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_TRUE (transcoder.partial ());
   EXPECT_TRUE (output.empty ());
 
   static_assert (
       icubaby::is_high_surrogate (std::get<0> (encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>)));
-  it = transcoder (std::get<0> (encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>), it);
+  pos = transcoder (std::get<0> (encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>), pos);
   EXPECT_FALSE (transcoder.well_formed ()) << "high followed by high is not well formed input";
   EXPECT_TRUE (transcoder.partial ()) << "partial() should be true after a high surrogate";
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
 
   static_assert (
       icubaby::is_low_surrogate (std::get<1> (encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>)));
-  it = transcoder (std::get<1> (encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>), it);
+  pos = transcoder (std::get<1> (encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>), pos);
   EXPECT_FALSE (transcoder.well_formed ()) << "high followed by high is not well formed input";
   EXPECT_FALSE (transcoder.partial ()) << "we saw high followed by low: a complete code point";
 
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
@@ -249,10 +249,10 @@ TYPED_TEST (Utf16, LonelyLowSurrogate) {
   auto& output = this->output_;
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  auto it = transcoder (static_cast<char16_t> (icubaby::first_low_surrogate), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char16_t> (icubaby::first_low_surrogate), std::back_inserter (output));
   EXPECT_FALSE (transcoder.well_formed ()) << "a low surrogate must be preceeded by a high";
   EXPECT_FALSE (transcoder.partial ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
@@ -263,11 +263,11 @@ TYPED_TEST (Utf16, LonelyHighSurrogate) {
   auto& output = this->output_;
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  auto it = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), std::back_inserter (output));
+  auto pos = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_TRUE (transcoder.partial ());
   EXPECT_TRUE (output.empty ());
-  (void)transcoder.end_cp (it);
+  (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
 
@@ -279,13 +279,13 @@ TYPED_TEST (Utf16, LonelyHighSurrogate) {
 template <typename OutputEncoding>
 static std::tuple<std::vector<OutputEncoding>, bool> Manual (std::vector<char16_t> const& input) {
   std::vector<OutputEncoding> manout;
-  icubaby::transcoder<char16_t, OutputEncoding> t;
+  icubaby::transcoder<char16_t, OutputEncoding> transcoder;
   auto out = std::back_inserter (manout);
-  for (auto const c : input) {
-    out = t (c, out);
+  for (auto const code_unit : input) {
+    out = transcoder (code_unit, out);
   }
-  (void)t.end_cp (out);
-  return std::make_tuple (std::move (manout), t.well_formed ());
+  (void)transcoder.end_cp (out);
+  return std::make_tuple (std::move (manout), transcoder.well_formed ());
 }
 
 template <typename OutputEncoding> static void ManualAndIteratorAlwaysMatch (std::vector<char16_t> const& input) {

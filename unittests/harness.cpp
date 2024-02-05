@@ -53,8 +53,8 @@ using testing::UnitTest;
 
 namespace {
 
-constexpr bool is_loud (std::string_view const a) {
-  return a == "--loud";
+constexpr bool is_loud (std::string_view const argument) {
+  return argument == "--loud";
 }
 
 #if HAVE_SPAN
