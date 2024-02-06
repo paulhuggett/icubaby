@@ -119,47 +119,47 @@ TEST (IsCodePointStart, Utf32) {
 namespace {
 
 struct AsciiUtf8 : testing::Test {
-  static std::array<icubaby::char8, 11> const CUs;
+  static std::array<icubaby::char8, 11> const code_units;
 };
 
-std::array<icubaby::char8, 11> const AsciiUtf8::CUs{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'};
+std::array<icubaby::char8, 11> const AsciiUtf8::code_units{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'};
 
 }  // end anonymous namespace
 
 // NOLINTNEXTLINE
 TEST_F (AsciiUtf8, Length) {
-  EXPECT_EQ (11U, icubaby::length (std::begin (CUs), std::end (CUs)));
+  EXPECT_EQ (11U, icubaby::length (std::begin (code_units), std::end (code_units)));
 }
 // NOLINTNEXTLINE
 TEST_F (AsciiUtf8, Index) {
   // NOLINTBEGIN(llvm-qualified-auto,readability-qualified-auto)
-  auto const begin = std::begin (CUs);
-  auto const end = std::end (CUs);
-  auto it = begin;
+  auto const begin = std::begin (code_units);
+  auto const end = std::end (code_units);
+  auto pos = begin;
   // NOLINTEND(llvm-qualified-auto,readability-qualified-auto)
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{0}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{1}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{2}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{3}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{4}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{5}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{6}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{7}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{8}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{9}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{10}));
-  std::advance (it, 1);
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{11}));
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{0}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{1}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{2}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{3}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{4}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{5}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{6}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{7}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{8}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{9}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{10}));
+  std::advance (pos, 1);
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{11}));
 
   EXPECT_EQ (end, icubaby::index (begin, end, size_t{12}));
   EXPECT_EQ (end, icubaby::index (begin, end, std::numeric_limits<size_t>::max ()));
@@ -169,19 +169,19 @@ namespace {
 
 template <typename T> struct Hiragana : testing::Test {
   Hiragana () {
-    auto it = append<code_point::hiragana_letter_o, T> (std::back_inserter (CUs));
-    it = append<code_point::hiragana_letter_ha, T> (it);
-    it = append<code_point::hiragana_letter_yo, T> (it);
-    it = append<code_point::hiragana_letter_u, T> (it);
-    it = append<code_point::hiragana_letter_go, T> (it);
-    it = append<code_point::hiragana_letter_za, T> (it);
-    it = append<code_point::hiragana_letter_i, T> (it);
-    it = append<code_point::hiragana_letter_ma, T> (it);
-    (void)append<code_point::hiragana_letter_su, T> (it);
+    auto pos = append<code_point::hiragana_letter_o, T> (std::back_inserter (code_units));
+    pos = append<code_point::hiragana_letter_ha, T> (pos);
+    pos = append<code_point::hiragana_letter_yo, T> (pos);
+    pos = append<code_point::hiragana_letter_u, T> (pos);
+    pos = append<code_point::hiragana_letter_go, T> (pos);
+    pos = append<code_point::hiragana_letter_za, T> (pos);
+    pos = append<code_point::hiragana_letter_i, T> (pos);
+    pos = append<code_point::hiragana_letter_ma, T> (pos);
+    (void)append<code_point::hiragana_letter_su, T> (pos);
   }
 
   // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
-  std::vector<T> CUs;
+  std::vector<T> code_units;
 };
 
 }  // end anonymous namespace
@@ -189,30 +189,30 @@ template <typename T> struct Hiragana : testing::Test {
 TYPED_TEST_SUITE (Hiragana, OutputTypes, OutputTypeNames);
 // NOLINTNEXTLINE
 TYPED_TEST (Hiragana, Length) {
-  EXPECT_EQ (9U, icubaby::length (std::begin (this->CUs), std::end (this->CUs)));
+  EXPECT_EQ (9U, icubaby::length (std::begin (this->code_units), std::end (this->code_units)));
 }
 // NOLINTNEXTLINE
 TYPED_TEST (Hiragana, Index) {
-  auto begin = std::begin (this->CUs);
-  auto end = std::end (this->CUs);
-  auto it = begin;
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{0}));
-  std::advance (it, encoded_char<code_point::hiragana_letter_o, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{1}));
-  std::advance (it, encoded_char<code_point::hiragana_letter_ha, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{2}));
-  std::advance (it, encoded_char<code_point::hiragana_letter_yo, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{3}));
-  std::advance (it, encoded_char<code_point::hiragana_letter_u, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{4}));
-  std::advance (it, encoded_char<code_point::hiragana_letter_go, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{5}));
-  std::advance (it, encoded_char<code_point::hiragana_letter_za, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{6}));
-  std::advance (it, encoded_char<code_point::hiragana_letter_i, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{7}));
-  std::advance (it, encoded_char<code_point::hiragana_letter_ma, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{8}));
+  auto begin = std::begin (this->code_units);
+  auto end = std::end (this->code_units);
+  auto pos = begin;
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{0}));
+  std::advance (pos, encoded_char<code_point::hiragana_letter_o, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{1}));
+  std::advance (pos, encoded_char<code_point::hiragana_letter_ha, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{2}));
+  std::advance (pos, encoded_char<code_point::hiragana_letter_yo, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{3}));
+  std::advance (pos, encoded_char<code_point::hiragana_letter_u, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{4}));
+  std::advance (pos, encoded_char<code_point::hiragana_letter_go, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{5}));
+  std::advance (pos, encoded_char<code_point::hiragana_letter_za, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{6}));
+  std::advance (pos, encoded_char<code_point::hiragana_letter_i, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{7}));
+  std::advance (pos, encoded_char<code_point::hiragana_letter_ma, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{8}));
 
   EXPECT_EQ (end, icubaby::index (begin, end, size_t{9}));
 }
@@ -221,14 +221,14 @@ namespace {
 
 template <typename T> struct CjkUnifiedIdeographCodePoints : testing::Test {
   CjkUnifiedIdeographCodePoints () {
-    auto it = append<code_point::cjk_unified_ideograph_2070e, T> (std::back_inserter (CUs));
-    it = append<code_point::cjk_unified_ideograph_20731, T> (it);
-    it = append<code_point::cjk_unified_ideograph_20779, T> (it);
-    (void)append<code_point::cjk_unified_ideograph_20c53, T> (it);
+    auto pos = append<code_point::cjk_unified_ideograph_2070e, T> (std::back_inserter (code_units));
+    pos = append<code_point::cjk_unified_ideograph_20731, T> (pos);
+    pos = append<code_point::cjk_unified_ideograph_20779, T> (pos);
+    (void)append<code_point::cjk_unified_ideograph_20c53, T> (pos);
   }
 
   // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
-  std::vector<T> CUs;
+  std::vector<T> code_units;
 };
 
 }  // end anonymous namespace
@@ -236,20 +236,20 @@ template <typename T> struct CjkUnifiedIdeographCodePoints : testing::Test {
 TYPED_TEST_SUITE (CjkUnifiedIdeographCodePoints, OutputTypes, OutputTypeNames);
 // NOLINTNEXTLINE
 TYPED_TEST (CjkUnifiedIdeographCodePoints, Length) {
-  EXPECT_EQ (icubaby::length (std::begin (this->CUs), std::end (this->CUs)), 4U);
+  EXPECT_EQ (icubaby::length (std::begin (this->code_units), std::end (this->code_units)), 4U);
 }
 // NOLINTNEXTLINE
 TYPED_TEST (CjkUnifiedIdeographCodePoints, Index) {
-  auto begin = std::begin (this->CUs);
-  auto end = std::end (this->CUs);
-  auto it = begin;
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{0}));
-  std::advance (it, encoded_char<code_point::cjk_unified_ideograph_2070e, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{1}));
-  std::advance (it, encoded_char<code_point::cjk_unified_ideograph_20731, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{2}));
-  std::advance (it, encoded_char<code_point::cjk_unified_ideograph_20779, TypeParam>::value.size ());
-  EXPECT_EQ (it, icubaby::index (begin, end, size_t{3}));
+  auto begin = std::begin (this->code_units);
+  auto end = std::end (this->code_units);
+  auto pos = begin;
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{0}));
+  std::advance (pos, encoded_char<code_point::cjk_unified_ideograph_2070e, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{1}));
+  std::advance (pos, encoded_char<code_point::cjk_unified_ideograph_20731, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{2}));
+  std::advance (pos, encoded_char<code_point::cjk_unified_ideograph_20779, TypeParam>::value.size ());
+  EXPECT_EQ (pos, icubaby::index (begin, end, size_t{3}));
 
   EXPECT_EQ (end, icubaby::index (begin, end, size_t{4}));
 }

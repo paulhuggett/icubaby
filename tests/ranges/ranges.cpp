@@ -61,22 +61,23 @@ template <> struct char_to_output_type<char32_t> {
 
 #if HAVE_CPP_LIB_FORMAT
 
-template <icubaby::unicode_char_type CharType> void dump_vector (std::ostream& os, std::vector<CharType> const& v) {
+template <icubaby::unicode_char_type CharType>
+void dump_vector (std::ostream& stream, std::vector<CharType> const& input) {
   auto const* separator = "";
-  for (auto c : v) {
-    auto const oc = static_cast<typename char_to_output_type<CharType>::type> (c);
+  for (auto code_unit : input) {
+    auto const output_code_unit = static_cast<typename char_to_output_type<CharType>::type> (code_unit);
     if constexpr (std::is_same_v<CharType, char8_t>) {
-      os << std::format ("{}0x{:02X}", separator, oc);
+      stream << std::format ("{}0x{:02X}", separator, output_code_unit);
     } else {
-      os << std::format ("{}0x{:04X}", separator, oc);
+      stream << std::format ("{}0x{:04X}", separator, output_code_unit);
     }
     separator = " ";
   }
-  os << '\n';
+  stream << '\n';
 }
 
-void dump_well_formed (std::ostream& os, bool well_formed) {
-  os << std::format (" well formed? {}\n", well_formed);
+void dump_well_formed (std::ostream& stream, bool well_formed) {
+  stream << std::format (" well formed? {}\n", well_formed);
 }
 
 #else
@@ -87,35 +88,36 @@ void dump_well_formed (std::ostream& os, bool well_formed) {
 /// Used to manage the restoration of the flags on exit from a scope.
 class ios_flags_saver {
 public:
-  explicit ios_flags_saver (std::ios_base& stream) : stream_{stream}, flags_{stream.flags ()} {}
+  explicit ios_flags_saver (std::ios_base& stream) : stream_{&stream}, flags_{stream.flags ()} {}
   ios_flags_saver (ios_flags_saver const&) = delete;
   ios_flags_saver (ios_flags_saver&&) noexcept = delete;
 
-  ~ios_flags_saver () { stream_.flags (flags_); }
+  ~ios_flags_saver () { stream_->flags (flags_); }
 
   ios_flags_saver& operator= (ios_flags_saver const&) = delete;
   ios_flags_saver& operator= (ios_flags_saver&&) noexcept = delete;
 
 private:
-  std::ios_base& stream_;
+  std::ios_base* stream_;
   std::ios_base::fmtflags flags_;
 };
 
-template <icubaby::unicode_char_type CharType> void dump_vector (std::ostream& os, std::vector<CharType> const& v) {
-  ios_flags_saver _{os};
+template <icubaby::unicode_char_type CharType>
+void dump_vector (std::ostream& stream, std::vector<CharType> const& input) {
+  ios_flags_saver const saved_flags{stream};
   constexpr auto width = std::is_same_v<CharType, char8_t> ? 2 : 4;
   auto const* separator = "";
-  for (auto c : v) {
-    os << separator << "0x" << std::setw (width) << std::setfill ('0') << std::uppercase << std::hex
-       << static_cast<typename char_to_output_type<CharType>::type> (c);
+  for (auto const code_unit : input) {
+    stream << separator << "0x" << std::setw (width) << std::setfill ('0') << std::uppercase << std::hex
+           << static_cast<typename char_to_output_type<CharType>::type> (code_unit);
     separator = " ";
   }
-  os << '\n';
+  stream << '\n';
 }
 
-void dump_well_formed (std::ostream& os, bool well_formed) {
-  ios_flags_saver _{std::cout};
-  os << " well formed? " << std::boolalpha << well_formed << '\n';
+void dump_well_formed (std::ostream& stream, bool well_formed) {
+  ios_flags_saver const saved_flags{stream};
+  stream << " well formed? " << std::boolalpha << well_formed << '\n';
 }
 
 #endif  // HAVE_CPP_LIB_FORMAT
@@ -132,71 +134,71 @@ template <std::ranges::input_range ActualRange, std::ranges::input_range Expecte
 
 template <std::ranges::input_range Range>
   requires std::is_same_v<std::ranges::range_value_t<Range>, char8_t>
-std::vector<char16_t> convert_8_to_16 (Range const& in) {
+std::vector<char16_t> convert_8_to_16 (Range const& input) {
   std::cout << "Convert the UTF-8 stream to UTF-16:\n ";
 
-  auto r = in | icubaby::ranges::transcode<char8_t, char16_t>;
+  auto range = input | icubaby::ranges::transcode<char8_t, char16_t>;
   std::vector<char16_t> out16;
-  (void)std::ranges::copy (r, std::back_inserter (out16));
+  (void)std::ranges::copy (range, std::back_inserter (out16));
 
   dump_vector (std::cout, out16);
-  dump_well_formed (std::cout, r.well_formed ());
+  dump_well_formed (std::cout, range.well_formed ());
   return out16;
 }
 
 template <std::ranges::input_range Range>
   requires std::is_same_v<std::ranges::range_value_t<Range>, char8_t>
-std::vector<char32_t> convert_8_to_32 (Range const& in) {
+std::vector<char32_t> convert_8_to_32 (Range const& input) {
   std::cout << "Convert the UTF-8 stream to UTF-32:\n ";
 
   std::vector<char32_t> out32;
-  auto r = in | icubaby::ranges::transcode<char8_t, char32_t>;
-  (void)std::ranges::copy (r, std::back_inserter (out32));
+  auto range = input | icubaby::ranges::transcode<char8_t, char32_t>;
+  (void)std::ranges::copy (range, std::back_inserter (out32));
 
   dump_vector (std::cout, out32);
-  dump_well_formed (std::cout, r.well_formed ());
+  dump_well_formed (std::cout, range.well_formed ());
   return out32;
 }
 
 template <std::ranges::input_range Range>
   requires std::is_same_v<std::ranges::range_value_t<Range>, char32_t>
-std::vector<char16_t> convert_32_to_16 (Range const& in) {
+std::vector<char16_t> convert_32_to_16 (Range const& input) {
   std::cout << "Convert the UTF-32 stream to UTF-16:\n ";
 
   std::vector<char16_t> out16;
-  auto r = in | icubaby::ranges::transcode<char32_t, char16_t>;
-  (void)std::ranges::copy (r, std::back_inserter (out16));
+  auto range = input | icubaby::ranges::transcode<char32_t, char16_t>;
+  (void)std::ranges::copy (range, std::back_inserter (out16));
 
   dump_vector (std::cout, out16);
-  dump_well_formed (std::cout, r.well_formed ());
+  dump_well_formed (std::cout, range.well_formed ());
   return out16;
 }
 
 template <std::ranges::input_range Range>
   requires std::is_same_v<std::ranges::range_value_t<Range>, char16_t>
-std::vector<char32_t> convert_16_to_32 (Range const& in) {
+std::vector<char32_t> convert_16_to_32 (Range const& input) {
   std::cout << "Convert the UTF-16 stream to UTF-32:\n ";
 
   std::vector<char32_t> out32;
-  auto r = in | icubaby::ranges::transcode<char16_t, char32_t>;
-  (void)std::ranges::copy (r, std::back_inserter (out32));
+  auto range = input | icubaby::ranges::transcode<char16_t, char32_t>;
+  (void)std::ranges::copy (range, std::back_inserter (out32));
 
   dump_vector (std::cout, out32);
-  dump_well_formed (std::cout, r.well_formed ());
+  dump_well_formed (std::cout, range.well_formed ());
   return out32;
 }
 
 template <std::ranges::input_range Range>
   requires std::is_same_v<std::ranges::range_value_t<Range>, char16_t>
-std::vector<char8_t> convert_16_to_8 (Range const& in) {
+std::vector<char8_t> convert_16_to_8 (Range const& input) {
   std::cout << "Convert the UTF-16 stream to UTF-8:\n ";
 
   std::vector<char8_t> out8;
-  auto r = in | icubaby::ranges::transcode<char16_t, char8_t>;
-  (void)std::ranges::copy (r, std::back_inserter (out8));
+  auto range = input | icubaby::ranges::transcode<char16_t, char8_t>;
+  (void)std::ranges::copy (range, std::back_inserter (out8));
 
   dump_vector (std::cout, out8);
-  dump_well_formed (std::cout, r.well_formed ());
+  dump_well_formed (std::cout, range.well_formed ());
   return out8;
 }
 
@@ -239,19 +241,19 @@ std::array const expected8{
 int main () {
   int exit_code = EXIT_SUCCESS;
   try {
-    auto const& in = expected8;
+    auto const& input = expected8;
 #if HAVE_CPP_LIB_FORMAT
-    std::cout << std::format ("input length is {} code points\n", icubaby::length (in));
+    std::cout << std::format ("input length is {} code points\n", icubaby::length (input));
 #else
-    std::cout << "input length is " << icubaby::length (in) << " code-points\n";
+    std::cout << "input length is " << icubaby::length (input) << " code-points\n";
 #endif
 
-    auto const out16 = convert_8_to_16 (in);
+    auto const out16 = convert_8_to_16 (input);
     if (!check (out16, expected16)) {
       exit_code = EXIT_FAILURE;
     }
 
-    auto const out32 = convert_8_to_32 (in);
+    auto const out32 = convert_8_to_32 (input);
     if (!check (out32, expected32)) {
       exit_code = EXIT_FAILURE;
     }
@@ -262,7 +264,7 @@ int main () {
     if (!check (convert_16_to_32 (out16), expected32)) {
       exit_code = EXIT_FAILURE;
     }
-    if (!check (convert_16_to_8 (out16), in)) {
+    if (!check (convert_16_to_8 (out16), input)) {
       exit_code = EXIT_FAILURE;
     }
   } catch (std::exception const& ex) {

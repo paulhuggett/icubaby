@@ -42,18 +42,18 @@ namespace {
 
 #if HAVE_CPP_LIB_FORMAT
 
-template <typename StringType> void show (std::ostream& os, StringType const& str) {
+template <typename StringType> void show (std::ostream& stream, StringType const& str) {
   auto const* separator = "";
-  for (auto const c : str) {
-    os << separator;
-    if constexpr (sizeof (c) == 1) {
-      os << std::format ("{:02X}", static_cast<std::uint_least8_t> (c));
+  for (auto const code_unit : str) {
+    stream << separator;
+    if constexpr (sizeof (code_unit) == 1) {
+      stream << std::format ("{:02X}", static_cast<std::uint_least8_t> (code_unit));
     } else {
-      os << std::format ("{:04X}", static_cast<std::uint_least16_t> (c));
+      stream << std::format ("{:04X}", static_cast<std::uint_least16_t> (code_unit));
     }
     separator = " ";
   }
-  os << '\n';
+  stream << '\n';
 }
 
 #else
@@ -64,38 +64,38 @@ template <typename StringType> void show (std::ostream& os, StringType const& st
 /// Used to manage the restoration of the flags on exit from a scope.
 class ios_flags_saver {
 public:
-  explicit ios_flags_saver (std::ios_base& stream) : stream_{stream}, flags_{stream.flags ()} {}
+  explicit ios_flags_saver (std::ios_base& stream) : stream_{&stream}, flags_{stream.flags ()} {}
   ios_flags_saver (ios_flags_saver const&) = delete;
   ios_flags_saver (ios_flags_saver&&) noexcept = delete;
 
-  ~ios_flags_saver () { stream_.flags (flags_); }
+  ~ios_flags_saver () { stream_->flags (flags_); }
 
   ios_flags_saver& operator= (ios_flags_saver const&) = delete;
   ios_flags_saver& operator= (ios_flags_saver&&) noexcept = delete;
 
 private:
-  std::ios_base& stream_;
+  std::ios_base* stream_;
   std::ios_base::fmtflags flags_;
 };
 
-template <typename StringType> void show (std::ostream& os, StringType const& str) {
-  ios_flags_saver s{os};
-  os << std::setfill ('0') << std::hex << std::uppercase;
+template <typename StringType> void show (std::ostream& stream, StringType const& str) {
+  ios_flags_saver const saved_flags{stream};
+  stream << std::setfill ('0') << std::hex << std::uppercase;
   auto const* separator = "";
-  for (auto const c : str) {
-    os << separator << std::setw (sizeof (c) * 2) << static_cast<std::uint_least16_t> (c);
+  for (auto const code_unit : str) {
+    stream << separator << std::setw (sizeof (code_unit) * 2) << static_cast<std::uint_least16_t> (code_unit);
     separator = " ";
   }
-  os << '\n';
+  stream << '\n';
 }
 
 #endif  // HAVE_CPP_LIB_FORMAT
 
-template <typename StringType> void show (std::ostream& os, std::optional<StringType> const& str) {
+template <typename StringType> void show (std::ostream& stream, std::optional<StringType> const& str) {
   if (!str) {
     return;  // do something.
   }
-  show (os, *str);
+  show (stream, *str);
 }
 
 std::optional<std::u16string> convert (std::basic_string_view<icubaby::char8> const& src) {
@@ -104,9 +104,9 @@ std::optional<std::u16string> convert (std::basic_string_view<icubaby::char8> co
   // t8_16 is the class which converts from UTF-8 to UTF-16.
   // This name is a shortned form of transcoder<char8_t, char16_T>.
   icubaby::t8_16 utf_8_to_16;
-  auto it = icubaby::iterator{&utf_8_to_16, std::back_inserter (out)};
-  it = std::copy (std::begin (src), std::end (src), it);
-  (void)utf_8_to_16.end_cp (it);
+  auto out_it = icubaby::iterator{&utf_8_to_16, std::back_inserter (out)};
+  out_it = std::copy (std::begin (src), std::end (src), out_it);
+  (void)utf_8_to_16.end_cp (out_it);
   if (!utf_8_to_16.well_formed ()) {
     // The input was malformed or ended with a partial character.
     return std::nullopt;
@@ -114,20 +114,20 @@ std::optional<std::u16string> convert (std::basic_string_view<icubaby::char8> co
   return out;
 }
 std::optional<std::u16string> convert2 (std::basic_string_view<icubaby::char8> const& src) {
-  // The UTF-16 code units are written to the 'out' string via the 'it' output iterator.
+  // The UTF-16 code units are written to the 'out' string via the 'out_it' output iterator.
   std::u16string out;
-  auto it = std::back_inserter (out);
+  auto out_it = std::back_inserter (out);
   icubaby::t8_16 utf_8_to_16;
-  for (icubaby::char8 const c : src) {
+  for (icubaby::char8 const code_unit : src) {
     // Pass this UTF-8 code-unit to the transcoder.
-    it = utf_8_to_16 (c, it);
+    out_it = utf_8_to_16 (code_unit, out_it);
     if (!utf_8_to_16.well_formed ()) {
       // The input was malformed. Bail out immediately.
       return std::nullopt;
     }
   }
   // Check that the input finished with a complete character.
-  (void)utf_8_to_16.end_cp (it);
+  (void)utf_8_to_16.end_cp (out_it);
   if (!utf_8_to_16.well_formed ()) {
     return std::nullopt;
   }
@@ -135,47 +135,48 @@ std::optional<std::u16string> convert2 (std::basic_string_view<icubaby::char8> c
 }
 
 void c3 () {
-  icubaby::t8_16 t;
+  icubaby::t8_16 transcoder;
   std::vector<char16_t> out;
-  auto it = icubaby::iterator{&t, std::back_inserter (out)};
-  *(it++) = icubaby::char8{'A'};
-  (void)t.end_cp (std::back_inserter (out));
+  auto out_it = icubaby::iterator{&transcoder, std::back_inserter (out)};
+  *(out_it++) = icubaby::char8{'A'};
+  (void)transcoder.end_cp (std::back_inserter (out));
   show (std::cout, out);
 }
 
 void c4 () {
   std::vector<char16_t> out;
-  icubaby::t8_16 t;
-  std::array const in{static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
-                      static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
-  auto it = icubaby::iterator{&t, std::back_inserter (out)};
-  for (auto cu : in) {
-    *(it++) = cu;
+  icubaby::t8_16 transcoder;
+  std::array const input{static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
+                         static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
+  auto out_it = icubaby::iterator{&transcoder, std::back_inserter (out)};
+  for (auto const code_unit : input) {
+    *(out_it++) = code_unit;
   }
-  (void)t.end_cp (it);
+  (void)transcoder.end_cp (out_it);
   show (std::cout, out);
 }
 
 void c5 () {
-  std::array const in{static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
-                      static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
+  std::array const input{static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
+                         static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
   std::vector<char16_t> out;
-  icubaby::t8_16 t;
+  icubaby::t8_16 transcoder;
 #if __cpp_lib_ranges
-  auto it = std::ranges::copy (in, icubaby::iterator{&t, std::back_inserter (out)}).out;
+  auto out_it = std::ranges::copy (input, icubaby::iterator{&transcoder, std::back_inserter (out)}).out;
 #else
-  auto it = std::copy (std::begin (in), std::end (in), icubaby::iterator{&t, std::back_inserter (out)});
+  auto out_it =
+      std::copy (std::begin (input), std::end (input), icubaby::iterator{&transcoder, std::back_inserter (out)});
 #endif
-  (void)t.end_cp (it);
+  (void)transcoder.end_cp (out_it);
 }
 
 }  // namespace
 
 int main () {
-  icubaby::char8 const* in = u8"こんにちは世界\n";
-  show (std::cout, std::basic_string_view (in));
-  show (std::cout, convert (in));
-  show (std::cout, convert2 (in));
+  icubaby::char8 const* input = u8"こんにちは世界\n";
+  show (std::cout, std::basic_string_view (input));
+  show (std::cout, convert (input));
+  show (std::cout, convert2 (input));
   c3 ();
   c4 ();
   c5 ();
@@ -187,12 +188,12 @@ int main () {
     cjk_unified_ideograph_20c53 = char32_t{0x20C53},
   };
 
-  icubaby::t32_16 t;
+  icubaby::t32_16 transcode;
   std::vector<char16_t> out;
-  auto it = std::back_inserter (out);
-  it = t (static_cast<char32_t> (code_point::cjk_unified_ideograph_2070e), it);
-  it = t (static_cast<char32_t> (code_point::cjk_unified_ideograph_20731), it);
-  it = t (static_cast<char32_t> (code_point::cjk_unified_ideograph_20779), it);
-  it = t (static_cast<char32_t> (code_point::cjk_unified_ideograph_20c53), it);
+  auto out_it = std::back_inserter (out);
+  out_it = transcode (static_cast<char32_t> (code_point::cjk_unified_ideograph_2070e), out_it);
+  out_it = transcode (static_cast<char32_t> (code_point::cjk_unified_ideograph_20731), out_it);
+  out_it = transcode (static_cast<char32_t> (code_point::cjk_unified_ideograph_20779), out_it);
+  out_it = transcode (static_cast<char32_t> (code_point::cjk_unified_ideograph_20c53), out_it);
   show (std::cout, out);
 }

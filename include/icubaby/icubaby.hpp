@@ -33,6 +33,11 @@
 ///   dependency free, library for C++ 17 or later. Fast, minimal, and easy to
 ///   use for converting a sequence in any of UTF-8, UTF-16, or UTF-32.
 
+/// \mainpage
+/// A C++ Library to Immediately Convert Unicode. It is a portable, header-only, dependency-free library for C++ 17 or
+/// later. Fast, minimal, and easy to use for converting sequences of text between any of the Unicode UTF encodings. It
+/// does not allocate dynamic memory and neither throws or catches exceptions.
+
 // UTF-8 to UTF-32 conversion is based on the "Flexible and Economical UTF-8
 // Decoder" by Bjoern Hoehrmann <bjoern@hoehrmann.de> See
 // http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details.
@@ -89,7 +94,7 @@
 #include <version>
 #endif
 
-/// brief Defined as 1 if the standard library's __cpp_lib_ranges macro is available and 0 otherwise.
+/// \brief Defined as 1 if the standard library's __cpp_lib_ranges macro is available and 0 otherwise.
 #ifdef __cpp_lib_ranges
 #define ICUBABY_CPP_LIB_RANGES_DEFINED (1)
 #else
@@ -120,6 +125,7 @@
 #define ICUBABY_HAVE_CONCEPTS                                                                       \
   (ICUBABY_CPP_CONCEPTS_DEFINED && __cpp_concepts >= 201907L && ICUBABY_CPP_LIB_CONCEPTS_DEFINED && \
    __cpp_lib_concepts >= 202002L)
+
 #if ICUBABY_HAVE_CONCEPTS
 #include <concepts>
 /// \brief Defined as `requires x` if concepts are supported and as nothing
@@ -298,56 +304,49 @@ template <typename T>
 concept unicode_char_type = is_unicode_char_type_v<T>;
 #endif
 
-/// \brief Returns true if the code point \p c represents a UTF-16 high
-///   surrogate.
+/// \brief Returns true if the code point \p code_point represents a UTF-16 high surrogate.
 ///
-/// \param c  The code point to be tested.
-/// \returns true if the code point \p c represents a UTF-16 high surrogate.
-constexpr bool is_high_surrogate (char32_t c) noexcept {
-  return c >= first_high_surrogate && c <= last_high_surrogate;
+/// \param code_point  The code point to be tested.
+/// \returns true if the code point \p code_point represents a UTF-16 high surrogate.
+constexpr bool is_high_surrogate (char32_t code_point) noexcept {
+  return code_point >= first_high_surrogate && code_point <= last_high_surrogate;
 }
-/// \brief Returns true if the code point \p c represents a UTF-16 low
-///   surrogate.
+/// \brief Returns true if the code point \p code_point represents a UTF-16 low surrogate.
 ///
-/// \param c  The code point to be tested.
-/// \returns true if the code point \p c represents a UTF-16 low surrogate.
-constexpr bool is_low_surrogate (char32_t c) noexcept {
-  return c >= first_low_surrogate && c <= last_low_surrogate;
+/// \param code_point  The code point to be tested.
+/// \returns true if the code point \p code_point represents a UTF-16 low surrogate.
+constexpr bool is_low_surrogate (char32_t code_point) noexcept {
+  return code_point >= first_low_surrogate && code_point <= last_low_surrogate;
 }
-/// \brief Returns true if the code point \p c represents a UTF-16 low or high
-///   surrogate.
+/// \brief Returns true if the code point \p code_point represents a UTF-16 low or high surrogate.
 ///
-/// \param c  The code point to be tested.
-/// \returns true if the code point \p c represents a UTF-16 high or low
-///   surrogate.
-constexpr bool is_surrogate (char32_t c) noexcept {
-  return is_high_surrogate (c) || is_low_surrogate (c);
+/// \param code_point  The code point to be tested.
+/// \returns true if the code point \p c represents a UTF-16 high or low surrogate.
+constexpr bool is_surrogate (char32_t code_point) noexcept {
+  return is_high_surrogate (code_point) || is_low_surrogate (code_point);
 }
 
-/// \brief Returns true if \p c represents the start of a multi-byte UTF-8
-///   sequence.
+/// \brief Returns true if \p code_unit represents the start of a multi-byte UTF-8 sequence.
 ///
-/// \param c  The UTF-8 code unit to be tested.
-/// \returns true if \p c represents the start of a multi-byte UTF-8 sequence.
-constexpr bool is_code_point_start (char8 c) noexcept {
-  static_assert (sizeof (c) == sizeof (std::byte));
-  return (static_cast<std::byte> (c) & std::byte{0xC0}) != std::byte{0x80};
+/// \param code_unit  The UTF-8 code unit to be tested.
+/// \returns true if \p code_unit represents the start of a multi-byte UTF-8 sequence.
+constexpr bool is_code_point_start (char8 code_unit) noexcept {
+  static_assert (sizeof (code_unit) == sizeof (std::byte));
+  return (static_cast<std::byte> (code_unit) & std::byte{0xC0}) != std::byte{0x80};
 }
-/// \brief Returns true if \p c represents the start of a UTF-16 high, low
-///   surrogate pair.
+/// \brief Returns true if \p code_unit represents the start of a UTF-16 high/low surrogate pair.
 ///
-/// \param c  The UTF-16 code unit to be tested.
-/// \returns  true if \p c represents the start of a UTF-16 high, low surrogate
-///   pair.
-constexpr bool is_code_point_start (char16_t c) noexcept {
-  return !is_low_surrogate (c);
+/// \param code_unit  The UTF-16 code unit to be tested.
+/// \returns  true if \p code_unit represents the start of a UTF-16 high/low surrogate pair.
+constexpr bool is_code_point_start (char16_t code_unit) noexcept {
+  return !is_low_surrogate (code_unit);
 }
-/// \brief Returns true if \p c represents a valid UTF-32 code point.
+/// \brief Returns true if \p code_unit represents a valid UTF-32 code point.
 ///
-/// \param c  The UTF-32 code unit to be tested.
-/// \returns  true if \p c represents a valid UTF-32 code point.
-constexpr bool is_code_point_start (char32_t c) noexcept {
-  return !is_surrogate (c) && c <= max_code_point;
+/// \param code_unit  The UTF-32 code unit to be tested.
+/// \returns  true if \p code_unit represents a valid UTF-32 code point.
+constexpr bool is_code_point_start (char32_t code_unit) noexcept {
+  return !is_surrogate (code_unit) && code_unit <= max_code_point;
 }
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
@@ -355,14 +354,17 @@ constexpr bool is_code_point_start (char32_t c) noexcept {
 /// \brief Returns the number of code points in a sequence.
 ///
 /// \note The input sequence must be well formed for the result to be accurate.
-/// \param r The range of the elements to examine.
+/// \tparam Range  An input range.
+/// \tparam Proj  Type of the projection applied to elements.
+/// \param range The range of the elements to examine.
 /// \param proj  Projection to apply to the elements.
 /// \returns  The number of code points.
-template <std::ranges::input_range R, typename Proj = std::identity>
-  requires unicode_char_type<std::ranges::range_value_t<R>>
-constexpr std::ranges::range_difference_t<R> length (R&& r, Proj proj = {}) {
+template <std::ranges::input_range Range, typename Proj = std::identity>
+  requires unicode_char_type<std::ranges::range_value_t<Range>>
+constexpr std::ranges::range_difference_t<Range> length (Range&& range, Proj proj = {}) {
   return std::ranges::count_if (
-      std::forward<R> (r), [] (unicode_char_type auto c) { return is_code_point_start (c); }, proj);
+      std::forward<Range> (range),
+      [] (unicode_char_type auto const code_unit) { return is_code_point_start (code_unit); }, proj);
 }
 
 /// \brief Returns the number of code points in a sequence.
@@ -397,19 +399,23 @@ constexpr typename std::iterator_traits<InputIterator>::difference_type length (
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
-/// Returns an iterator to the beginning of the pos'th code point in the range
-/// of code-units given by \p r.
+/// Returns an iterator to the beginning of the pos'th code point in the range of code-units given by \p range.
 ///
-/// \param r  The range of code units to examine.
+/// \tparam Range  An input range.
+/// \tparam Proj   The type of the projection applied to elements.
+/// \param range  The range of code units to examine.
 /// \param pos  The number of code points to move.
 /// \param proj  Projection to apply to the elements.
-/// \returns  Iterator to the \p code point or iterator equal to last if no such element is found.
-template <std::ranges::input_range R, typename Proj = std::identity>
-constexpr std::ranges::borrowed_iterator_t<R> index (R&& r, std::size_t pos, Proj proj = {}) {
+/// \returns  Iterator to the start of the selected code point or iterator equal to last if no such element is found.
+template <std::ranges::input_range Range, typename Proj = std::identity>
+constexpr std::ranges::borrowed_iterator_t<Range> index (Range&& range, std::size_t pos, Proj proj = {}) {
   auto count = std::size_t{0};
   return std::ranges::find_if (
-      std::forward<R> (r),
-      [&count, pos] (unicode_char_type auto c) { return is_code_point_start (c) ? (count++ == pos) : false; }, proj);
+      std::forward<Range> (range),
+      [&count, pos] (unicode_char_type auto const code_unit) {
+        return is_code_point_start (code_unit) ? (count++ == pos) : false;
+      },
+      proj);
 }
 
 /// Returns an iterator to the beginning of the pos'th code point in the code
@@ -451,13 +457,13 @@ constexpr InputIterator index (InputIterator first, InputIterator last, std::siz
 #if ICUBABY_HAVE_CONCEPTS
 /// \brief Defines the requirements of a type that provides the transcoder interface.
 template <typename T>
-concept is_transcoder = requires (T t) {
+concept is_transcoder = requires (T tcdr) {
   typename T::input_type;
   typename T::output_type;
   // we must also have operator() and end_cp() which
   // both take template arguments.
-  { t.well_formed () } -> std::convertible_to<bool>;
-  { t.partial () } -> std::convertible_to<bool>;
+  { tcdr.well_formed () } -> std::convertible_to<bool>;
+  { tcdr.partial () } -> std::convertible_to<bool>;
 };
 
 #endif  // ICUBABY_HAVE_CONCEPTS
@@ -521,8 +527,8 @@ public:
   /// Initializes the underlying transcoder and the output iterator to which elements will be written.
   ///
   /// \param transcoder  The underlying transcoder. This class does not take ownership of the pointer.
-  /// \param it  An output iterator to which code units produced by the \p transcoder will be written.
-  iterator (Transcoder* transcoder, OutputIterator it) : transcoder_{transcoder}, it_{it} {}
+  /// \param out  An output iterator to which code units produced by the \p transcoder will be written.
+  iterator (Transcoder* transcoder, OutputIterator out) : transcoder_{transcoder}, out_{out} {}
   iterator (iterator const& rhs) = default;
   iterator (iterator&& rhs) noexcept = default;
 
@@ -532,7 +538,7 @@ public:
   /// \param value The code unit to be passed to the transcoder.
   /// \returns \*this
   iterator& operator= (typename Transcoder::input_type const& value) {
-    it_ = (*transcoder_) (value, it_);
+    out_ = (*transcoder_) (value, out_);
     return *this;
   }
 
@@ -550,7 +556,7 @@ public:
   constexpr iterator operator++ (int) noexcept { return *this; }
 
   /// Accesses the underlying iterator.
-  [[nodiscard]] constexpr OutputIterator base () const noexcept { return it_; }
+  [[nodiscard]] constexpr OutputIterator base () const noexcept { return out_; }
   /// Accesses the underlying transcoder.
   [[nodiscard]] constexpr Transcoder* transcoder () noexcept { return transcoder_; }
   /// Accesses the underlying transcoder.
@@ -558,12 +564,13 @@ public:
 
 private:
   Transcoder* transcoder_;
-  ICUBABY_NO_UNIQUE_ADDRESS OutputIterator it_;
+  /// An output iterator to which code units produced by the transcoder will be written.
+  ICUBABY_NO_UNIQUE_ADDRESS OutputIterator out_;
 };
 
 /// A class template argument deduction guide for icubaby::iterator.
 template <typename Transcoder, typename OutputIterator>
-iterator (Transcoder& t, OutputIterator it) -> iterator<Transcoder, OutputIterator>;
+iterator (Transcoder& transcoder, OutputIterator out) -> iterator<Transcoder, OutputIterator>;
 
 /// Takes a sequence of UTF-32 code units and converts them to UTF-8.
 template <> class transcoder<char32_t, char8> {
@@ -583,29 +590,28 @@ public:
   /// Accepts a code unit in the UTF-32 source encoding. As UTF-8 output code units are generated, they are written to
   /// the output iterator \p dest.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
-  /// \param c  A code unit in the source encoding.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param code_unit  A code unit in the source encoding.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  OutputIterator operator() (input_type c, OutputIterator dest) noexcept {
-    if (c < 0x80) {
-      *(dest++) = static_cast<output_type> (c);
+  OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
+    if (code_unit < 0x80) {
+      *(dest++) = static_cast<output_type> (code_unit);
       return dest;
     }
-    if (c < 0x800) {
-      return transcoder::write2 (c, dest);
+    if (code_unit < 0x800) {
+      return transcoder::write2 (code_unit, dest);
     }
-    if (is_surrogate (c)) {
+    if (is_surrogate (code_unit)) {
       return transcoder::not_well_formed (dest);
     }
-    if (c < 0x10000) {
-      return transcoder::write3 (c, dest);
+    if (code_unit < 0x10000) {
+      return transcoder::write3 (code_unit, dest);
     }
-    if (c <= max_code_point) {
-      return transcoder::write4 (c, dest);
+    if (code_unit <= max_code_point) {
+      return transcoder::write4 (code_unit, dest);
     }
     return transcoder::not_well_formed (dest);
   }
@@ -613,8 +619,7 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
@@ -626,16 +631,15 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto t = dest.transcoder ();
-    assert (t == this);
-    return {t, t->end_cp (dest.base ())};
+    auto tcdr = dest.transcoder ();
+    assert (tcdr == this);
+    return {tcdr, tcdr->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-32.
@@ -647,22 +651,22 @@ public:
 private:
   bool well_formed_ = true;
 
-  template <typename OutputIterator> static OutputIterator write2 (input_type c, OutputIterator dest) {
-    *(dest++) = static_cast<output_type> ((c >> 6U) | 0xc0U);
-    *(dest++) = static_cast<output_type> ((c & 0x3fU) | 0x80U);
+  template <typename OutputIterator> static OutputIterator write2 (input_type code_unit, OutputIterator dest) {
+    *(dest++) = static_cast<output_type> ((code_unit >> 6U) | 0xc0U);
+    *(dest++) = static_cast<output_type> ((code_unit & 0x3fU) | 0x80U);
     return dest;
   }
-  template <typename OutputIterator> static OutputIterator write3 (input_type c, OutputIterator dest) {
-    *(dest++) = static_cast<output_type> ((c >> 12U) | 0xe0U);
-    *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3fU) | 0x80U);
-    *(dest++) = static_cast<output_type> ((c & 0x3fU) | 0x80U);
+  template <typename OutputIterator> static OutputIterator write3 (input_type code_unit, OutputIterator dest) {
+    *(dest++) = static_cast<output_type> ((code_unit >> 12U) | 0xe0U);
+    *(dest++) = static_cast<output_type> (((code_unit >> 6U) & 0x3fU) | 0x80U);
+    *(dest++) = static_cast<output_type> ((code_unit & 0x3fU) | 0x80U);
     return dest;
   }
-  template <typename OutputIterator> static OutputIterator write4 (input_type c, OutputIterator dest) {
-    *(dest++) = static_cast<output_type> ((c >> 18U) | 0xf0U);
-    *(dest++) = static_cast<output_type> (((c >> 12U) & 0x3fU) | 0x80U);
-    *(dest++) = static_cast<output_type> (((c >> 6U) & 0x3fU) | 0x80U);
-    *(dest++) = static_cast<output_type> ((c & 0x3fU) | 0x80U);
+  template <typename OutputIterator> static OutputIterator write4 (input_type code_unit, OutputIterator dest) {
+    *(dest++) = static_cast<output_type> ((code_unit >> 18U) | 0xf0U);
+    *(dest++) = static_cast<output_type> (((code_unit >> 12U) & 0x3fU) | 0x80U);
+    *(dest++) = static_cast<output_type> (((code_unit >> 6U) & 0x3fU) | 0x80U);
+    *(dest++) = static_cast<output_type> ((code_unit & 0x3fU) | 0x80U);
     return dest;
   }
 
@@ -732,7 +736,7 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
@@ -749,16 +753,15 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto t = dest.transcoder ();
-    assert (t == this);
-    return {t, t->end_cp (dest.base ())};
+    auto tcdr = dest.transcoder ();
+    assert (tcdr == this);
+    return {tcdr, tcdr->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-8.
@@ -838,6 +841,7 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
   template <typename OutputIterator>
@@ -849,16 +853,15 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto t = dest.transcoder ();
-    assert (t == this);
-    return {t, t->end_cp (dest.base ())};
+    auto tcdr = dest.transcoder ();
+    assert (tcdr == this);
+    return {tcdr, tcdr->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented valid UTF-32.
@@ -892,39 +895,38 @@ public:
   /// Accepts a code unit in the UTF-16 source encoding. As UTF-32 output code units are generated, they are written to
   /// the output iterator \p dest.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
-  /// \param c  A code unit in the source encoding.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param code_unit  A code unit in the source encoding.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  OutputIterator operator() (input_type c, OutputIterator dest) {
+  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     if (!has_high_) {
-      if (is_high_surrogate (c)) {
+      if (is_high_surrogate (code_unit)) {
         // A high surrogate code unit indicates that this is the first of a
         // high/low surrogate pair.
-        assert (c >= first_high_surrogate);
-        auto const h = c - first_high_surrogate;
-        assert (h < std::numeric_limits<decltype (high_)>::max ());
-        assert (h < (1U << high_bits));
-        high_ = static_cast<uint_least16_t> (h);
+        assert (code_unit >= first_high_surrogate);
+        auto const high_cu = code_unit - first_high_surrogate;
+        assert (high_cu < std::numeric_limits<decltype (high_)>::max ());
+        assert (high_cu < (1U << high_bits));
+        high_ = static_cast<uint_least16_t> (high_cu);
         has_high_ = true;
         return dest;
       }
 
       // A low surrogate without a preceeding high surrogate.
-      if (is_low_surrogate (c)) {
+      if (is_low_surrogate (code_unit)) {
         well_formed_ = false;
-        c = replacement_char;
+        code_unit = replacement_char;
       }
-      *(dest++) = c;
+      *(dest++) = code_unit;
       return dest;
     }
 
     // A high surrogate followed by a low surrogate.
-    if (is_low_surrogate (c)) {
-      *(dest++) = (static_cast<char32_t> (high_) << high_bits) + (c - first_low_surrogate) + 0x10000;
+    if (is_low_surrogate (code_unit)) {
+      *(dest++) = (static_cast<char32_t> (high_) << high_bits) + (code_unit - first_low_surrogate) + 0x10000;
       high_ = 0;
       has_high_ = false;
       return dest;
@@ -935,8 +937,8 @@ public:
     // a low surrogate gives REPLACEMENT CHARACTER followed by the second input
     // code point.
     *(dest++) = replacement_char;
-    if (!is_high_surrogate (c)) {
-      *(dest++) = c;
+    if (!is_high_surrogate (code_unit)) {
+      *(dest++) = code_unit;
       high_ = 0;
       has_high_ = false;
     }
@@ -964,16 +966,15 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto t = dest.transcoder ();
-    assert (t == this);
-    return {t, t->end_cp (dest.base ())};
+    auto tcdr = dest.transcoder ();
+    assert (tcdr == this);
+    return {tcdr, tcdr->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-16.
@@ -1008,28 +1009,26 @@ public:
   /// to UTF-32 and then to the output encoding (double_transcover::output_type). As output code units are generated,
   /// they are written to the output iterator \p dest.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
-  /// \param c  A code unit in the source encoding.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param code_unit  A code unit in the source encoding.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
-  OutputIterator operator() (input_type c, OutputIterator dest) {
+  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     // The (intermediate) output from the conversion to UTF-32. It's possible
     // for the transcoder to produce more than a single output code unit if the
     // input is malformed.
     std::array<char32_t, 2> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
     auto const begin = std::begin (intermediate);
-    return copy (begin, to_inter_ (c, begin), dest);
+    return copy (begin, to_inter_ (code_unit, begin), dest);
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
@@ -1044,17 +1043,16 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder<From, To>, OutputIterator> end_cp (
       iterator<transcoder<From, To>, OutputIterator> dest) {
-    auto const t = dest.transcoder ();
-    assert (t == this);
-    return {t, t->end_cp (dest.base ())};
+    auto const tcdr = dest.transcoder ();
+    assert (tcdr == this);
+    return {tcdr, tcdr->end_cp (dest.base ())};
   }
 
   /// \returns True if the input passed to operator() was valid.
@@ -1072,7 +1070,7 @@ private:
 
   template <typename InputIterator, typename OutputIterator>
   OutputIterator copy (InputIterator first, InputIterator last, OutputIterator dest) {
-    (void)std::for_each (first, last, [this, &dest] (char32_t c) { dest = to_out_ (c, dest); });
+    (void)std::for_each (first, last, [this, &dest] (char32_t const code_unit) { dest = to_out_ (code_unit, dest); });
     return dest;
   }
 };
@@ -1134,16 +1132,15 @@ public:
   /// Call once the entire input sequence has been fed to operator(). This
   /// function ensures that the sequence did not end with a partial code point.
   ///
-  /// \tparam OutputIterator  An output iterator type to which value of type
-  ///   output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto t = dest.transcoder ();
-    assert (t == this);
-    return {t, t->end_cp (dest.base ())};
+    auto tcdr = dest.transcoder ();
+    assert (tcdr == this);
+    return {tcdr, tcdr->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-32.
@@ -1276,23 +1273,23 @@ public:
     return result;
   }
 
-  friend constexpr bool operator== (iterator const& x, iterator const& y)
+  friend constexpr bool operator== (iterator const& lhs, iterator const& rhs)
     requires std::equality_comparable<std::ranges::iterator_t<View>>
   {
-    return x.current_ == y.current_;
+    return lhs.current_ == rhs.current_;
   }
 
-  friend constexpr std::ranges::range_rvalue_reference_t<View> iter_move (iterator const& it) noexcept (
-      noexcept (std::ranges::iter_move (it.current_))) {
-    return std::ranges::iter_move (it.current_);
+  friend constexpr std::ranges::range_rvalue_reference_t<View> iter_move (iterator const& iter) noexcept (
+      noexcept (std::ranges::iter_move (iter.current_))) {
+    return std::ranges::iter_move (iter.current_);
   }
 
-  friend constexpr void iter_swap (iterator const& x,
-                                   iterator const& y) noexcept (noexcept (std::ranges::iter_swap (x.current_,
-                                                                                                  y.current_)))
+  friend constexpr void iter_swap (iterator const& lhs,
+                                   iterator const& rhs) noexcept (noexcept (std::ranges::iter_swap (lhs.current_,
+                                                                                                    rhs.current_)))
     requires std::indirectly_swappable<std::ranges::iterator_t<View>>
   {
-    return std::ranges::iter_swap (x.current_, y.current_);
+    return std::ranges::iter_swap (lhs.current_, rhs.current_);
   }
 
 private:
@@ -1301,7 +1298,8 @@ private:
 
   class state {
   public:
-    constexpr explicit state (std::ranges::iterator_t<View> const& it) : next_{it}, valid_{out_.end (), out_.end ()} {}
+    constexpr explicit state (std::ranges::iterator_t<View> const& iter)
+        : next_{iter}, valid_{out_.end (), out_.end ()} {}
     constexpr state () : state{std::ranges::iterator_t<View>{}} {}
 
     [[nodiscard]] constexpr bool empty () const noexcept { return valid_.empty (); }
@@ -1374,7 +1372,7 @@ public:
   constexpr explicit sentinel (transcode_view& parent) : end_{std::ranges::end (parent.base_)} {}
   constexpr std::ranges::sentinel_t<View> base () const { return end_; }
   /// \brief Compares and iterator and sential for equality.
-  friend constexpr bool operator== (iterator const& x, sentinel const& y) { return x.current_ == y.end_; }
+  friend constexpr bool operator== (iterator const& lhs, sentinel const& rhs) { return lhs.current_ == rhs.end_; }
 
 private:
   std::ranges::sentinel_t<View> end_{};
@@ -1390,8 +1388,8 @@ public:
 };
 
 template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::viewable_range Range>
-constexpr auto operator| (Range&& r, transcode_range_adaptor<FromEncoding, ToEncoding> const& adaptor) {
-  return adaptor (std::forward<Range> (r));
+constexpr auto operator| (Range&& range, transcode_range_adaptor<FromEncoding, ToEncoding> const& adaptor) {
+  return adaptor (std::forward<Range> (range));
 }
 
 }  // end namespace views::transcode
