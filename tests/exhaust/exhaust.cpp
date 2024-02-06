@@ -59,7 +59,7 @@ void check_each_code_point () {
 #if ICUBABY_HAVE_RANGES
     dest_it = std::ranges::copy (encoded, dest_it).out;
 #else
-    dest_it = std::copy (std::begin (encoded), std::end (encoded), dest_it));
+    dest_it = std::copy (std::begin (encoded), std::end (encoded), dest_it);
 #endif  // ICUBABY_HAVE_RANGES
     (void)decode.end_cp (dest_it);
 
