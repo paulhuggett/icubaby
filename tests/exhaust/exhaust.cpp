@@ -98,7 +98,7 @@ void check_all_code_points () {
   // 2. Run the complete set of code points through the encoder.
   std::vector<typename Decoder::input_type> encoded;
 
-  auto encoded_it = icubaby::iterator{&decode, std::back_inserter (encoded)};
+  auto encoded_it = icubaby::iterator{&encode, std::back_inserter (encoded)};
 #if ICUBABY_HAVE_RANGES
   encoded_it = std::ranges::copy (all, encoded_it).out;
 #else
@@ -145,49 +145,32 @@ void check_all_code_points () {
   }
 }
 
+template <typename ToEncoding, typename FromEncoding>
+std::vector<ToEncoding> convert (std::vector<FromEncoding> const& input) {
+  std::vector<ToEncoding> output;
+  auto out_inserter = std::back_inserter (output);
+#if ICUBABY_HAVE_RANGES
+  auto range = input | icubaby::ranges::transcode<FromEncoding, ToEncoding>;
+  (void)std::ranges::copy (range, out_inserter);
+  assert (range.well_formed ());
+#else
+  icubaby::transcoder<FromEncoding, ToEncoding> converter;
+  (void)converter.end_cp (
+      std::copy (std::begin (input), std::end (input), icubaby::iterator{&converter, out_inserter}));
+  assert (converter.well_formed ());
+#endif  // ICUBABY_HAVE_RANGES
+  return output;
+}
+
 void check_utf8_to_16 () {
   // 1. Start with the set of all valid UTF-32 code points.
   std::vector<char32_t> const all = all_code_points ();
-
   // 2. Convert the complete set of code points to UTF-8.
-  std::vector<icubaby::char8> all8a;
-#if ICUBABY_HAVE_RANGES
-  auto range_32_to_8 = all | icubaby::ranges::transcode<char32_t, icubaby::char8>;
-  (void)std::ranges::copy (range_32_to_8, std::back_inserter (all8a));
-  assert (range_32_to_8.well_formed ());
-#else
-  icubaby::t32_8 convert32_8;
-  (void)convert32_8.end_cp (
-      std::copy (std::begin (all), std::end (all), icubaby::iterator{&convert32_8, std::back_inserter (all8a)}));
-  assert (convert32_8.well_formed ());
-#endif  // ICUBABY_HAVE_RANGES
-
+  std::vector<icubaby::char8> const all8a = convert<icubaby::char8> (all);
   // 3. Convert the UTF-8 stream from step 2 to UTF-16.
-  std::vector<char16_t> all16;
-#if ICUBABY_HAVE_RANGES
-  auto range_8_to_16 = all8a | icubaby::ranges::transcode<icubaby::char8, char16_t>;
-  (void)std::ranges::copy (range_8_to_16, std::back_inserter (all16));
-  assert (range_8_to_16.well_formed ());
-#else
-  icubaby::t8_16 convert8_16;
-  (void)convert8_16.end_cp (
-      std::copy (std::begin (all8a), std::end (all8a), icubaby::iterator{&convert8_16, std::back_inserter (all16)}));
-  assert (convert8_16.well_formed ());
-#endif  // ICUBABY_HAVE_RANGES
-
+  std::vector<char16_t> const all16 = convert<char16_t> (all8a);
   // 4. Convert the UTF-16 collection from step 3 to UTF-8.
-  std::vector<icubaby::char8> all8b;
-#if ICUBABY_HAVE_RANGES
-  auto range_16_to_8 = all8a | icubaby::ranges::transcode<char16_t, icubaby::char8>;
-  (void)std::ranges::copy (range_16_to_8, std::back_inserter (all8b));
-  assert (range_16_to_8.well_formed ());
-#else
-  icubaby::t16_8 convert16_8;
-  (void)convert16_8.end_cp (
-      std::copy (std::begin (all16), std::end (all16), icubaby::iterator{&convert16_8, std::back_inserter (all8b)}));
-  assert (convert16_8.well_formed ());
-#endif  // ICUBABY_HAVE_RANGES
-
+  std::vector<icubaby::char8> const all8b = convert<icubaby::char8> (all16);
   // 5. Compare the results of step 2 and step 4.
   assert (std::equal (std::begin (all8a), std::end (all8a), std::begin (all8b), std::end (all8b)));
 }
