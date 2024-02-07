@@ -31,6 +31,16 @@
 #define HAVE_SPAN (0)
 #endif
 
+#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L
+#define HAVE_RANGES (1)
+#else
+#define HAVE_RANGES (0)
+#endif
+
+#if HAVE_RANGES
+#include <ranges>
+#endif
+
 #if HAVE_SPAN
 #include <span>
 #endif
@@ -62,7 +72,17 @@ bool loud_mode_enabled (std::span<char *> const argv) {
   if (argv.size () < 2U) {
     return false;
   }
+#if HAVE_RANGES
+  return std::ranges::any_of (argv | std::views::drop (1), is_loud);
+#else
   return std::any_of (argv.begin () + 1, argv.end (), is_loud);
+#endif
+}
+bool loud_mode_enabled (char **first, char **last) {
+  if (last < first) {
+    return false;
+  }
+  return loud_mode_enabled (std::span<char *>{first, last});
 }
 #else
 bool loud_mode_enabled (char **first, char **last) {
@@ -119,14 +139,8 @@ int main (int argc, char **argv) {
     // Unless the user enables "loud mode" by passing the appropriate switch, we
     // silence much of google test/mock's output so that we only see detailed
     // information about tests that fail.
-#if HAVE_SPAN
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    bool const loud = loud_mode_enabled (std::span<char *> (argv, argv + argc));
-#else
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    bool const loud = loud_mode_enabled (argv, argv + argc);
-#endif  // HAVE_SPAN
-    if (!loud) {
+    if (!loud_mode_enabled (argv, argv + argc)) {
       // Remove the default listener
       auto &listeners = UnitTest::GetInstance ()->listeners ();
       auto *const default_printer = listeners.Release (listeners.default_result_printer ());
