@@ -28,7 +28,7 @@ add_executable (icubaby-unittests
   test_utility.cpp
   typed_test.hpp
 )
-setup_target (icubaby-unittests)
+setup_target (icubaby-unittests PEDANTIC $<NOT:$<BOOL:${ICUBABY_FUZZTEST}>>)
 target_link_libraries (icubaby-unittests PUBLIC icubaby)
 
 target_compile_options (
