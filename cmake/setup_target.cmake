@@ -24,7 +24,19 @@
 include (CheckCXXCompilerFlag)
 
 function (setup_target target)
-  set (clang_options
+  cmake_parse_arguments (
+    arg # prefix
+    "" # options
+    "PEDANTIC" # one-value-keywords
+    "" # multi-value-keywords
+    ${ARGN}
+  )
+  # PEDANTIC defaults to "Yes".
+  if ("${arg_PEDANTIC}" STREQUAL "")
+    set (arg_PEDANTIC "Yes")
+  endif ()
+
+  set (clang_warning_options
     -Weverything
     -Wno-c++14-extensions
     -Wno-c++20-compat
@@ -36,22 +48,22 @@ function (setup_target target)
     -Wno-padded
     -Wno-undef
   )
-  set (gcc_options
+  # Some clang warning switches are not available in all versions of the compiler.
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang$")
+    check_cxx_compiler_flag (-Wno-unsafe-buffer-usage CLANG_W_UNSAFE_BUFFER_USAGE)
+    list (APPEND clang_warning_options $<$<BOOL:${CLANG_W_UNSAFE_BUFFER_USAGE}>:-Wno-unsafe-buffer-usage>)
+  endif ()
+
+  set (gcc_warning_options
     -Wall
     -Wextra
     -pedantic
   )
-  set (msvc_options
+  set (msvc_warning_options
     -W4
     -wd4324 # 4324: structure was padded due to alignment specifier
     -wd4068 # 4068: unknown pragma
   )
-
-  # Some clang warning switches are available in all versions of the compiler.
-  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang$")
-    check_cxx_compiler_flag (-Wno-unsafe-buffer-usage CLANG_W_UNSAFE_BUFFER_USAGE)
-    list (APPEND clang_options $<$<BOOL:${CLANG_W_UNSAFE_BUFFER_USAGE}>:-Wno-unsafe-buffer-usage>)
-  endif ()
 
   if (ICUBABY_WERROR)
     list (APPEND clang_options -Werror)
@@ -70,16 +82,24 @@ function (setup_target target)
     list (APPEND gcc_options -fsanitize=undefined -fsanitize=address -fno-sanitize-recover)
   endif ()
 
-  target_compile_features (${target} PUBLIC $<IF:$<BOOL:${ICUBABY_CXX17}>,cxx_std_17,cxx_std_20>)
+  list (APPEND clang_options $<$<BOOL:${arg_PEDANTIC}>:${clang_warning_options}>)
+  list (APPEND gcc_options   $<$<BOOL:${arg_PEDANTIC}>:${gcc_warning_options}>)
+  list (APPEND msvc_options  $<$<BOOL:${arg_PEDANTIC}>:${msvc_warning_options}>)
+
   target_compile_options (${target} PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:IntelLLVM>>:${clang_options}>
     $<$<CXX_COMPILER_ID:GNU>:${gcc_options}>
     $<$<CXX_COMPILER_ID:MSVC>:${msvc_options}>
   )
   target_compile_definitions (${target} PUBLIC ICUBABY_FUZZTEST=$<BOOL:${ICUBABY_FUZZTEST}>)
+  target_compile_features (${target} PUBLIC $<IF:$<BOOL:${ICUBABY_CXX17}>,cxx_std_17,cxx_std_20>)
   target_link_options (${target} PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:IntelLLVM>>:${clang_options}>
     $<$<CXX_COMPILER_ID:GNU>:${gcc_options}>
     $<$<CXX_COMPILER_ID:MSVC>:>
   )
+
 endfunction (setup_target)
+
+
+add_custom_target(genexdebug COMMAND ${CMAKE_COMMAND} -E echo "$<NOT:$<BOOL:Yes>>")
