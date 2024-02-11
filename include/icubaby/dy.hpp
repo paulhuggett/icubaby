@@ -63,7 +63,12 @@ UTF-16 (LE)     FF FE
 UTF-32 (BE)     00 00 FE FF
 UTF-32 (LE)     FF FE 00 00
 */
-template <unicode_char_type ToEncoding> class runtime_transcoder {
+#if ICUBABY_HAVE_CONCEPTS
+template <unicode_char_type ToEncoding>
+#else
+template <typename ToEncoding>
+#endif  // ICUBABY_HAVE_CONCEPTS
+class runtime_transcoder {
 public:
   using input_type = std::byte;
   using output_type = ToEncoding;
