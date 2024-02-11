@@ -22,6 +22,7 @@
 
 add_executable (icubaby-unittests
   encoded_char.hpp
+  test_dy.cpp
   test_u8.cpp
   test_u16.cpp
   test_u32.cpp
