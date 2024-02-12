@@ -1,6 +1,7 @@
 #ifndef ICUBABY_DY_HPP
 #define ICUBABY_DY_HPP
 
+#include <algorithm>
 #include <bit>
 #include <variant>
 
@@ -18,42 +19,6 @@ enum class endian { little = 0, big = 1, native = little };
 #error "Can't determine endianness of the target system"
 #endif
 static_assert (endian::native == endian::big || endian::native == endian::little, "Endianness must be big or little.");
-
-constexpr std::uint_least32_t byte_swap (std::uint_least32_t value) {
-  return static_cast<std::uint_least32_t> (((value & 0xFF000000) >> 24) | ((value & 0x00FF0000) >> 8) |
-                                           ((value & 0x0000FF00) << 8) | ((value & 0x000000FF) << 24));
-}
-constexpr std::uint_least16_t byte_swap (std::uint_least16_t value) {
-  return static_cast<std::uint_least16_t> (((value & 0x00FF) << 8) | ((value & 0xFF00) >> 8));
-}
-constexpr std::uint_least32_t to_big_endian (std::uint_least32_t value) {
-  if constexpr (endian::native == endian::big) {
-    return value;
-  } else {
-    return byte_swap (value);
-  }
-}
-constexpr std::uint_least16_t to_big_endian (std::uint_least16_t value) {
-  if constexpr (endian::native == endian::big) {
-    return value;
-  } else {
-    return byte_swap (value);
-  }
-}
-constexpr std::uint_least32_t to_little_endian (std::uint_least32_t value) {
-  if constexpr (endian::native == endian::little) {
-    return value;
-  } else {
-    return byte_swap (value);
-  }
-}
-constexpr std::uint_least16_t to_little_endian (std::uint_least16_t value) {
-  if constexpr (endian::native == endian::little) {
-    return value;
-  } else {
-    return byte_swap (value);
-  }
-}
 
 /*
 Encoding        Representation (hexadecimal)
@@ -73,11 +38,21 @@ public:
   using input_type = std::byte;
   using output_type = ToEncoding;
 
+  enum class encoding {
+    unknown,
+    utf8,
+    utf16be,
+    utf16le,
+    utf32be,
+    utf32le,
+  };
+
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator operator() (input_type value, OutputIterator dest) noexcept {
     switch (state_) {
     case states::start:
+      buffer_pos_ = std::begin (buffer_);
       *(buffer_pos_++) = value;
       if (value == std::byte{0xEF}) {
         state_ = states::utf8_bom_byte2;
@@ -88,6 +63,7 @@ public:
       } else if (value == std::byte{0x00}) {
         state_ = states::utf32_or_16_be_bom_byte2;
       } else {
+        state_ = states::run8_start;
       }
       break;
     case states::utf8_bom_byte2:
@@ -96,46 +72,58 @@ public:
         state_ = states::utf8_bom_byte3;
       } else {
         // Default input encoding. Emit buffer.
+        state_ = states::run8_start;
       }
       break;
     case states::utf8_bom_byte3:
       if (value == std::byte{0xBF}) {
-        transcoder_.template emplace<t8_type> ();
+        // A complete UTF-8 BOM. Drop the buffer contents and start decoding as UTF-8.
+        (void)transcoder_.template emplace<t8_type> ();
+        encoding_ = encoding::utf8;
         state_ = states::run8;
         buffer_pos_ = std::begin (buffer_);
       } else {
         // Default input encoding. Emit buffer.
         *(buffer_pos_++) = value;
+        state_ = states::run8_start;
       }
       break;
     case states::utf16_be_bom_byte2:
       if (value == std::byte{0xFF}) {
-        transcoder_.template emplace<t16_type> ();
+        (void)transcoder_.template emplace<t16_type> ();
+        encoding_ = encoding::utf16be;
         state_ = states::run_16_bit_big_endian_first_byte;
         buffer_pos_ = std::begin (buffer_);
       } else {
         // Default input encoding. Emit buffer.
         *(buffer_pos_++) = value;
+        state_ = states::run8_start;
       }
       break;
 
     case states::utf32_or_16_le_bom_byte2:
       if (value == std::byte{0xFE}) {
-        transcoder_.template emplace<t16_type> ();
+        (void)transcoder_.template emplace<t16_type> ();
+        encoding_ = encoding::utf16le;
         state_ = states::run_16_bit_little_endian_first_byte;
         buffer_pos_ = std::begin (buffer_);
       } else if (value == std::byte{0xFF}) {
         // FIXME: could be UTF32LE.
+      } else {
+        // Default input encoding. Emit buffer.
+        *(buffer_pos_++) = value;
+        state_ = states::run8_start;
       }
       break;
+
     case states::utf32_or_16_be_bom_byte2:
 
-    case states::byte3:
-    case states::byte4: break;
-
+    case states::run8_start:
+      dest = this->run8_start (dest);
+      [[fallthrough]];
     case states::run8:
       assert (std::holds_alternative<t8_type> (transcoder_));
-      dest = std::get<t8_type> (transcoder_) (static_cast<icubaby::char8> (value), dest);
+      dest = std::get<t8_type> (transcoder_) (static_cast<char8> (value), dest);
       break;
 
     case states::run_16_bit_big_endian_first_byte:
@@ -165,14 +153,30 @@ public:
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator end_cp (OutputIterator dest) noexcept {
     return std::visit (
-        [&dest] (auto& arg) {
+        [this, &dest] (auto& arg) {
           if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
-            return dest;
+            return run8_start (dest);
           } else {
             return arg.end_cp (dest);
           }
         },
         transcoder_);
+  }
+
+  [[nodiscard]] bool well_formed () const {
+    return std::visit (
+        [] (auto& arg) {
+          if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
+            return true;
+          } else {
+            return arg.well_formed ();
+          }
+        },
+        transcoder_);
+  }
+
+  [[nodiscard]] encoding selected_encoding () const noexcept {
+    return encoding_;
   }
 
 private:
@@ -183,8 +187,8 @@ private:
     utf16_be_bom_byte2,
     utf32_or_16_le_bom_byte2,
     utf32_or_16_be_bom_byte2,
-    byte3,
-    byte4,
+
+    run8_start,
     run8,
 
     run_16_bit_big_endian_first_byte,
@@ -195,13 +199,27 @@ private:
   };
   states state_ = states::start;
   using buffer_type = std::array<std::byte, 4>;
-  buffer_type buffer_;
+  buffer_type buffer_{};
   buffer_type::iterator buffer_pos_ = std::begin (buffer_);
 
   using t8_type = transcoder<icubaby::char8, ToEncoding>;
   using t16_type = transcoder<char16_t, ToEncoding>;
   using t32_type = transcoder<char32_t, ToEncoding>;
   std::variant<std::monostate, t8_type, t16_type, t32_type> transcoder_;
+  encoding encoding_ = encoding::unknown;
+
+  template <typename OutputIterator>
+  ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
+  OutputIterator run8_start (OutputIterator dest) noexcept {
+    assert (std::holds_alternative<std::monostate> (transcoder_));
+    auto & trans = transcoder_.template emplace<t8_type> ();
+    encoding_ = encoding::utf8;
+    auto const first = std::begin (buffer_);
+    std::for_each (first, buffer_pos_, [&trans, &dest] (std::byte value) { dest = trans (static_cast<char8> (value), dest); });
+    buffer_pos_ = first;
+    state_ = states::run8;
+    return dest;
+  }
 };
 
 }  // end namespace icubaby
