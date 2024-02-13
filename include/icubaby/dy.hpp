@@ -47,7 +47,11 @@ public:
   using input_type = std::byte;
   using output_type = ToEncoding;
 
+#if ICUBABY_HAVE_CONCEPTS
   template <std::output_iterator<output_type> OutputIterator>
+#else
+  template <typename OutputIterator>
+#endif
   OutputIterator operator() (input_type value, OutputIterator dest) noexcept {
     switch (state_) {
     case states::start:
@@ -245,7 +249,12 @@ public:
     return dest;
   }
 
-  template <std::output_iterator<output_type> OutputIterator> OutputIterator end_cp (OutputIterator dest) noexcept {
+#if ICUBABY_HAVE_CONCEPTS
+  template <std::output_iterator<output_type> OutputIterator>
+#else
+  template <typename OutputIterator>
+#endif
+  OutputIterator end_cp (OutputIterator dest) noexcept {
     return std::visit (
         [this, &dest] (auto& arg) {
           if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
@@ -257,7 +266,11 @@ public:
         transcoder_);
   }
 
+#if ICUBABY_HAVE_CONCEPTS
   template <std::output_iterator<output_type> OutputIterator>
+#else
+  template <typename OutputIterator>
+#endif
   constexpr iterator<runtime_transcoder, OutputIterator> end_cp (iterator<runtime_transcoder, OutputIterator> dest) {
     auto tcdr = dest.transcoder ();
     assert (tcdr == this);

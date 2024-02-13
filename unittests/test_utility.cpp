@@ -254,7 +254,7 @@ TYPED_TEST (CjkUnifiedIdeographCodePoints, Index) {
   EXPECT_EQ (end, icubaby::index (begin, end, size_t{4}));
 }
 
-#if ICUBABY_FUZZTEST
+#if ICUBABY_FUZZTEST && ICUBABY_HAVE_RANGES
 
 template <typename InputEncoding> static void LengthRangeAndIteratorSentinel (std::vector<InputEncoding> const& input) {
   auto const l1 = icubaby::length (std::begin (input), std::end (input));
@@ -276,4 +276,4 @@ static void LengthRangeAndIteratorSentinel32 (std::vector<char32_t> const& input
 }
 FUZZ_TEST (Index, LengthRangeAndIteratorSentinel32);
 
-#endif
+#endif  // ICUBABY_FUZZTEST && ICUBABY_HAVE_RANGES
