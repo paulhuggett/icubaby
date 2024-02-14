@@ -1,8 +1,8 @@
-#include "icubaby/dy.hpp"
+#include <gmock/gmock.h>
 
 #include <vector>
 
-#include <gmock/gmock.h>
+#include "icubaby/icubaby.hpp"
 #if ICUBABY_FUZZTEST
 #include "fuzztest/fuzztest.h"
 #endif

@@ -906,11 +906,7 @@ public:
       if (is_high_surrogate (code_unit)) {
         // A high surrogate code unit indicates that this is the first of a
         // high/low surrogate pair.
-        assert (code_unit >= first_high_surrogate);
-        auto const high_cu = code_unit - first_high_surrogate;
-        assert (high_cu < std::numeric_limits<decltype (high_)>::max ());
-        assert (high_cu < (1U << high_bits));
-        high_ = static_cast<uint_least16_t> (high_cu);
+        high_ = adjusted_high (code_unit);
         has_high_ = true;
         return dest;
       }
@@ -937,12 +933,17 @@ public:
     // a low surrogate gives REPLACEMENT CHARACTER followed by the second input
     // code point.
     *(dest++) = replacement_char;
-    if (!is_high_surrogate (code_unit)) {
-      *(dest++) = code_unit;
-      high_ = 0;
-      has_high_ = false;
-    }
     well_formed_ = false;
+    if (is_high_surrogate (code_unit)) {
+      // There was a high surrogate followed by a second high surrogate. Remember the later of the two.
+      high_ = adjusted_high (code_unit);
+      assert (has_high_);
+      return dest;
+    }
+
+    *(dest++) = code_unit;
+    high_ = 0;
+    has_high_ = false;
     return dest;
   }
 
@@ -994,18 +995,384 @@ private:
   /// true if the code units passed to operator() represent well formed UTF-16
   /// input, false otherwise.
   uint_least16_t well_formed_ : 1;
+
+  /// \brief This function returns a high surrogate value that can be stored in the high_ field.
+  ///
+  /// The high surrogate value is stored after the first_high_surrogate value has been subtracted. This reduces the
+  /// number of bits that we need to remember.
+  ///
+  /// \param code_unit A UYTF-16 code unit for which icubaby::is_high_surrogate() returns true.
+  /// \returns A high surrogate value that can be stored in the class's high_ field.
+  static std::uint_least16_t adjusted_high (std::uint_least16_t code_unit) noexcept {
+    assert (code_unit >= first_high_surrogate && "A high surrogate must be at least first_high_surrogate");
+    auto const high_cu = code_unit - first_high_surrogate;
+    assert (high_cu < std::numeric_limits<decltype (high_)>::max () && high_cu < (1U << high_bits) &&
+            "high_cu won't fit in the high_ field!");
+    return static_cast<uint_least16_t> (high_cu);
+  }
+};
+
+enum class encoding {
+  unknown,
+  utf8,
+  utf16be,
+  utf16le,
+  utf32be,
+  utf32le,
 };
 
 namespace details {
 
-template <typename From, typename To> class double_transcoder {
+// An alias template for a two-dimensional std::array
+template <typename T, std::size_t Row, std::size_t Col> using array2d = std::array<std::array<T, Col>, Row>;
+
+inline array2d<std::byte, 5, 4> const boms{{
+    {std::byte{0xFE}, std::byte{0xFF}},                                    // UTF-16 BE
+    {std::byte{0xFF}, std::byte{0xFE}},                                    // UTF-16 LE
+    {std::byte{0x00}, std::byte{0x00}, std::byte{0xFE}, std::byte{0xFF}},  // UTF-32 BE
+    {std::byte{0xFF}, std::byte{0xFE}, std::byte{0x00}, std::byte{0x00}},  // UTF-32 LE
+    {std::byte{0xEF}, std::byte{0xBB}, std::byte{0xBF}},                   // UTF-8
+}};
+
+}  // end namespace details
+
+#if ICUBABY_HAVE_CONCEPTS
+#define ICUBABY_CONCEPT_OUTPUT_ITERATOR(x) std::output_iterator<x>
+#else
+#define ICUBABY_CONCEPT_OUTPUT_ITERATOR(x) typename
+#endif
+
+#if ICUBABY_HAVE_CONCEPTS
+template <unicode_char_type ToEncoding>
+#else
+template <typename ToEncoding>
+#endif  // ICUBABY_HAVE_CONCEPTS
+class runtime_transcoder {
+public:
+  using input_type = std::byte;
+  using output_type = ToEncoding;
+
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator operator() (input_type value, OutputIterator dest) noexcept {
+    switch (state_) {
+    case states::start: dest = this->start_state (value, dest); break;
+    case states::utf8_bom_byte2:
+      buffer_[byte_no (state_)] = value;
+      // Start decoding as UTF-8. If we have a complete UTF-8 BOM drop it, otherwise copy the buffer to output.
+      dest = this->run8_start (value != details::boms[boms_index_from_state (state_)][byte_no (state_)], dest);
+      break;
+
+    case states::utf16_be_bom_byte1:
+      buffer_[byte_no (state_)] = value;
+      // We either have a complete UTF-16 BE BOM in which case we start transcoding or we default to UTF-8 emitting the
+      // bytes consumed so far.
+      dest = (value == details::boms[boms_index_from_state (state_)][byte_no (state_)]) ? this->run16_start (dest)
+                                                                                        : this->run8_start (true, dest);
+      break;
+
+    case states::utf32_or_16_le_bom_byte2:
+      if (value != std::byte{0x00}) {
+        dest = this->run16_start (dest);
+        state_ = states::run_16le_byte1;
+        buffer_[0] = value;
+        break;
+      }
+      [[fallthrough]];
+
+    case states::utf8_bom_byte1:
+    case states::utf32_or_16_le_bom_byte1:
+    case states::utf32_or_16_be_bom_byte1:
+    case states::utf32_be_bom_byte2:
+      buffer_[byte_no (state_)] = value;
+      if (value == details::boms[boms_index_from_state (state_)][byte_no (state_)]) {
+        state_ = next_byte (state_);
+      } else {
+        // Default input encoding. Emit buffer.
+        dest = this->run8_start (true, dest);
+      }
+      break;
+
+    case states::utf32_le_bom_byte3:
+    case states::utf32_be_bom_byte3:
+      buffer_[3] = value;
+      if (value == (is_little_endian (state_) ? std::byte{0x00} : std::byte{0xFF})) {
+        (void)transcoder_.template emplace<t32_type> ();
+        encoding_ = is_little_endian (state_) ? encoding::utf32le : encoding::utf32be;
+        state_ = set_run_mode (set_byte (state_, 0));
+      } else {
+        // Default input encoding. Emit buffer.
+        dest = this->run8_start (true, dest);
+      }
+      break;
+
+    case states::run_8:
+      assert (std::holds_alternative<t8_type> (transcoder_));
+      dest = std::get<t8_type> (transcoder_) (static_cast<char8> (value), dest);
+      break;
+
+    case states::run_16be_byte1:
+    case states::run_16le_byte1:
+      assert (std::holds_alternative<t16_type> (transcoder_));
+      dest =
+          std::get<t16_type> (transcoder_) (state_ == states::run_16be_byte1 ? char16_from_big_endian_buffer (value)
+                                                                             : char16_from_little_endian_buffer (value),
+                                            dest);
+      state_ = set_byte (state_, 0);
+      break;
+
+    case states::run_16be_byte0:
+    case states::run_16le_byte0:
+    case states::run_32be_byte0:
+    case states::run_32be_byte1:
+    case states::run_32be_byte2:
+    case states::run_32le_byte0:
+    case states::run_32le_byte1:
+    case states::run_32le_byte2:
+      buffer_[byte_no (state_)] = value;
+      state_ = next_byte (state_);
+      break;
+    case states::run_32be_byte3:
+    case states::run_32le_byte3:
+      assert (std::holds_alternative<t32_type> (transcoder_));
+      dest =
+          std::get<t32_type> (transcoder_) (state_ == states::run_32be_byte3 ? char32_from_big_endian_buffer (value)
+                                                                             : char32_from_little_endian_buffer (value),
+                                            dest);
+      state_ = set_byte (state_, 0);
+      break;
+    }
+    return dest;
+  }
+
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator end_cp (OutputIterator dest) noexcept {
+    return std::visit (
+        [this, &dest] (auto& arg) {
+          if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
+            return this->run8_start (true, dest);
+          } else {
+            return arg.end_cp (dest);
+          }
+        },
+        transcoder_);
+  }
+
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  constexpr iterator<runtime_transcoder, OutputIterator> end_cp (iterator<runtime_transcoder, OutputIterator> dest) {
+    auto tcdr = dest.transcoder ();
+    assert (tcdr == this);
+    return {tcdr, tcdr->end_cp (dest.base ())};
+  }
+
+  [[nodiscard]] bool well_formed () const {
+    return std::visit (
+        [] (auto const& arg) {
+          if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
+            return true;
+          } else {
+            return arg.well_formed ();
+          }
+        },
+        transcoder_);
+  }
+
+  [[nodiscard]] bool partial () const {
+    return std::visit (
+        [this] (auto const& arg) {
+          if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
+            return this->state_ != states::start;
+          } else {
+            return arg.partial ();
+          }
+        },
+        transcoder_);
+  }
+
+  [[nodiscard]] encoding selected_encoding () const noexcept { return encoding_; }
+
+private:
+  // +---+---+---+---+---+---+
+  // |   c   | e | r |   b   |
+  // +---+---+---+---+---+---+
+  // c : Encoding unknown(0), UTF-8(1), UTF-16(2), UTF-32(3).
+  // e : Big(0)/Little(1) endian
+  // r : Run/BOM.
+  // b : Byte Number (0-3)
+  static constexpr std::byte byte_no (std::uint_least8_t index) noexcept {
+    assert (index < 4U);
+    return static_cast<std::byte> (index);
+  }
+
+  static constexpr auto encoding_shift = 4U;
+  static constexpr auto endian_shift = 3U;
+  static constexpr auto run_shift = 2U;
+
+  static constexpr auto encoding_mask = std::byte{0b11 << encoding_shift};  // one of unknown or UTF-8/16/32.
+  static constexpr auto endian_mask = std::byte{1U << endian_shift};        // one of big_endian or little_endian.
+  static constexpr auto run_mask = std::byte{1U << run_shift};              // run or bom mode.
+  static constexpr auto byte_no_mask = std::byte{0b11};                     // values from 0-3.
+
+  static constexpr auto encoding_utf16 = std::byte{0b00 << encoding_shift};
+  static constexpr auto encoding_utf32 = std::byte{0b01 << encoding_shift};
+  static constexpr auto encoding_utf8 = std::byte{0b10 << encoding_shift};
+  static constexpr auto encoding_unknown = std::byte{0b11 << encoding_shift};
+
+  static constexpr auto bom_mode = std::byte{0};
+  static constexpr auto run_mode = run_mask;
+
+  static constexpr auto big_endian = std::byte{0};
+  static constexpr auto little_endian = endian_mask;
+
+  enum class states : std::uint_least8_t {
+    start = static_cast<std::uint_least8_t> (encoding_unknown | bom_mode | byte_no (0)),
+
+    utf8_bom_byte1 = static_cast<std::uint_least8_t> (encoding_utf8 | big_endian | bom_mode | byte_no (1U)),
+    utf8_bom_byte2 = static_cast<std::uint_least8_t> (encoding_utf8 | big_endian | bom_mode | byte_no (2U)),
+
+    utf16_be_bom_byte1 = static_cast<std::uint_least8_t> (encoding_utf16 | big_endian | bom_mode | byte_no (1U)),
+    utf32_be_bom_byte2 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | bom_mode | byte_no (2U)),
+    utf32_be_bom_byte3 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | bom_mode | byte_no (3U)),
+
+    utf32_or_16_be_bom_byte1 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | bom_mode | byte_no (1U)),
+
+    utf32_or_16_le_bom_byte1 =
+        static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | bom_mode | byte_no (1U)),
+    utf32_or_16_le_bom_byte2 =
+        static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | bom_mode | byte_no (2U)),
+    utf32_le_bom_byte3 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | bom_mode | byte_no (3U)),
+
+    run_8 = static_cast<std::uint_least8_t> (encoding_utf8 | big_endian | run_mode | byte_no (0U)),
+
+    run_16be_byte0 = static_cast<std::uint_least8_t> (encoding_utf16 | big_endian | run_mode | byte_no (0U)),
+    run_16be_byte1 = static_cast<std::uint_least8_t> (encoding_utf16 | big_endian | run_mode | byte_no (1U)),
+
+    run_16le_byte0 = static_cast<std::uint_least8_t> (encoding_utf16 | little_endian | run_mode | byte_no (0U)),
+    run_16le_byte1 = static_cast<std::uint_least8_t> (encoding_utf16 | little_endian | run_mode | byte_no (1U)),
+
+    run_32be_byte0 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | run_mode | byte_no (0U)),
+    run_32be_byte1 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | run_mode | byte_no (1U)),
+    run_32be_byte2 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | run_mode | byte_no (2U)),
+    run_32be_byte3 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | run_mode | byte_no (3U)),
+
+    run_32le_byte0 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | run_mode | byte_no (0U)),
+    run_32le_byte1 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | run_mode | byte_no (1U)),
+    run_32le_byte2 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | run_mode | byte_no (2U)),
+    run_32le_byte3 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | run_mode | byte_no (3U)),
+  };
+
+  static constexpr bool is_run_mode (states state) noexcept {
+    return (static_cast<std::underlying_type_t<states>> (state) & run_mask) != run_mode;
+  }
+  static constexpr bool is_little_endian (states state) noexcept {
+    return (static_cast<std::byte> (state) & endian_mask) == little_endian;
+  }
+  static constexpr std::uint_least8_t byte_no (states state) noexcept {
+    return static_cast<std::uint_least8_t> (static_cast<std::byte> (state) & byte_no_mask);
+  }
+  static constexpr states set_byte (states state, std::uint_least8_t byte_number) noexcept {
+    assert (byte_number < 4);
+    return static_cast<states> ((static_cast<std::byte> (state) & ~byte_no_mask) |
+                                static_cast<std::byte> (byte_number));
+  }
+  static constexpr states next_byte (states state) noexcept { return set_byte (state, byte_no (state) + 1); }
+
+  static constexpr states set_run_mode (states const state) noexcept {
+    assert ((static_cast<std::byte> (state) & run_mask) == bom_mode);
+    return static_cast<states> ((static_cast<std::byte> (state) & ~run_mask) | run_mode);
+  }
+
+  static constexpr std::size_t boms_index_from_state (states const state) noexcept {
+    auto const state_byte = static_cast<std::byte> (state);
+    assert (((state_byte & (encoding_mask | endian_mask)) >> endian_shift) == (state_byte >> endian_shift));
+    return static_cast<std::size_t> (state_byte >> endian_shift);
+  }
+
+  using t8_type = transcoder<icubaby::char8, ToEncoding>;
+  using t16_type = transcoder<char16_t, ToEncoding>;
+  using t32_type = transcoder<char32_t, ToEncoding>;
+
+  states state_ = states::start;
+  std::array<std::byte, 4> buffer_{};
+  encoding encoding_ = encoding::unknown;
+  std::variant<std::monostate, t8_type, t16_type, t32_type> transcoder_;
+
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator start_state (input_type value, OutputIterator dest) noexcept {
+    buffer_[0] = value;
+    if (value == std::byte{0xEF}) {
+      state_ = states::utf8_bom_byte1;
+    } else if (value == std::byte{0xFE}) {
+      state_ = states::utf16_be_bom_byte1;
+    } else if (value == std::byte{0xFF}) {
+      state_ = states::utf32_or_16_le_bom_byte1;
+    } else if (value == std::byte{0x00}) {
+      state_ = states::utf32_or_16_be_bom_byte1;
+    } else {
+      dest = this->run8_start (true, dest);
+    }
+    return dest;
+  }
+
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator run8_start (bool copy_buffer, OutputIterator dest) noexcept {
+    assert (std::holds_alternative<std::monostate> (transcoder_));
+    auto& trans = transcoder_.template emplace<t8_type> ();
+    encoding_ = encoding::utf8;
+    if (copy_buffer) {
+      auto const first = std::begin (buffer_);
+      (void)std::for_each (first, first + byte_no (state_) + 1,
+                           [&trans, &dest] (std::byte value) { dest = trans (static_cast<char8> (value), dest); });
+    }
+    state_ = states::run_8;
+    return dest;
+  }
+
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator run16_start (OutputIterator dest) noexcept {
+    (void)transcoder_.template emplace<t16_type> ();
+    encoding_ = is_little_endian (state_) ? encoding::utf16le : encoding::utf16be;
+    state_ = is_little_endian (state_) ? states::run_16le_byte0 : states::run_16be_byte0;
+    return dest;
+  }
+
+  constexpr char16_t char16_from_big_endian_buffer (input_type value) const noexcept {
+    return static_cast<char16_t> ((static_cast<std::uint_least16_t> (buffer_[0]) << 8) |
+                                  static_cast<std::uint_least16_t> (value));
+  }
+  constexpr char16_t char16_from_little_endian_buffer (input_type value) const noexcept {
+    return static_cast<char16_t> ((static_cast<std::uint_least16_t> (value) << 8) |
+                                  static_cast<std::uint_least16_t> (buffer_[0]));
+  }
+  constexpr char32_t char32_from_big_endian_buffer (input_type value) const noexcept {
+    return static_cast<char32_t> (
+        (static_cast<std::uint_least32_t> (buffer_[0]) << 24) | (static_cast<std::uint_least32_t> (buffer_[1]) << 16) |
+        (static_cast<std::uint_least32_t> (buffer_[2]) << 8) | static_cast<std::uint_least32_t> (value));
+  }
+  constexpr char32_t char32_from_little_endian_buffer (input_type value) const noexcept {
+    return static_cast<char32_t> (
+        (static_cast<std::uint_least32_t> (value << 24)) | (static_cast<std::uint_least32_t> (buffer_[2]) << 16) |
+        (static_cast<std::uint_least32_t> (buffer_[1]) << 8) | (static_cast<std::uint_least32_t> (buffer_[0])));
+  }
+};
+
+namespace details {
+
+/// The number of code units can be produced as the intermediate output from the triangulator's conversion to UTF-32.
+/// The maximum number of code units produced from a single input code unit varies if the input is malformed.
+template <typename From, typename To>
+struct triangulator_intermediate_code_units : public std::integral_constant<std::size_t, 1> {};
+template <typename To>
+struct triangulator_intermediate_code_units<char16_t, To> : public std::integral_constant<std::size_t, 2> {};
+
+/// \brief A "triangulator" converts from the From encoding to the To encoding via and intermediate UTF-32 encoding.
+template <typename From, typename To> class triangulator {
 public:
   /// The type of the code units consumed by this transcoder.
   using input_type = From;
   /// The type of the code units produced by this transcoder.
   using output_type = To;
 
-  /// Accepts a code unit in the source encoding (as given by double_transcoder::input_type). These are first converted
+  /// Accepts a code unit in the source encoding (as given by triangulator::input_type). These are first converted
   /// to UTF-32 and then to the output encoding (double_transcover::output_type). As output code units are generated,
   /// they are written to the output iterator \p dest.
   ///
@@ -1019,7 +1386,7 @@ public:
     // The (intermediate) output from the conversion to UTF-32. It's possible
     // for the transcoder to produce more than a single output code unit if the
     // input is malformed.
-    std::array<char32_t, 2> intermediate{};
+    std::array<char32_t, triangulator_intermediate_code_units<From, To>::value> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
     auto const begin = std::begin (intermediate);
     return copy (begin, to_inter_ (code_unit, begin), dest);
@@ -1034,10 +1401,13 @@ public:
   template <typename OutputIterator>
   ICUBABY_REQUIRES ((std::output_iterator<OutputIterator, output_type>))
   OutputIterator end_cp (OutputIterator dest) {
-    std::array<char32_t, 2> intermediate{};
+    std::array<char32_t, triangulator_intermediate_code_units<From, To>::value> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-    auto const begin = std::begin (intermediate);
-    return copy (begin, to_inter_.end_cp (begin), dest);
+    auto const first = std::begin (intermediate);
+    // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
+    auto const last = to_inter_.end_cp (first);
+    assert (last >= first && last <= std::end (intermediate));
+    return copy (first, last, dest);
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
@@ -1078,13 +1448,13 @@ private:
 }  // end namespace details
 
 /// Takes a sequence of UTF-8 code units and converts them to UTF-16.
-template <> class transcoder<char8, char16_t> : public details::double_transcoder<char8, char16_t> {};
+template <> class transcoder<char8, char16_t> : public details::triangulator<char8, char16_t> {};
 /// Takes a sequence of UTF-16 code units and converts them to UTF-8.
-template <> class transcoder<char16_t, char8> : public details::double_transcoder<char16_t, char8> {};
+template <> class transcoder<char16_t, char8> : public details::triangulator<char16_t, char8> {};
 /// Takes a sequence of UTF-8 code units and converts them to UTF-8.
-template <> class transcoder<char8, char8> : public details::double_transcoder<char8, char8> {};
+template <> class transcoder<char8, char8> : public details::triangulator<char8, char8> {};
 /// Takes a sequence of UTF-16 code units and converts them to UTF-16.
-template <> class transcoder<char16_t, char16_t> : public details::double_transcoder<char16_t, char16_t> {};
+template <> class transcoder<char16_t, char16_t> : public details::triangulator<char16_t, char16_t> {};
 /// Takes a sequence of UTF-32 code units and converts them to UTF-32.
 template <> class transcoder<char32_t, char32_t> {
 public:
@@ -1226,6 +1596,16 @@ private:
   mutable bool well_formed_ = true;
 };
 
+template <typename FromEncoding, typename ToEncoding>
+struct max_output_bytes : std::integral_constant<std::size_t, longest_sequence_v<ToEncoding>> {};
+
+/// The value six comes from the worst-case output which happens when converting a code-units
+/// char16_t{0xD902}, char16_t{0xFFFF} (that is a high surrogate followed by the maximum 16-bit value). This will
+/// cause the second invocation of the UTF-16 to UTF-8 transcoder to produce the REPLACEMENT CHAR and "Not a Character"
+/// code-points which are each 3 bytes when encoded as UTF-8.
+template <> struct max_output_bytes<char16_t, icubaby::char8> : std::integral_constant<std::size_t, 6> {};
+template <> struct max_output_bytes<char16_t, char32_t> : std::integral_constant<std::size_t, 2> {};
+
 /// \brief The iterator type of transcode_view.
 template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
@@ -1305,12 +1685,12 @@ private:
     [[nodiscard]] constexpr bool empty () const noexcept { return valid_.empty (); }
     /// Returns the first element from the range of code units forming the current code point.
     [[nodiscard]] constexpr auto& front () const noexcept {
-      assert (!valid_.empty ());
+      assert (!valid_.empty () && "There are no code units in the buffer");
       return valid_.front ();
     }
     /// Removes the first element from the range of code units forming the current code point.
     constexpr void advance () noexcept {
-      assert (!valid_.empty ());
+      assert (!valid_.empty () && "There are no code units in the buffer");
       (void)valid_.advance (1);
     }
 
@@ -1322,7 +1702,7 @@ private:
     constexpr std::ranges::iterator_t<View> fill (transcode_view const* parent);
 
   private:
-    using out_type = std::array<ToEncoding, longest_sequence_v<ToEncoding> * 2>;
+    using out_type = std::array<ToEncoding, max_output_bytes<FromEncoding, ToEncoding>::value>;
     using iterator = typename out_type::iterator;
 
     std::ranges::iterator_t<View> next_;
@@ -1349,13 +1729,14 @@ constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding,
   // container or we've run out of input.
   while (out_it == out_.begin () && next_ != input_end) {
     out_it = transcoder_ (*next_, out_it);
+    assert (out_it >= out_.begin () && out_it <= out_.end () && "out_ buffer overflow!");
     ++next_;
   }
   if (next_ == input_end) {
     // We've consumed the entire input so tell the transcoder and get any final output.
     out_it = transcoder_.end_cp (out_it);
   }
-  assert (out_it >= out_.begin () && out_it <= out_.end ());
+  assert (out_it >= out_.begin () && out_it <= out_.end () && "out_ buffer overflow!");
   if (!transcoder_.well_formed ()) {
     parent->well_formed_ = false;
   }
