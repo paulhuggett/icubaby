@@ -1043,6 +1043,8 @@ inline array2d<std::byte, 5, 4> const boms{{
 #define ICUBABY_CONCEPT_OUTPUT_ITERATOR(x) typename
 #endif
 
+/// The runtime_decoder is a variation on transcoders to be used when the input encoding is not known at compile-time. A
+/// leading byte-order-mark is interpreted if present to select the source encoding.
 #if ICUBABY_HAVE_CONCEPTS
 template <unicode_char_type ToEncoding>
 #else
@@ -1050,9 +1052,17 @@ template <typename ToEncoding>
 #endif  // ICUBABY_HAVE_CONCEPTS
 class runtime_transcoder {
 public:
+  /// The type of the code units consumed by this transcoder.
   using input_type = std::byte;
+  /// The type of the code units produced by this transcoder.
   using output_type = ToEncoding;
 
+  /// Accepts a byte for decoding. As output code units are generated, they are written to the output iterator \p dest.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param value  A byte of input.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type value, OutputIterator dest) noexcept {
     switch (state_) {
@@ -1145,6 +1155,12 @@ public:
     return dest;
   }
 
+  /// Call once the entire input sequence has been fed to operator(). This
+  /// function ensures that the sequence did not end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator end_cp (OutputIterator dest) noexcept {
     return std::visit (
@@ -1158,6 +1174,12 @@ public:
         transcoder_);
   }
 
+  /// Call once the entire input sequence has been fed to operator(). This
+  /// function ensures that the sequence did not end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<runtime_transcoder, OutputIterator> end_cp (iterator<runtime_transcoder, OutputIterator> dest) {
     auto tcdr = dest.transcoder ();
@@ -1165,6 +1187,7 @@ public:
     return {tcdr, tcdr->end_cp (dest.base ())};
   }
 
+  /// \returns True if the input represented well formed Unicode.
   [[nodiscard]] bool well_formed () const {
     return std::visit (
         [] (auto const& arg) {
@@ -1177,6 +1200,8 @@ public:
         transcoder_);
   }
 
+  /// \returns True if a partial code-point has been passed to operator() and
+  /// false otherwise.
   [[nodiscard]] bool partial () const {
     return std::visit (
         [this] (auto const& arg) {
