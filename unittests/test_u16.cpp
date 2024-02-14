@@ -223,10 +223,10 @@ TYPED_TEST (Utf16, HighSurrogateFollowedByHighLowPair) {
   EXPECT_TRUE (output.empty ());
 
   auto const& linear_b_syllable_b008_a = encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>;
-  static_assert (icubaby::is_high_surrogate (std::get<0> (linear_b_syllable_b008_a)),
-                 "The first code unit of linear_b_syllable_b008_a was expected to be a high surrogate");
-  static_assert (std::get<0> (linear_b_syllable_b008_a) != initial_code_unit,
-                 "Expected our second code unit to be different from the first");
+  ASSERT_TRUE (icubaby::is_high_surrogate (std::get<0> (linear_b_syllable_b008_a)))
+      << "The first code unit of linear_b_syllable_b008_a was expected to be a high surrogate";
+  ASSERT_TRUE (std::get<0> (linear_b_syllable_b008_a) != initial_code_unit)
+      << "Expected our second code unit to be different from the first";
   pos = transcoder (std::get<0> (linear_b_syllable_b008_a), pos);
   EXPECT_FALSE (transcoder.well_formed ()) << "high followed by high is not well formed input";
   EXPECT_TRUE (transcoder.partial ()) << "partial() should be true after a high surrogate";
