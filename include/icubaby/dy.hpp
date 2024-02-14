@@ -225,88 +225,93 @@ private:
   // e : Big(0)/Little(1) endian
   // r : Run/BOM.
   // b : Byte Number (0-3)
-  static constexpr uint_least8_t byte_no (std::uint_least8_t index) {
+  static constexpr std::byte byte_no (std::uint_least8_t index) {
     assert (index < 4U);
-    return index;
+    return static_cast<std::byte> (index);
   }
 
-  static constexpr auto encoding_mask = std::uint_least8_t{0b11'0'0'00};  // one of unknown or UTF-8/16/32.
-  static constexpr auto run_mask = std::uint_least8_t{0b00'0'1'00};       // run or bom mode.
-  static constexpr auto endian_mask = std::uint_least8_t{0b00'1'0'00};    // one of big_endian or little_endian.
-  static constexpr auto byte_no_mask = std::uint_least8_t{0b00'0'0'11};   // values from 0-3.
+  static constexpr auto encoding_shift = 4U;
+  static constexpr auto endian_shift = 3U;
+  static constexpr auto run_shift = 2U;
 
-  static constexpr auto encoding_endian_shift = 3U;
+  static constexpr auto encoding_mask = std::byte{0b11 << encoding_shift};  // one of unknown or UTF-8/16/32.
+  static constexpr auto endian_mask = std::byte{1U << endian_shift};        // one of big_endian or little_endian.
+  static constexpr auto run_mask = std::byte{1U << run_shift};              // run or bom mode.
+  static constexpr auto byte_no_mask = std::byte{0b11};                     // values from 0-3.
 
-  static constexpr auto encoding_utf16 = std::uint_least8_t{0b00'0'0'00};
-  static constexpr auto encoding_utf32 = std::uint_least8_t{0b01'0'0'00};
-  static constexpr auto encoding_utf8 = std::uint_least8_t{0b10'0'0'00};
-  static constexpr auto encoding_unknown = std::uint_least8_t{0b11'0'0'00};
+  static constexpr auto encoding_utf16 = std::byte{0b00 << encoding_shift};
+  static constexpr auto encoding_utf32 = std::byte{0b01 << encoding_shift};
+  static constexpr auto encoding_utf8 = std::byte{0b10 << encoding_shift};
+  static constexpr auto encoding_unknown = std::byte{0b11 << encoding_shift};
 
-  static constexpr auto bom_mode = std::uint_least8_t{0};
+  static constexpr auto bom_mode = std::byte{0};
   static constexpr auto run_mode = run_mask;
 
-  static constexpr auto big_endian = std::uint_least8_t{0};
+  static constexpr auto big_endian = std::byte{0};
   static constexpr auto little_endian = endian_mask;
 
   enum class states : std::uint_least8_t {
-    start = encoding_unknown | bom_mode | byte_no (0),
+    start = static_cast<std::uint_least8_t> (encoding_unknown | bom_mode | byte_no (0)),
 
-    utf8_bom_byte1 = encoding_utf8 | big_endian | bom_mode | byte_no (1U),
-    utf8_bom_byte2 = encoding_utf8 | big_endian | bom_mode | byte_no (2U),
+    utf8_bom_byte1 = static_cast<std::uint_least8_t> (encoding_utf8 | big_endian | bom_mode | byte_no (1U)),
+    utf8_bom_byte2 = static_cast<std::uint_least8_t> (encoding_utf8 | big_endian | bom_mode | byte_no (2U)),
 
-    utf16_be_bom_byte1 = encoding_utf16 | big_endian | bom_mode | byte_no (1U),
-    utf32_be_bom_byte2 = encoding_utf32 | big_endian | bom_mode | byte_no (2U),
-    utf32_be_bom_byte3 = encoding_utf32 | big_endian | bom_mode | byte_no (3U),
+    utf16_be_bom_byte1 = static_cast<std::uint_least8_t> (encoding_utf16 | big_endian | bom_mode | byte_no (1U)),
+    utf32_be_bom_byte2 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | bom_mode | byte_no (2U)),
+    utf32_be_bom_byte3 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | bom_mode | byte_no (3U)),
 
-    utf32_or_16_be_bom_byte1 = encoding_utf32 | big_endian | bom_mode | byte_no (1U),
+    utf32_or_16_be_bom_byte1 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | bom_mode | byte_no (1U)),
 
-    utf32_or_16_le_bom_byte1 = encoding_utf32 | little_endian | bom_mode | byte_no (1U),
-    utf32_or_16_le_bom_byte2 = encoding_utf32 | little_endian | bom_mode | byte_no (2U),
-    utf32_le_bom_byte3 = encoding_utf32 | little_endian | bom_mode | byte_no (3U),
+    utf32_or_16_le_bom_byte1 =
+        static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | bom_mode | byte_no (1U)),
+    utf32_or_16_le_bom_byte2 =
+        static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | bom_mode | byte_no (2U)),
+    utf32_le_bom_byte3 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | bom_mode | byte_no (3U)),
 
-    run_8 = encoding_utf8 | big_endian | run_mode | byte_no (0U),
+    run_8 = static_cast<std::uint_least8_t> (encoding_utf8 | big_endian | run_mode | byte_no (0U)),
 
-    run_16be_byte0 = encoding_utf16 | big_endian | run_mode | byte_no (0U),
-    run_16be_byte1 = encoding_utf16 | big_endian | run_mode | byte_no (1U),
+    run_16be_byte0 = static_cast<std::uint_least8_t> (encoding_utf16 | big_endian | run_mode | byte_no (0U)),
+    run_16be_byte1 = static_cast<std::uint_least8_t> (encoding_utf16 | big_endian | run_mode | byte_no (1U)),
 
-    run_16le_byte0 = encoding_utf16 | little_endian | run_mode | byte_no (0U),
-    run_16le_byte1 = encoding_utf16 | little_endian | run_mode | byte_no (1U),
+    run_16le_byte0 = static_cast<std::uint_least8_t> (encoding_utf16 | little_endian | run_mode | byte_no (0U)),
+    run_16le_byte1 = static_cast<std::uint_least8_t> (encoding_utf16 | little_endian | run_mode | byte_no (1U)),
 
-    run_32be_byte0 = encoding_utf32 | big_endian | run_mode | byte_no (0U),
-    run_32be_byte1 = encoding_utf32 | big_endian | run_mode | byte_no (1U),
-    run_32be_byte2 = encoding_utf32 | big_endian | run_mode | byte_no (2U),
-    run_32be_byte3 = encoding_utf32 | big_endian | run_mode | byte_no (3U),
+    run_32be_byte0 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | run_mode | byte_no (0U)),
+    run_32be_byte1 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | run_mode | byte_no (1U)),
+    run_32be_byte2 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | run_mode | byte_no (2U)),
+    run_32be_byte3 = static_cast<std::uint_least8_t> (encoding_utf32 | big_endian | run_mode | byte_no (3U)),
 
-    run_32le_byte0 = encoding_utf32 | little_endian | run_mode | byte_no (0U),
-    run_32le_byte1 = encoding_utf32 | little_endian | run_mode | byte_no (1U),
-    run_32le_byte2 = encoding_utf32 | little_endian | run_mode | byte_no (2U),
-    run_32le_byte3 = encoding_utf32 | little_endian | run_mode | byte_no (3U),
+    run_32le_byte0 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | run_mode | byte_no (0U)),
+    run_32le_byte1 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | run_mode | byte_no (1U)),
+    run_32le_byte2 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | run_mode | byte_no (2U)),
+    run_32le_byte3 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | run_mode | byte_no (3U)),
   };
 
   static constexpr bool is_run_mode (states state) {
     return (static_cast<std::underlying_type_t<states>> (state) & run_mask) != run_mode;
   }
   static constexpr bool is_little_endian (states state) {
-    return (static_cast<std::underlying_type_t<states>> (state) & endian_mask) == little_endian;
+    return (static_cast<std::byte> (state) & endian_mask) == little_endian;
   }
   static constexpr std::uint_least8_t byte_no (states state) {
-    return static_cast<std::underlying_type_t<states>> (state) & byte_no_mask;
+    return static_cast<std::uint_least8_t> (static_cast<std::byte> (state) & byte_no_mask);
   }
   static constexpr states set_byte (states state, std::uint_least8_t byte_number) {
     assert (byte_number < 4);
-    return static_cast<states> ((static_cast<std::underlying_type_t<states>> (state) & ~byte_no_mask) | byte_number);
+    return static_cast<states> (static_cast<std::uint_least8_t> (static_cast<std::byte> (state) & ~byte_no_mask) |
+                                byte_number);
   }
   static constexpr states next_byte (states state) { return set_byte (state, byte_no (state) + 1); }
 
-  static constexpr states set_run_mode (states state) {
-    assert ((static_cast<std::underlying_type_t<states>> (state) & run_mask) == bom_mode);
-    return static_cast<states> ((static_cast<std::underlying_type_t<states>> (state) & ~run_mask) | run_mode);
+  static constexpr states set_run_mode (states const state) noexcept {
+    assert ((static_cast<std::byte> (state) & run_mask) == bom_mode);
+    return static_cast<states> ((static_cast<std::byte> (state) & ~run_mask) | run_mode);
   }
 
-  static constexpr std::size_t boms_index_from_state (states state) {
-    auto value = static_cast<std::underlying_type_t<states>> (state);
-    assert (((value & (encoding_mask | endian_mask)) >> encoding_endian_shift) == (value >> encoding_endian_shift));
-    return value >> encoding_endian_shift;
+  static constexpr std::size_t boms_index_from_state (states const state) noexcept {
+    auto const state_byte = static_cast<std::byte> (state);
+    assert (((state_byte & (encoding_mask | endian_mask)) >> endian_shift) == (state_byte >> endian_shift));
+    return static_cast<std::size_t> (state_byte >> endian_shift);
   }
 
   using t8_type = transcoder<icubaby::char8, ToEncoding>;
