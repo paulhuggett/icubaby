@@ -75,6 +75,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <variant>
 
 /// \brief ICUBABY_CXX20 has value 1 when compiling with C++ 20 or later and 0
 ///   otherwise.
