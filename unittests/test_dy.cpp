@@ -14,7 +14,7 @@ namespace icubaby {
 // Teach Google Test how to display values of type icubaby::encoding.
 void PrintTo (encoding enc, std::ostream* os);
 void PrintTo (encoding enc, std::ostream* os) {
-  char const* str = "";
+  char const* str = "**error**";
   switch (enc) {
   case encoding::unknown: str = "unknown"; break;
   case encoding::utf8: str = "utf8"; break;

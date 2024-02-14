@@ -67,20 +67,7 @@ public:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type value, OutputIterator dest) noexcept {
     switch (state_) {
-    case states::start:
-      buffer_[0] = value;
-      if (value == std::byte{0xEF}) {
-        state_ = states::utf8_bom_byte1;
-      } else if (value == std::byte{0xFE}) {
-        state_ = states::utf16_be_bom_byte1;
-      } else if (value == std::byte{0xFF}) {
-        state_ = states::utf32_or_16_le_bom_byte1;
-      } else if (value == std::byte{0x00}) {
-        state_ = states::utf32_or_16_be_bom_byte1;
-      } else {
-        dest = this->run8_start (true, dest);
-      }
-      break;
+    case states::start: dest = this->start_state (value, dest); break;
     case states::utf8_bom_byte2:
       buffer_[byte_no (state_)] = value;
       // Start decoding as UTF-8. If we have a complete UTF-8 BOM drop it, otherwise copy the buffer to output.
@@ -298,8 +285,8 @@ private:
   }
   static constexpr states set_byte (states state, std::uint_least8_t byte_number) {
     assert (byte_number < 4);
-    return static_cast<states> (static_cast<std::uint_least8_t> (static_cast<std::byte> (state) & ~byte_no_mask) |
-                                byte_number);
+    return static_cast<states> ((static_cast<std::byte> (state) & ~byte_no_mask) |
+                                static_cast<std::byte> (byte_number));
   }
   static constexpr states next_byte (states state) { return set_byte (state, byte_no (state) + 1); }
 
@@ -322,6 +309,23 @@ private:
   std::array<std::byte, 4> buffer_{};
   encoding encoding_ = encoding::unknown;
   std::variant<std::monostate, t8_type, t16_type, t32_type> transcoder_;
+
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator start_state (input_type value, OutputIterator dest) noexcept {
+    buffer_[0] = value;
+    if (value == std::byte{0xEF}) {
+      state_ = states::utf8_bom_byte1;
+    } else if (value == std::byte{0xFE}) {
+      state_ = states::utf16_be_bom_byte1;
+    } else if (value == std::byte{0xFF}) {
+      state_ = states::utf32_or_16_le_bom_byte1;
+    } else if (value == std::byte{0x00}) {
+      state_ = states::utf32_or_16_be_bom_byte1;
+    } else {
+      dest = this->run8_start (true, dest);
+    }
+    return dest;
+  }
 
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator run8_start (bool copy_buffer, OutputIterator dest) noexcept {
