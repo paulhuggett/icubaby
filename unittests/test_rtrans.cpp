@@ -29,11 +29,25 @@ void PrintTo (encoding enc, std::ostream* os) {
 }  // end namespace icubaby
 
 // NOLINTNEXTLINE
+TEST (ByteTranscoder, Empty) {
+  std::vector<char32_t> output;
+  auto dest = std::back_inserter (output);
+
+  icubaby::byte_transcoder<char32_t> transcoder;
+  (void)transcoder.end_cp (dest);
+
+  EXPECT_FALSE (transcoder.partial ());
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_EQ (transcoder.selected_encoding (), icubaby::encoding::utf8);
+  EXPECT_THAT (output, ElementsAre ());
+  EXPECT_TRUE (output.empty ());
+}
+// NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf8BOM) {
   std::vector<char32_t> output;
   auto dest = std::back_inserter (output);
 
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   EXPECT_FALSE (transcoder.partial ());
   EXPECT_TRUE (transcoder.well_formed ());
   dest = transcoder (std::byte{0xEF}, dest);
@@ -64,7 +78,7 @@ TEST (ByteTranscoder, Utf8BOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf8MissingBOM) {
-  icubaby::runtime_transcoder<icubaby::char8> transcoder;
+  icubaby::byte_transcoder<icubaby::char8> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   dest = transcoder (std::byte{'A'}, dest);
@@ -78,7 +92,7 @@ TEST (ByteTranscoder, Utf8MissingBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf8FirstByteOfBOM) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   // EF A4 80 is U+F900 CJK COMBATIBILITY IDEOGRAPH-F900
@@ -96,8 +110,18 @@ TEST (ByteTranscoder, Utf8FirstByteOfBOM) {
   EXPECT_THAT (output, ElementsAre (char32_t{0xF900}, char32_t{'A'}, char32_t{'b'}, char32_t{'c'}));
 }
 // NOLINTNEXTLINE
+TEST (ByteTranscoder, Utf8FirstByteOfBOMOnly) {
+  icubaby::byte_transcoder<char32_t> transcoder;
+  std::vector<decltype (transcoder)::output_type> output;
+  (void)transcoder.end_cp (transcoder (std::byte{0xEF}, std::back_inserter (output)));
+
+  EXPECT_FALSE (transcoder.well_formed ());
+  EXPECT_EQ (transcoder.selected_encoding (), icubaby::encoding::utf8);
+  EXPECT_THAT (output, ElementsAre (icubaby::replacement_char));
+}
+// NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf8FirstTwoBytesOfBOM) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   // EF BB BC is U+FEFC ARABIC LIGATURE LAM WITH ALEF FINAL FORM
@@ -116,7 +140,7 @@ TEST (ByteTranscoder, Utf8FirstTwoBytesOfBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf16BigEndianBOM) {
-  icubaby::runtime_transcoder<icubaby::char8> transcoder;
+  icubaby::byte_transcoder<icubaby::char8> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   dest = transcoder (std::byte{0xFE}, dest);
@@ -138,7 +162,7 @@ TEST (ByteTranscoder, Utf16BigEndianBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf16FirstByteOfBigEndianBOM) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   // No legal UTF-8 sequence starts with 0xFE.
@@ -152,7 +176,7 @@ TEST (ByteTranscoder, Utf16FirstByteOfBigEndianBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf16LittleEndianBOM) {
-  icubaby::runtime_transcoder<icubaby::char8> transcoder;
+  icubaby::byte_transcoder<icubaby::char8> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   dest = transcoder (std::byte{0xFF}, dest);
@@ -174,7 +198,7 @@ TEST (ByteTranscoder, Utf16LittleEndianBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf16FirstByteOfLittleEndianBOM) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
@@ -188,7 +212,7 @@ TEST (ByteTranscoder, Utf16FirstByteOfLittleEndianBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf32BigEndianBOM) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
@@ -219,7 +243,7 @@ TEST (ByteTranscoder, Utf32BigEndianBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf32FirstByteOfBigEndianBOM) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
@@ -235,7 +259,7 @@ TEST (ByteTranscoder, Utf32FirstByteOfBigEndianBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf32FirstTwoBytesOfBigEndianBOM) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
@@ -252,7 +276,7 @@ TEST (ByteTranscoder, Utf32FirstTwoBytesOfBigEndianBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf32FirstThreeBytesOfBigEndianBOM) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
@@ -270,7 +294,7 @@ TEST (ByteTranscoder, Utf32FirstThreeBytesOfBigEndianBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf32LittleEndianBOM) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
@@ -301,7 +325,7 @@ TEST (ByteTranscoder, Utf32LittleEndianBOM) {
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf32FirstByteOfLittleEndianBOM) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
   // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
@@ -318,7 +342,7 @@ TEST (ByteTranscoder, Utf32FirstByteOfLittleEndianBOM) {
 
 #if ICUBABY_FUZZTEST
 static void ByteTranscoderNeverCrashes (std::vector<std::byte> const& input) {
-  icubaby::runtime_transcoder<char32_t> transcoder;
+  icubaby::byte_transcoder<char32_t> transcoder;
   std::vector<char32_t> output;
   (void)transcoder.end_cp (
       std::copy (std::begin (input), std::end (input), icubaby::iterator{&transcoder, std::back_inserter (output)}));
