@@ -215,24 +215,31 @@ TYPED_TEST (Utf16, HighSurrogateFollowedByHighLowPair) {
   auto& output = this->output_;
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
-  auto pos = transcoder (static_cast<char16_t> (icubaby::first_high_surrogate), std::back_inserter (output));
+  static constexpr auto initial_code_unit =
+      static_cast<char16_t> (static_cast<std::uint_least16_t> (icubaby::first_high_surrogate) + 1U);
+  auto pos = transcoder (initial_code_unit, std::back_inserter (output));
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_TRUE (transcoder.partial ());
   EXPECT_TRUE (output.empty ());
 
-  static_assert (
-      icubaby::is_high_surrogate (std::get<0> (encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>)));
-  pos = transcoder (std::get<0> (encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>), pos);
+  auto const& linear_b_syllable_b008_a = encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>;
+  ASSERT_TRUE (icubaby::is_high_surrogate (std::get<0> (linear_b_syllable_b008_a)))
+      << "The first code unit of linear_b_syllable_b008_a was expected to be a high surrogate";
+  ASSERT_TRUE (std::get<0> (linear_b_syllable_b008_a) != initial_code_unit)
+      << "Expected our second code unit to be different from the first";
+  pos = transcoder (std::get<0> (linear_b_syllable_b008_a), pos);
   EXPECT_FALSE (transcoder.well_formed ()) << "high followed by high is not well formed input";
   EXPECT_TRUE (transcoder.partial ()) << "partial() should be true after a high surrogate";
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
 
-  static_assert (
-      icubaby::is_low_surrogate (std::get<1> (encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>)));
-  pos = transcoder (std::get<1> (encoded_char_v<code_point::linear_b_syllable_b008_a, char16_t>), pos);
+  ASSERT_TRUE (icubaby::is_low_surrogate (std::get<1> (linear_b_syllable_b008_a)))
+      << "The second code unit of linear_b_syllable_b008_a was expected to be a low surrogate";
+  pos = transcoder (std::get<1> (linear_b_syllable_b008_a), pos);
   EXPECT_FALSE (transcoder.well_formed ()) << "high followed by high is not well formed input";
   EXPECT_FALSE (transcoder.partial ()) << "we saw high followed by low: a complete code point";
 
+  ASSERT_TRUE (linear_b_syllable_b008_a.size () == 2U)
+      << "Expected linear_b_syllable_b008_a to consist of 2 code units";
   (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());

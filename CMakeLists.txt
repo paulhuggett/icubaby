@@ -55,7 +55,9 @@ else ()
   setup_gtest ()
 endif (ICUBABY_FUZZTEST)
 
-add_library (icubaby INTERFACE "${icubaby_project_root}/include/icubaby/icubaby.hpp")
+add_library (icubaby INTERFACE
+  "${icubaby_project_root}/include/icubaby/icubaby.hpp"
+)
 target_include_directories (icubaby INTERFACE "${icubaby_project_root}/include")
 
 add_subdirectory (tests)
