@@ -296,14 +296,32 @@ template <typename T> struct is_unicode_char_type : std::bool_constant<details::
 /// \brief A helper variable template to simplify use of icubaby::is_unicode_char_type.
 template <typename T> inline constexpr bool is_unicode_char_type_v = is_unicode_char_type<T>::value;
 
+/// \brief Checks whether the argument is one of the unicode data source types
+///
+/// Provides the constant `value` which is equal to true, if T is one of the types which may contain unicode data. Otherwise, value is equal to false.
+/// \tparam T  The type to be checked.
+template <typename T> struct is_unicode_input_type : std::bool_constant<is_unicode_char_type_v<T> || std::is_same_v<T, std::byte>> {};
+
+/// \brief A helper variable template to simplify use of icubaby::is_unicode_input_type.
+template <typename T> inline constexpr bool is_unicode_input_v = is_unicode_input_type<T>::value;
+
 #if ICUBABY_HAVE_CONCEPTS
+
 /// \brief Checks whether the argument is one of the unicode character types
 ///
 /// The unicode_char_type concept defines the requires of a type that matches one of the types that denote a
 /// Unicode encoding.
 template <typename T>
 concept unicode_char_type = is_unicode_char_type_v<T>;
-#endif
+
+/// \brief Checks whether the argument is one of the unicode data source types
+///
+/// The unicode_char_type concept defines the requires of a type that matches one of the types that denote a
+/// Unicode data source.
+template <typename T>
+concept unicode_input = is_unicode_input_v<T>;
+
+#endif // ICUBABY_HAVE_CONCEPTS
 
 /// \brief Returns true if the code point \p code_point represents a UTF-16 high surrogate.
 ///
@@ -469,7 +487,7 @@ concept is_transcoder = requires (T tcdr) {
 
 #endif  // ICUBABY_HAVE_CONCEPTS
 
-/// A transcoder takes a sequence of one of more code-units in one Unicode
+/// A transcoder takes a sequence of zero or more bytes or code-units in one Unicode
 /// encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another.
 ///
 /// Each of the specializations of this template (there is one for each input/output combination) supplies
@@ -483,7 +501,7 @@ concept is_transcoder = requires (T tcdr) {
 /// - partial(). Indicates whether a "partial" code point has been passed to operator(). If true, one or more code
 ///   units are required to build the complete code point.
 #if ICUBABY_HAVE_CONCEPTS
-template <unicode_char_type From, unicode_char_type To> class transcoder;
+template <unicode_input From, unicode_char_type To> class transcoder;
 #else
 template <typename From, typename To> class transcoder;
 #endif  // ICUBABY_HAVE_CONCEPTS
@@ -1047,7 +1065,7 @@ inline array2d<std::byte, 5, 4> const boms{{
 
 /// The "byte transcoder" is a variation on the transcoder API to be used when the input encoding is not known at
 /// compile-time. A leading byte-order-mark is interpreted if present to select the source encoding.
-template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> class byte_transcoder {
+template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> class transcoder<std::byte, ToEncoding> {
 public:
   /// The type of the code units consumed by this transcoder.
   using input_type = std::byte;
@@ -1177,8 +1195,7 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  constexpr iterator<byte_transcoder<ToEncoding>, OutputIterator> end_cp (
-      iterator<byte_transcoder, OutputIterator> dest) {
+  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto tcdr = dest.transcoder ();
     assert (tcdr == this);
     return {tcdr, tcdr->end_cp (dest.base ())};
@@ -1333,9 +1350,14 @@ private:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   OutputIterator run16_start (OutputIterator dest) noexcept {
     assert (std::holds_alternative<std::monostate> (transcoder_));
-    transcoder_.template emplace<t16_type> ();
-    encoding_ = is_little_endian (state_) ? encoding::utf16le : encoding::utf16be;
-    state_ = is_little_endian (state_) ? states::run_16le_byte0 : states::run_16be_byte0;
+    (void)transcoder_.template emplace<t16_type> ();
+    if (is_little_endian (state_)) {
+      encoding_ = encoding::utf16le;
+      state_ = states::run_16le_byte0;
+    } else {
+      encoding_ = encoding::utf16be;
+      state_ = states::run_16be_byte0;
+    }
     return dest;
   }
 
@@ -1361,7 +1383,7 @@ private:
 
 // partial
 // ~~~~~~~
-template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> bool byte_transcoder<ToEncoding>::partial () const {
+template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> bool transcoder<std::byte, ToEncoding>::partial () const {
   return std::visit (
       [this] (auto const& arg) {
         if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
@@ -1375,7 +1397,7 @@ template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> bool byte_transcoder<ToE
 
 // well formed
 // ~~~~~~~~~~~
-template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> bool byte_transcoder<ToEncoding>::well_formed () const {
+template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> bool transcoder<std::byte, ToEncoding>::well_formed () const {
   return std::visit (
       [] (auto const& arg) {
         if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
@@ -1578,6 +1600,14 @@ using t32_16 = transcoder<char32_t, char16_t>;
 /// A shorter name for the UTF-32 to UTF-32 transcoder. This, of course,
 /// represents no change and is included for completeness.
 using t32_32 = transcoder<char32_t, char32_t>;
+
+/// A shorter name for the UTF-8 "byte transcoder" which consumes bytes in unknown input encoding and produces UTF-8.
+using tx_8 = transcoder<std::byte, char8>;
+/// A shorter name for the UTF-16 "byte transcoder" which consumes bytes in unknown input encoding and produces UTF-16.
+using tx_16 = transcoder<std::byte, char16_t>;
+/// A shorter name for the UTF-32 "byte transcoder" which consumes bytes in unknown input encoding and produces UTF-32.
+using tx_32 = transcoder<std::byte, char32_t>;
+
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
