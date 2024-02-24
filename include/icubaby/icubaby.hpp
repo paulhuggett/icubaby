@@ -1607,7 +1607,7 @@ namespace ranges {
 /// \tparam FromEncoding  The encoding using by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced by this range adaptor.
 /// \tparam View  The type of the underlying view.
-template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 class transcode_view : public std::ranges::view_interface<transcode_view<FromEncoding, ToEncoding, View>> {
 public:
@@ -1654,7 +1654,7 @@ template <> struct max_output_bytes<char16_t, icubaby::char8> : std::integral_co
 template <> struct max_output_bytes<char16_t, char32_t> : std::integral_constant<std::size_t, 2> {};
 
 /// \brief The iterator type of transcode_view.
-template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 class transcode_view<FromEncoding, ToEncoding, View>::iterator {
 public:
@@ -1665,6 +1665,7 @@ public:
 
   /// The type produced by this iterator.
   using value_type = ToEncoding;
+
   /// A type that can be used to identify distance between iterators.
   using difference_type = std::ranges::range_difference_t<View>;
 
@@ -1706,9 +1707,9 @@ public:
     return lhs.current_ == rhs.current_;
   }
 
-  friend constexpr std::ranges::range_rvalue_reference_t<View> iter_move (iterator const& iter) noexcept (
-      noexcept (std::ranges::iter_move (iter.current_))) {
-    return std::ranges::iter_move (iter.current_);
+  /// Obtains an rvalue reference from the iterator \p iter.
+  friend constexpr ToEncoding&& iter_move (iterator const& iter) noexcept {
+    return std::move (iter.state_.iter_move ());
   }
 
   friend constexpr void iter_swap (iterator const& lhs,
@@ -1735,6 +1736,12 @@ private:
       assert (!valid_.empty () && "There are no code units in the buffer");
       return valid_.front ();
     }
+    /// Obtains an rvalue reference to the first element in the output buffer.
+    [[nodiscard]] constexpr auto&& iter_move () noexcept {
+      assert (!valid_.empty () && "There are no code units in the buffer");
+      return std::ranges::iter_move (valid_.begin ());
+    }
+
     /// Removes the first element from the range of code units forming the current code point.
     constexpr void advance () noexcept {
       assert (!valid_.empty () && "There are no code units in the buffer");
@@ -1763,7 +1770,7 @@ private:
   mutable state state_{};
 };
 
-template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding, View>::iterator::state::fill (
     transcode_view const* parent) {
@@ -1792,7 +1799,7 @@ constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding,
 }
 
 /// \brief The sentinel type of transcode_view when the underlying view is not a common_range.
-template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 class transcode_view<FromEncoding, ToEncoding, View>::sentinel {
 public:
@@ -1808,21 +1815,21 @@ private:
 
 namespace views::transcode {
 
-template <unicode_char_type FromEncoding, unicode_char_type ToEncoding> class transcode_range_adaptor {
+template <unicode_input FromEncoding, unicode_char_type ToEncoding> class transcode_range_adaptor {
 public:
   template <std::ranges::viewable_range Range> constexpr auto operator() (Range&& range) const {
     return transcode_view<FromEncoding, ToEncoding, std::ranges::views::all_t<Range>>{std::forward<Range> (range)};
   }
 };
 
-template <unicode_char_type FromEncoding, unicode_char_type ToEncoding, std::ranges::viewable_range Range>
+template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::viewable_range Range>
 constexpr auto operator| (Range&& range, transcode_range_adaptor<FromEncoding, ToEncoding> const& adaptor) {
   return adaptor (std::forward<Range> (range));
 }
 
 }  // end namespace views::transcode
 
-template <unicode_char_type FromEncoding, unicode_char_type ToEncoding>
+template <unicode_input FromEncoding, unicode_char_type ToEncoding>
 inline constexpr auto transcode = views::transcode::transcode_range_adaptor<FromEncoding, ToEncoding>{};
 
 }  // end namespace ranges
