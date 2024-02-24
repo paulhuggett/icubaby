@@ -394,9 +394,8 @@ TEST (ByteTranscoder, Utf16BEAndIterMove) {
   std::vector<char32_t> output;
 
   auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
-  for (std::move_iterator<decltype (range)::iterator> first{range.begin ()}, last{range.end ()}; first != last;
-       ++first) {
-    output.emplace_back (iter_move (first));
+  for (std::move_iterator first{range.begin ()}, last{range.end ()}; first != last; ++first) {
+    (void)output.emplace_back (iter_move (first));
   }
   EXPECT_THAT (output, ElementsAre (char32_t{'A'}, char32_t{'b'}));
   EXPECT_TRUE (range.well_formed ());
