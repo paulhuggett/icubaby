@@ -1,4 +1,3 @@
-#include <iterator>
 // MIT License
 //
 // Copyright (c) 2022-2024 Paul Bowen-Huggett
@@ -23,7 +22,6 @@
 
 #include <gmock/gmock.h>
 
-#include <cstddef>
 #include <vector>
 
 #include "icubaby/icubaby.hpp"
@@ -388,11 +386,22 @@ TEST (ByteTranscoder, RangesUtf8BOM) {
   EXPECT_TRUE (range.well_formed ());
 }
 // NOLINTNEXTLINE
-TEST (ByteTranscoder, Utf16BEAndIterMove) {
+TEST (ByteTranscoder, RangesUtf16BE) {
   std::array const input{std::byte{0xFE}, std::byte{0xFF}, std::byte{0x00},
                          std::byte{'A'},  std::byte{0x00}, std::byte{'b'}};
   std::vector<char32_t> output;
 
+  auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
+  (void)std::ranges::copy (range, std::back_inserter (output));
+  EXPECT_THAT (output, ElementsAre (char32_t{'A'}, char32_t{'b'}));
+  EXPECT_TRUE (range.well_formed ());
+}
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, Utf16BEAndIterMove) {
+  std::array const input{std::byte{0xFE}, std::byte{0xFF}, std::byte{0x00},
+                         std::byte{'A'},  std::byte{0x00}, std::byte{'b'}};
+  std::vector<char32_t> output;
+  output.reserve (2);
   auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
   for (std::move_iterator first{range.begin ()}, last{range.end ()}; first != last; ++first) {
     (void)output.emplace_back (iter_move (first));

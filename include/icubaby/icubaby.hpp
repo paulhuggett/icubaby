@@ -1639,7 +1639,7 @@ public:
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
 
 private:
-  [[no_unique_address]] View base_ = View ();
+  ICUBABY_NO_UNIQUE_ADDRESS View base_ = View ();
   mutable bool well_formed_ = true;
 };
 
@@ -1675,7 +1675,9 @@ public:
     assert (state_.empty ());
     // Prime the input state so that a dereference of the iterator will yield the first of the
     // output code-units.
-    current_ = state_.fill (parent_);
+    if (current != std::ranges::end (parent_->base_)) {
+      current_ = state_.fill (parent_);
+    }
   }
 
   /// \brief Returns the underlying view
@@ -1704,42 +1706,52 @@ public:
   friend constexpr bool operator== (iterator const& lhs, iterator const& rhs)
     requires std::equality_comparable<std::ranges::iterator_t<View>>
   {
-    return lhs.current_ == rhs.current_;
-  }
-
-  /// Obtains an rvalue reference from the iterator \p iter.
-  friend constexpr ToEncoding&& iter_move (iterator const& iter) noexcept {
-    return std::move (iter.state_.iter_move ());
-  }
-
-  friend constexpr void iter_swap (iterator const& lhs,
-                                   iterator const& rhs) noexcept (noexcept (std::ranges::iter_swap (lhs.current_,
-                                                                                                    rhs.current_)))
-    requires std::indirectly_swappable<std::ranges::iterator_t<View>>
-  {
-    return std::ranges::iter_swap (lhs.current_, rhs.current_);
+    return lhs.current_ == rhs.current_ && lhs.parent_ == rhs.parent_;
   }
 
 private:
-  std::ranges::iterator_t<View> current_{};
-  transcode_view const* parent_ = nullptr;
-
   class state {
   public:
-    constexpr explicit state (std::ranges::iterator_t<View> const& iter)
-        : next_{iter}, valid_{out_.end (), out_.end ()} {}
-    constexpr state () : state{std::ranges::iterator_t<View>{}} {}
+    constexpr explicit state (std::ranges::iterator_t<View> iter)
+        : next_{std::move (iter)}, valid_{out_.end (), out_.end ()} {}
+    constexpr state (state const& rhs)
+        : next_{rhs.next_}, transcoder_{rhs.transcoder_}, out_{rhs.out_}, valid_{adjusted_subrange (out_, rhs)} {}
+    constexpr state (state&& rhs) noexcept
+        : next_{std::move (rhs.next_)},
+          transcoder_{std::move (rhs.transcoder_)},
+          out_{std::move (rhs.out_)},
+          valid_{adjusted_subrange (out_, rhs)} {}
 
+    constexpr state () : state{std::ranges::iterator_t<View>{}} {}
+    ~state () noexcept = default;
+
+    state& operator= (state const& rhs) {
+      if (&rhs != this) {
+        next_ = rhs.next_;
+        transcoder_ = rhs.transcoder_;
+        out_ = rhs.out_;
+        valid_ = adjusted_subrange (out_, rhs);
+      }
+      return *this;
+    }
+
+    state& operator= (state&& rhs) noexcept {
+      if (&rhs != this) {
+        next_ = std::move (rhs.next_);
+        transcoder_ = std::move (rhs.transcoder_);
+        out_ = std::move (rhs.out_);
+        valid_ = adjusted_subrange (out_, rhs);
+      }
+      return *this;
+    }
+
+    /// Returns true if the output buffer is empty and false otherwise.
     [[nodiscard]] constexpr bool empty () const noexcept { return valid_.empty (); }
+
     /// Returns the first element from the range of code units forming the current code point.
     [[nodiscard]] constexpr auto& front () const noexcept {
       assert (!valid_.empty () && "There are no code units in the buffer");
       return valid_.front ();
-    }
-    /// Obtains an rvalue reference to the first element in the output buffer.
-    [[nodiscard]] constexpr auto&& iter_move () noexcept {
-      assert (!valid_.empty () && "There are no code units in the buffer");
-      return std::ranges::iter_move (valid_.begin ());
     }
 
     /// Removes the first element from the range of code units forming the current code point.
@@ -1759,7 +1771,22 @@ private:
     using out_type = std::array<ToEncoding, max_output_bytes<FromEncoding, ToEncoding>::value>;
     using iterator = typename out_type::iterator;
 
+    /// Returns a subrange which references the \p out array to match the position of the subrange in the \p rhs
+    /// instance. This function is used to adjust the valid_ subrange so that it matches thta of another object when
+    /// copying or moving.
+    ///
+    /// \param out  The out_ array in the object being initialized.
+    /// \param other  The object from which we are copying or moving.
+    /// \returns  A subrange to be assigned to the valid_ field in the object being initialized.
+    static std::ranges::subrange<iterator> adjusted_subrange (out_type& out, state const& other) noexcept {
+      auto const out_begin = out.begin ();
+      auto const other_begin = other.out_.begin ();
+      return {out_begin + (other.valid_.begin () - other_begin), out_begin + (other.valid_.end () - other_begin)};
+    }
+
+    /// An iterator referencing the next input code-unit to be consumed.
     std::ranges::iterator_t<View> next_;
+    /// The transcoder used to convert a series of code-units in the source encoding to the destination encoding.
     transcoder<FromEncoding, ToEncoding> transcoder_;
     /// The container into which the transcoder's output will be written.
     out_type out_{};
@@ -1767,6 +1794,8 @@ private:
     /// produced when the view is dereferenced.
     std::ranges::subrange<iterator> valid_;
   };
+  std::ranges::iterator_t<View> current_{};
+  transcode_view const* parent_ = nullptr;
   mutable state state_{};
 };
 
@@ -1777,24 +1806,25 @@ constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding,
   auto result = next_;
   assert (this->empty () && "out_ was not empty when fill called");
 
-  auto out_it = out_.begin ();
+  auto const out_begin = out_.begin ();
+  auto out_it = out_begin;
   auto const input_end = std::ranges::end (parent->base_);
   // Loop until we've produced a code-point's worth of code-units in the out
   // container or we've run out of input.
-  while (out_it == out_.begin () && next_ != input_end) {
+  while (out_it == out_begin && next_ != input_end) {
     out_it = transcoder_ (*next_, out_it);
-    assert (out_it >= out_.begin () && out_it <= out_.end () && "out_ buffer overflow!");
+    assert (out_it >= out_begin && out_it <= out_.end () && "out_ buffer overflow!");
     ++next_;
   }
   if (next_ == input_end) {
     // We've consumed the entire input so tell the transcoder and get any final output.
     out_it = transcoder_.end_cp (out_it);
   }
-  assert (out_it >= out_.begin () && out_it <= out_.end () && "out_ buffer overflow!");
+  assert (out_it >= out_begin && out_it <= out_.end () && "out_ buffer overflow!");
   if (!transcoder_.well_formed ()) {
     parent->well_formed_ = false;
   }
-  valid_ = std::ranges::subrange<iterator>{out_.begin (), out_it};
+  valid_ = std::ranges::subrange<iterator>{out_begin, out_it};
   return result;
 }
 
@@ -1804,10 +1834,10 @@ template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges:
 class transcode_view<FromEncoding, ToEncoding, View>::sentinel {
 public:
   sentinel () = default;
-  constexpr explicit sentinel (transcode_view& parent) : end_{std::ranges::end (parent.base_)} {}
+  constexpr explicit sentinel (transcode_view const& parent) : end_{std::ranges::end (parent.base_)} {}
   constexpr std::ranges::sentinel_t<View> base () const { return end_; }
   /// \brief Compares and iterator and sential for equality.
-  friend constexpr bool operator== (iterator const& lhs, sentinel const& rhs) { return lhs.current_ == rhs.end_; }
+  friend constexpr bool operator== (iterator const& lhs, sentinel const& rhs) { return lhs.base () == rhs.end_; }
 
 private:
   std::ranges::sentinel_t<View> end_{};
