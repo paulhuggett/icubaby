@@ -96,6 +96,7 @@
 #endif
 
 /// \brief Defined as 1 if the standard library's __cpp_lib_ranges macro is available and 0 otherwise.
+/// \hideinitializer
 #ifdef __cpp_lib_ranges
 #define ICUBABY_CPP_LIB_RANGES_DEFINED (1)
 #else
@@ -103,12 +104,14 @@
 #endif
 
 /// \brief Tests for the availability of library support for C++ 20 ranges.
+/// \hideinitializer
 #define ICUBABY_HAVE_RANGES (ICUBABY_CPP_LIB_RANGES_DEFINED && __cpp_lib_ranges >= 201811L)
 #if ICUBABY_HAVE_RANGES
 #include <ranges>
 #endif
 
 /// \brief Defined as true if compiler and library support for concepts are available.
+/// \hideinitializer
 #ifdef __cpp_concepts
 #define ICUBABY_CPP_CONCEPTS_DEFINED (1)
 #else
@@ -116,6 +119,7 @@
 #endif
 
 /// \brief Defined as 1 if the standard library's __cpp_lib_concepts macro is available and 0 otherwise.
+/// \hideinitializer
 #ifdef __cpp_lib_concepts
 #define ICUBABY_CPP_LIB_CONCEPTS_DEFINED (1)
 #else
@@ -161,6 +165,7 @@
 namespace ICUBABY_INSIDE_NS {
 #endif
 
+/// \brief The namespace for the icubaby library.
 namespace icubaby {
 
 /// \brief Implementation details of the icubaby interface.
@@ -1029,18 +1034,19 @@ private:
   }
 };
 
+/// \brief An enumeration representing the encoding detected by transcoder<std::byte, X>.
 enum class encoding {
-  unknown,
-  utf8,
-  utf16be,
-  utf16le,
-  utf32be,
-  utf32le,
+  unknown, ///< No encoding has yet been determined.
+  utf8, ///< The detected encoding is UTF-8.
+  utf16be, ///< The detected encoding is big-endian UTF-16.
+  utf16le, ///< The detected encoding is little-endian UTF-16.
+  utf32be, ///< The detected encoding is big-endian UTF-32.
+  utf32le, ///< The detected encoding is little-endian UTF-32.
 };
 
 namespace details {
 
-// An alias template for a two-dimensional std::array
+/// An alias template for a two-dimensional std::array
 template <typename T, std::size_t Row, std::size_t Col> using array2d = std::array<std::array<T, Col>, Row>;
 
 inline array2d<std::byte, 5, 4> const boms{{
@@ -1053,6 +1059,8 @@ inline array2d<std::byte, 5, 4> const boms{{
 
 }  // end namespace details
 
+/// \brief Takes a sequence of bytes, determines their encoding and converts to a specified encoding.
+///
 /// The "byte transcoder" is a variation on the transcoder API to be used when the input encoding is not known at
 /// compile-time. A leading byte-order-mark is interpreted if present to select the source encoding.
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> class transcoder<std::byte, ToEncoding> {
@@ -1198,6 +1206,7 @@ public:
   /// false otherwise.
   [[nodiscard]] bool partial () const;
 
+  /// \returns The encoding of the input stream as detected by consuming an optional leading byte order mark. Initially ::icubaby::encoding::unknown.
   [[nodiscard]] encoding selected_encoding () const noexcept { return encoding_; }
 
 private:
@@ -1402,10 +1411,11 @@ template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> bool transcoder<std::byt
 
 namespace details {
 
-/// The number of code units can be produced as the intermediate output from the triangulator's conversion to UTF-32.
+/// \brief The maximum number of code units produced as the intermediate output from the triangulator's conversion to UTF-32.
 /// The maximum number of code units produced from a single input code unit varies if the input is malformed.
 template <typename From, typename To>
 struct triangulator_intermediate_code_units : public std::integral_constant<std::size_t, 1> {};
+/// \brief The maximum number of code units produced when converting from UTF-16.
 template <typename To>
 struct triangulator_intermediate_code_units<char16_t, To> : public std::integral_constant<std::size_t, 2> {};
 

@@ -1,9 +1,10 @@
 # icubaby
 
-A C++ Baby Library to Immediately Convert Unicode. A portable, header-only,
-dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use
-for converting sequences of text between any of the Unicode UTF encodings. It
-does not allocate dynamic memory and neither throws or catches exceptions.
+A C++ Baby Library to Immediately Convert Unicode. The icubaby library offers a
+portable, header-only, dependency-free, library for C++ 17 or later. Fast,
+minimal, and easy to use for converting sequences of text between any of the
+Unicode UTF encodings. It does not allocate dynamic memory and neither throws or
+catches exceptions.
 
 > icubaby is in no way related to the
 > [International Components for Unicode](https://icu.unicode.org) library!
@@ -23,19 +24,41 @@ does not allocate dynamic memory and neither throws or catches exceptions.
 C++ 17 [deprecated](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0618r0.html)
 the standard library's `<codecvt>` header file which contained its unicode
 conversion facets. Those features weren’t easy to use correctly but without
-them code is forced to look to other libraries.
+them code is forced to look to other libraries. icubaby is such a library that
+fulfills the role of converting between the expressions of Unicode. It is simple
+to use and exceptionally simple to integrate into a project.
+
+The library offers an API which converts to and from UTF-8, UTF-16, or UTF-32
+encodings. It can also consume a byte stream of where an optional
+[byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark) at the start of
+the stream identifies both the source encoding and byte-order.
+
+## Installation
+
+icubaby is entirely contained within a single header file. Installation can be
+as simple as copying that file ([include/icubaby/icubaby.hpp](include/icubaby/icubaby.hpp))
+into your project. It has no dependencies and self-configures to your environment.
 
 ## Usage
 
+icubaby uses four different types to express the different Unicode encodings that it supports:
+
+Type | Meaning |
+---- | ------- |
+`std::byte` | Encoding and byte-order is determined by the stream byte order mark
+`icubaby::char8` | UTF-8. `icubaby::char8` is defined as `char8_t` when the native type is available and `char` otherwise
+`char16_t` | UTF-16 host-native endian
+`char32_t` | UTF-32 host-native endian
+
 There are three ways to use the icubaby library depending on your needs:
 
-1. [C++ 20 Range Adaptor](#c-20-range-adaptor)
-1. [An iterator interface](#the-iterator-interface)
+1. [C++ 20 range adaptor](#c-20-range-adaptor)
+1. [Iterator interface](#the-iterator-interface)
 1. [Converting one code-unit at a time](#converting-one-code-unit-at-a-time)
 
 ### C++ 20 Range Adaptor
 
-C++ 20 introduces the ranges library which enables more composable and less
+C++ 20 introduced the ranges library for composable and less
 error-prone interaction with iterators and containers. In icubaby, we can
 transform a range of input values from one Unicode encoding to another using
 a single range adaptor:
@@ -49,7 +72,19 @@ std::ranges::copy(r, std::back_inserter(out));
 
 This code converts a single Unicode code-point 😀 (U+1F600 GRINNING FACE) from
 UTF-32 to UTF-16 and will copy two UTF-16 code-units (0xD83D and 0xDE00) into
-the `out` vector. See the [C++20 Range Adaptor documentation](https://paulhuggett.github.io/icubaby/cxx20-range-adaptor.html)
+the `out` vector.
+
+```cpp
+auto const in = std::array{std::byte{0xFE}, std::byte{0xFF}, std::byte{0x00},
+                           std::byte{'A'},  std::byte{0x00}, std::byte{'b'}};
+auto r = in | icubaby::ranges::transcode<std::byte, icubaby::char8>;
+std::vector<icubaby::char8> out;
+std::ranges::copy(r, std::back_inserter(out));
+```
+
+This snippet converts “Ab” (U+0041 LATIN CAPITAL LETTER A), (U+0042 LATIN SMALL LETTER B) from big-endian UTF-16 to UTF-8.
+
+See the [C++20 Range Adaptor documentation](https://paulhuggett.github.io/icubaby/cxx20-range-adaptor.html)
 for more details.
 
 ### The Iterator Interface
@@ -132,7 +167,7 @@ C++ 20 introduced `char8_t` as the type for UTF-8 character representation. Sinc
 
 ```cpp
 namespace icubaby {
-template <typename From, typename To>
+template <unicode_input From, unicode_char_type To>
 class transcoder {
 public:
   using input_type = From;
@@ -144,12 +179,13 @@ public:
   template <typename OutputIterator>
   OutputIterator end_cp (OutputIterator dest);
 
-  bool well_formed () const;
+  [[nodiscard]] constexpr bool well_formed () const noexcept;
+  [[nodiscard]] constexpr bool partial () const noexcept;
 };
 } // end namespace icubaby
 ```
 
-Where `From` and `To` are each any of `icubaby::char8`, `char16_t`, or `char32_t`.
+`To` any of `icubaby::char8`, `char16_t`, or `char32_t`. `From` adds `std::byte` to that list.
 
 It’s possible for `From` and `To` to be the same character type. This can be used to both validate and/or correct unchecked input such as data arriving at a network port.
 
@@ -157,7 +193,7 @@ It’s possible for `From` and `To` to be the same character type. This can be u
 
 Member type | Definition
 ----------- | -----------
-input_type  | The character type from which conversions will be performed. May be any of [`icubaby::char8`](#char8), `char16_t` or `char32_t`.
+input_type  | The character type from which conversions will be performed. May be any of `std::byte`, [`icubaby::char8`](#char8), `char16_t` or `char32_t`.
 output_type | The character type to which the transcoder will convert. May be any of [`icubaby::char8`](#char8), `char16_t` or `char32_t`.
 
 #### Member functions
@@ -226,10 +262,18 @@ The `dest` iterator one past the last element assigned.
 ##### well_formed
 
 ```cpp
-[[nodiscard]] constexpr bool well_formed () const;
+[[nodiscard]] constexpr bool well_formed () const noexcept;
 ```
 
 Returns true if the input was well formed, false otherwise.
+
+##### partial
+
+```cpp
+[[nodiscard]] constexpr bool partial () const noexcept;
+```
+
+Returns true if part of a multi code unit code point has been consumed, false otherwise.
 
 ### iterator
 

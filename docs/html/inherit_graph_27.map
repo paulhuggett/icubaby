@@ -1,0 +1,19 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,271,152,297"/>
+<area shape="rect" id="Node000001" href="$structicubaby_1_1details_1_1triangulator__intermediate__code__units.html" title="The maximum number of code units produced as the intermediate output from the triangulator&#39;s conversi..." alt="" coords="209,5,394,61"/>
+<area shape="poly" id="edge9_Node000000_Node000001" title=" " alt="" coords="86,255,102,215,126,166,158,115,198,71,214,59,217,64,201,75,162,119,130,169,107,217,91,257"/>
+<area shape="rect" id="Node000002" href="$structicubaby_1_1details_1_1triangulator__intermediate__code__units_3_01char16__t_00_01_to_01_4.html" title="The maximum number of code units produced when converting from UTF&#45;16." alt="" coords="209,85,394,141"/>
+<area shape="poly" id="edge10_Node000000_Node000002" title=" " alt="" coords="96,257,139,204,167,176,198,151,218,139,221,144,201,155,171,180,143,208,100,260"/>
+<area shape="rect" id="Node000003" href="$structicubaby_1_1longest__sequence_3_01char16__t_01_4.html" title="The number of code&#45;units in the longest legal UTF&#45;16 representation of a code&#45;point." alt="" coords="212,165,391,206"/>
+<area shape="poly" id="edge11_Node000000_Node000003" title=" " alt="" coords="113,261,199,216,230,204,232,209,201,221,115,265"/>
+<area shape="rect" id="Node000004" href="$structicubaby_1_1longest__sequence_3_01char32__t_01_4.html" title="The number of code&#45;units in the longest legal UTF&#45;32 representation of a code&#45;point." alt="" coords="212,230,391,271"/>
+<area shape="poly" id="edge12_Node000000_Node000004" title=" " alt="" coords="166,268,211,261,212,267,167,273"/>
+<area shape="rect" id="Node000005" href="$structicubaby_1_1longest__sequence_3_01char8_01_4.html" title="The number of code&#45;units in the longest legal UTF&#45;8 representation of a code&#45;point." alt="" coords="212,296,391,336"/>
+<area shape="poly" id="edge13_Node000000_Node000005" title=" " alt="" coords="167,294,212,300,211,306,166,299"/>
+<area shape="rect" id="Node000006" href="$structicubaby_1_1ranges_1_1max__output__bytes.html" title=" " alt="" coords="200,360,403,416"/>
+<area shape="poly" id="edge14_Node000000_Node000006" title=" " alt="" coords="117,302,201,345,227,357,225,362,199,350,114,307"/>
+<area shape="rect" id="Node000007" href="$structicubaby_1_1ranges_1_1max__output__bytes_3_01char16__t_00_01char32__t_01_4.html" title=" " alt="" coords="224,440,379,496"/>
+<area shape="poly" id="edge15_Node000000_Node000007" title=" " alt="" coords="98,309,141,367,169,398,201,426,225,440,223,445,198,430,166,402,137,370,94,312"/>
+<area shape="rect" id="Node000008" href="$structicubaby_1_1ranges_1_1max__output__bytes_3_01char16__t_00_01icubaby_1_1char8_01_4.html" title=" " alt="" coords="224,520,379,576"/>
+<area shape="poly" id="edge16_Node000000_Node000008" title=" " alt="" coords="90,310,105,353,128,405,160,459,201,506,225,522,222,526,198,510,156,462,124,408,100,355,85,312"/>
+</map>
