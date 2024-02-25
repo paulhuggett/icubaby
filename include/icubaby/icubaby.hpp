@@ -1746,7 +1746,11 @@ private:
     }
 
     /// Returns true if the output buffer is empty and false otherwise.
-    [[nodiscard]] constexpr bool empty () const noexcept { return valid_.empty (); }
+    [[nodiscard]] constexpr bool empty () const noexcept {
+      assert (valid_.begin () >= out_.begin () && valid_.end () <= out_.end () &&
+              "valid_ must point into the out_ array");
+      return valid_.empty ();
+    }
 
     /// Returns the first element from the range of code units forming the current code point.
     [[nodiscard]] constexpr auto& front () const noexcept {
