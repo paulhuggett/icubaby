@@ -362,6 +362,55 @@ TEST (ByteTranscoder, Utf32FirstByteOfLittleEndianBOM) {
   EXPECT_THAT (output, ElementsAre (icubaby::replacement_char, 'A', 'b', 'c'));
 }
 
+#if ICUBABY_HAVE_RANGES
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, RangesNoBOM) {
+  std::array const input{std::byte{'H'}, std::byte{'e'}, std::byte{'l'}, std::byte{'l'}, std::byte{'o'}};
+  std::vector<char32_t> output;
+
+  auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
+  (void)std::ranges::copy (range, std::back_inserter (output));
+
+  EXPECT_THAT (output, ElementsAre (char32_t{'H'}, char32_t{'e'}, char32_t{'l'}, char32_t{'l'}, char32_t{'o'}));
+  EXPECT_TRUE (range.well_formed ());
+}
+// NOLINENEXTLINE
+TEST (ByteTranscoder, RangesUtf8BOM) {
+  std::array const input{std::byte{0xEF}, std::byte{0xBB}, std::byte{0xBF}, std::byte{'H'}, std::byte{'e'}, std::byte{'l'}, std::byte{'l'}, std::byte{'o'}};
+  std::vector<char32_t> output;
+
+  auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
+  (void)std::ranges::copy (range, std::back_inserter (output));
+
+  EXPECT_THAT (output, ElementsAre (char32_t{'H'}, char32_t{'e'}, char32_t{'l'}, char32_t{'l'}, char32_t{'o'}));
+  EXPECT_TRUE (range.well_formed ());
+}
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, RangesUtf16BE) {
+  std::array const input{std::byte{0xFE}, std::byte{0xFF}, std::byte{0x00},
+                         std::byte{'A'},  std::byte{0x00}, std::byte{'b'}};
+  std::vector<char32_t> output;
+
+  auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
+  (void)std::ranges::copy (range, std::back_inserter (output));
+  EXPECT_THAT (output, ElementsAre (char32_t{'A'}, char32_t{'b'}));
+  EXPECT_TRUE (range.well_formed ());
+}
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, Utf16BEAndIterMove) {
+  std::array const input{std::byte{0xFE}, std::byte{0xFF}, std::byte{0x00},
+                         std::byte{'A'},  std::byte{0x00}, std::byte{'b'}};
+  std::vector<char32_t> output;
+  output.reserve (2);
+  auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
+  for (std::move_iterator first{range.begin ()}, last{range.end ()}; first != last; ++first) {
+    (void)output.emplace_back (iter_move (first));
+  }
+  EXPECT_THAT (output, ElementsAre (char32_t{'A'}, char32_t{'b'}));
+  EXPECT_TRUE (range.well_formed ());
+}
+#endif  // ICUBABY_HAVE_RANGES
+
 #if ICUBABY_FUZZTEST
 static void ByteTranscoderNeverCrashes (std::vector<std::byte> const& input) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
@@ -369,5 +418,6 @@ static void ByteTranscoderNeverCrashes (std::vector<std::byte> const& input) {
   (void)transcoder.end_cp (
       std::copy (std::begin (input), std::end (input), icubaby::iterator{&transcoder, std::back_inserter (output)}));
 }
+// NOLINTNEXTLINE
 FUZZ_TEST (ByteTranscoder, ByteTranscoderNeverCrashes);
 #endif  // ICUBABY_FUZZTEST

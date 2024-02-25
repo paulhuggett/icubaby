@@ -101,5 +101,3 @@ function (setup_target target)
 
 endfunction (setup_target)
 
-
-add_custom_target(genexdebug COMMAND ${CMAKE_COMMAND} -E echo "$<NOT:$<BOOL:Yes>>")
