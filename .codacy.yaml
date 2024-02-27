@@ -5,4 +5,4 @@ engines:
     exclude_paths:
       - "unittests/**/*"
 exclude_paths:
-  - "doc/html/**/*"
+  - "docs/html/**/*"
