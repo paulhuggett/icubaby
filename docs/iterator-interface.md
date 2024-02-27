@@ -1,3 +1,6 @@
+---
+title: icubaby: The Iterator Interface
+---
 ### The Iterator Interface
 
 The `icubaby::iterator<>` class is an output iterator to which code units in the source encoding can be assigned. This will produce equivalent code units in the output encoding which are written to a second output iterator. This makes it straightforward to use standard library algorithms such as [`std::copy()`](https://en.cppreference.com/w/cpp/algorithm/copy) or [`std::ranges::copy()`](https://en.cppreference.com/w/cpp/algorithm/ranges/copy) with the library.

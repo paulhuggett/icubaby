@@ -1,0 +1,9 @@
+<map id="icubaby::transcoder&lt; char8, char8 &gt;" name="icubaby::transcoder&lt; char8, char8 &gt;">
+<area shape="rect" id="Node000001" title="Takes a sequence of UTF&#45;8 code units and converts them to UTF&#45;8." alt="" coords="512,39,648,79"/>
+<area shape="rect" id="Node000002" href="$classicubaby_1_1details_1_1triangulator.html" title=" " alt="" coords="279,39,463,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="478,56,512,56,512,62,478,62"/>
+<area shape="rect" id="Node000003" href="$classicubaby_1_1transcoder.html" title=" " alt="" coords="9,5,173,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="189,35,279,45,278,51,188,40"/>
+<area shape="rect" id="Node000004" href="$classicubaby_1_1transcoder.html" title=" " alt="" coords="5,71,177,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="192,77,278,67,278,72,192,82"/>
+</map>

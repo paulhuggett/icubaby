@@ -1,3 +1,6 @@
+---
+title: icubaby: C++ Range Adaptor
+---
 # C++ 20 Range Adaptor
 
 C++ 20 introduces the ranges library for more composable and less error-prone interaction with iterators and containers. In icubaby, we can transform a range of input values from one Unicode encoding to another using a single range adaptor:

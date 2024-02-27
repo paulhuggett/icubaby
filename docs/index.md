@@ -1,3 +1,6 @@
+---
+title: icubaby
+---
 # icubaby
 
 A C++ Baby Library to Immediately Convert Unicode. A portable, header-only, dependency-free, library for C++ 17 or later. Fast, minimal, and easy to use for converting sequences of text between any of the Unicode UTF encodings. It does not allocate dynamic memory and neither throws or catches exceptions.

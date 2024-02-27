@@ -1,3 +1,6 @@
+---
+title: icubaby: Explicit Conversion
+---
 # Explicit Conversion
 
 Let’s try converting a single Unicode emoji character 😀 (U+1F600 GRINNING FACE) expressed as four UTF-8 code units (0xF0, 0x9F, 0x98, 0x80) to UTF-16 (where it is the surrogate pair 0xD83D, 0xDE00).

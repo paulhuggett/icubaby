@@ -376,7 +376,8 @@ TEST (ByteTranscoder, RangesNoBOM) {
 }
 // NOLINENEXTLINE
 TEST (ByteTranscoder, RangesUtf8BOM) {
-  std::array const input{std::byte{0xEF}, std::byte{0xBB}, std::byte{0xBF}, std::byte{'H'}, std::byte{'e'}, std::byte{'l'}, std::byte{'l'}, std::byte{'o'}};
+  std::array const input{std::byte{0xEF}, std::byte{0xBB}, std::byte{0xBF}, std::byte{'H'},
+                         std::byte{'e'},  std::byte{'l'},  std::byte{'l'},  std::byte{'o'}};
   std::vector<char32_t> output;
 
   auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;

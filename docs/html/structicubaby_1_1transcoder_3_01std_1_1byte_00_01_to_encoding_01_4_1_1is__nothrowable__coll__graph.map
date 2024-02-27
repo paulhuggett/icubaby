@@ -1,0 +1,5 @@
+<map id="icubaby::transcoder&lt; std::byte, ToEncoding &gt;::is_nothrowable&lt; T &gt;" name="icubaby::transcoder&lt; std::byte, ToEncoding &gt;::is_nothrowable&lt; T &gt;">
+<area shape="rect" id="Node000001" title="A helper for ensuring that a type will not cause variant_ to become valueless by exception." alt="" coords="398,35,558,91"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,350,121"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="365,61,397,61,397,66,365,66"/>
+</map>
