@@ -1235,7 +1235,7 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> const& dest) {
+  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto tcdr = dest.transcoder ();
     assert (tcdr == this);
     return {tcdr, tcdr->end_cp (dest.base ())};
