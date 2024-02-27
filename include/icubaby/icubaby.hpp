@@ -1080,7 +1080,8 @@ namespace details {
 /// An alias template for a two-dimensional std::array
 template <typename T, std::size_t Row, std::size_t Col> using array2d = std::array<std::array<T, Col>, Row>;
 
-/// A two-dimensional array which contains the the bytes that contain the encoded value of U+FEFF BYTE ORDER MARK.
+/// \brief A two-dimensional array containing the bytes that make up the encoded value of U+FEFF BYTE ORDER MARK.
+///
 /// \note The indices of the outer array must agree with the [encoding_utf16](\ref transcoder-encoding_utf16),
 ///       [encoding_utf32](\ref transcoder-encoding_utf32), [encoding_utf8](\ref transcoder-encoding_utf8),
 ///       [big_endian](\ref transcoder-big_endian), and [little_endian](\ref transcoder-little_endian) constants from
@@ -1103,12 +1104,14 @@ inline array2d<std::byte, 5, 4> const boms{{
 /// compile-time. A leading byte-order-mark is interpreted if present to select the source encoding.
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> class transcoder<std::byte, ToEncoding> {
 public:
-  /// The type of the code units consumed by this transcoder.
+  /// The type of the values consumed by this transcoder.
   using input_type = std::byte;
   /// The type of the code units produced by this transcoder.
   using output_type = ToEncoding;
 
-  /// Accepts a byte for decoding. As output code units are generated, they are written to the output iterator \p dest.
+  /// \brief Accepts a byte for decoding.
+  ///
+  /// As output code units are generated, they are written to the output iterator \p dest.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param value  A byte of input.
@@ -1907,62 +1910,36 @@ private:
   /// the fill() function.
   class state {
   public:
-    constexpr explicit state (std::ranges::iterator_t<View> iter)
-        : next_{std::move (iter)}, valid_{out_.end (), out_.end ()} {}
-    constexpr state (state const& rhs)
-        : next_{rhs.next_}, transcoder_{rhs.transcoder_}, out_{rhs.out_}, valid_{adjusted_subrange (out_, rhs)} {}
-    constexpr state (state&& rhs) noexcept
-        : next_{std::move (rhs.next_)},
-          transcoder_{std::move (rhs.transcoder_)},
-          out_{std::move (rhs.out_)},
-          valid_{adjusted_subrange (out_, rhs)} {}
-
-    constexpr state () : state{std::ranges::iterator_t<View>{}} {}
-    ~state () noexcept = default;
-
-    state& operator= (state const& rhs) {
-      if (&rhs != this) {
-        next_ = rhs.next_;
-        transcoder_ = rhs.transcoder_;
-        out_ = rhs.out_;
-        valid_ = adjusted_subrange (out_, rhs);
-      }
-      return *this;
-    }
-
-    state& operator= (state&& rhs) noexcept {
-      if (&rhs != this) {
-        next_ = std::move (rhs.next_);
-        transcoder_ = std::move (rhs.transcoder_);
-        out_ = std::move (rhs.out_);
-        valid_ = adjusted_subrange (out_, rhs);
-      }
-      return *this;
-    }
+    /// \brief Initializes the state and primes the internal buffer with an initial code-point read from the input.
+    ///
+    /// \param iter  An iterator referencing the next element in the input range to be consumed.
+    constexpr explicit state (std::ranges::iterator_t<View> iter) : next_{std::move (iter)} {}
+    constexpr state () = default;
 
     /// Returns true if the output buffer is empty and false otherwise.
     [[nodiscard]] constexpr bool empty () const noexcept {
-      assert (valid_.begin () >= out_.begin () && valid_.end () <= out_.end () &&
-              "valid_ must point into the out_ array");
-      return valid_.empty ();
+      assert (first_ <= last_ && last_ <= out_.size () && "first_ and last_ must be valid indexes in the out_ array");
+      return first_ == last_;
     }
 
     /// Returns the first element from the range of code units forming the current code point.
     [[nodiscard]] constexpr auto& front () const noexcept {
-      assert (!valid_.empty () && "There are no code units in the buffer");
-      return valid_.front ();
+      assert (!this->empty () && "The out_ array must not be empty when front() is called");
+      return out_[first_];
     }
 
     /// Removes the first element from the range of code units forming the current code point.
     constexpr void advance () noexcept {
-      assert (!valid_.empty () && "There are no code units in the buffer");
-      (void)valid_.advance (1);
+      assert (!this->empty () && "The out_ array must not be empty when advance() is called");
+      ++first_;
     }
 
-    /// Consumes enough code-units from the base iterator to form a single code-point. The resulting
-    /// code-units in the output encoding can be sequentially accessed using the front() and
+    /// \brief Consumes enough code-units from the base iterator to form a single code-point.
+    ///
+    /// The resulting code-units in the output encoding can be sequentially accessed using the front() and
     /// advance() methods.
     ///
+    /// \param parent  The view from which input values are to be consumed.
     /// \returns The updated base iterator.
     constexpr std::ranges::iterator_t<View> fill (transcode_view const* parent);
 
@@ -1973,28 +1950,27 @@ private:
     /// Output buffer iterator type.
     using iterator = typename out_type::iterator;
 
-    /// Returns a subrange which references the \p out array to match the position of the subrange in the \p rhs
-    /// instance. This function is used to adjust the valid_ subrange so that it matches thta of another object when
-    /// copying or moving.
-    ///
-    /// \param out  The out_ array in the object being initialized.
-    /// \param other  The object from which we are copying or moving.
-    /// \returns  A subrange to be assigned to the valid_ field in the object being initialized.
-    static std::ranges::subrange<iterator> adjusted_subrange (out_type& out, state const& other) noexcept {
-      auto const out_begin = out.begin ();
-      auto const other_begin = other.out_.begin ();
-      return {out_begin + (other.valid_.begin () - other_begin), out_begin + (other.valid_.end () - other_begin)};
-    }
-
     /// An iterator referencing the next input code-unit to be consumed.
-    std::ranges::iterator_t<View> next_;
-    /// The transcoder used to convert a series of code-units in the source encoding to the destination encoding.
-    transcoder<FromEncoding, ToEncoding> transcoder_;
+    std::ranges::iterator_t<View> next_{};
     /// The container into which the transcoder's output will be written.
     out_type out_{};
-    /// The valid range of code units in the out_ container. Determines the code-units to be produced when the view is
-    /// dereferenced.
-    std::ranges::subrange<iterator> valid_;
+    /// The transcoder used to convert a series of code-units in the source encoding to the destination encoding.
+    transcoder<FromEncoding, ToEncoding> transcoder_;
+
+    /// The number of bits allocated for the first_ and last_ members.
+    /// Must be enough to represent all valid indexes in out_type.
+    static constexpr auto valid_range_bits = 4U;
+    static_assert (out_type{}.size () < std::size_t{1} << valid_range_bits,
+                   "There are not sufficient bits to represent indexes in out_type");
+
+    /// \brief The index of the start of the valid range of code units in the state::out_ container.
+    ///
+    /// Together with the last_ field, determines the code-units to be produced when the view is dereferenced.
+    std::uint_least8_t first_ : valid_range_bits = 0;
+    /// \brief The index one beyond the end of the the valid range of code units in the state::out_ container.
+    ///
+    /// Together with the last_ field, determines the code-units to be produced when the view is dereferenced.
+    std::uint_least8_t last_ : valid_range_bits = 0;
   };
   std::ranges::iterator_t<View> current_{};
   transcode_view const* parent_ = nullptr;
@@ -2026,7 +2002,8 @@ constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding,
   if (!transcoder_.well_formed ()) {
     parent->well_formed_ = false;
   }
-  valid_ = std::ranges::subrange<iterator>{out_begin, out_it};
+  first_ = std::uint_least8_t{0};
+  last_ = static_cast<std::uint_least8_t> (out_it - out_begin);
   return result;
 }
 
