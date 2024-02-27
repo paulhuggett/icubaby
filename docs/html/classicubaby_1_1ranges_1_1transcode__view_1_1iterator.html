@@ -77,8 +77,10 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;::iterator Class Reference</div></div>
@@ -89,7 +91,31 @@ $(function() {
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="icubaby_8hpp_source.html">icubaby.hpp</a>&gt;</code></p>
+<div class="dynheader">
+Collaboration diagram for icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;::iterator:</div>
+<div class="dyncontent">
+<div class="center"><img src="classicubaby_1_1ranges_1_1transcode__view_1_1iterator__coll__graph.png" border="0" usemap="#aicubaby_1_1ranges_1_1transcode__view_3_01_from_encoding_00_01_to_encoding_00_01_view_01_4_1_1iterator_coll__map" alt="Collaboration graph"/></div>
+<map name="aicubaby_1_1ranges_1_1transcode__view_3_01_from_encoding_00_01_to_encoding_00_01_view_01_4_1_1iterator_coll__map" id="aicubaby_1_1ranges_1_1transcode__view_3_01_from_encoding_00_01_to_encoding_00_01_view_01_4_1_1iterator_coll__map">
+<area shape="rect" title="The iterator type of transcode_view." alt="" coords="676,99,907,154"/>
+<area shape="rect" href="classicubaby_1_1ranges_1_1transcode__view.html" title="A range adaptor for lazily converting between Unicode encodings." alt="" coords="350,59,581,114"/>
+<area shape="poly" title=" " alt="" coords="597,100,676,110,675,115,596,105"/>
+<area shape="rect" title=" " alt="" coords="5,5,230,61"/>
+<area shape="poly" title=" " alt="" coords="245,50,350,66,349,71,245,55"/>
+<area shape="rect" title=" " alt="" coords="92,86,143,111"/>
+<area shape="poly" title=" " alt="" coords="158,94,349,88,349,93,158,100"/>
+<area shape="rect" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html" title="The state class is responsible for transforming the input values to output code units." alt="" coords="350,139,581,194"/>
+<area shape="poly" title=" " alt="" coords="596,148,675,138,676,143,597,153"/>
+<area shape="rect" href="classicubaby_1_1transcoder.html" title=" " alt="" coords="15,146,220,187"/>
+<area shape="poly" title=" " alt="" coords="235,164,349,164,349,169,235,169"/>
+</map>
+<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">state</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state class is responsible for transforming the input values to output code units.  <a href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:aa39d12d7e4c7dadc44ef5d5f64ee533d" id="r_aa39d12d7e4c7dadc44ef5d5f64ee533d"><td class="memItemLeft" align="right" valign="top"><a id="aa39d12d7e4c7dadc44ef5d5f64ee533d" name="aa39d12d7e4c7dadc44ef5d5f64ee533d"></a>
@@ -137,6 +163,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6d7f7ec6bfb7e922b3d041113d636e33" id="r_a6d7f7ec6bfb7e922b3d041113d636e33"><td class="memItemLeft" align="right" valign="top"><a id="a6d7f7ec6bfb7e922b3d041113d636e33" name="a6d7f7ec6bfb7e922b3d041113d636e33"></a>
 <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator.html">iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator++</b> (<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">int</a>)</td></tr>
 <tr class="separator:a6d7f7ec6bfb7e922b3d041113d636e33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a61ea01b8bb280fa34ac1d943bb77ebdf" id="r_a61ea01b8bb280fa34ac1d943bb77ebdf"><td class="memItemLeft" align="right" valign="top"><a id="a61ea01b8bb280fa34ac1d943bb77ebdf" name="a61ea01b8bb280fa34ac1d943bb77ebdf"></a>
+std::ranges::iterator_t&lt; View &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>current_</b> {}</td></tr>
+<tr class="separator:a61ea01b8bb280fa34ac1d943bb77ebdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3b03f9bf4b01e0ef4dda4eb37f7a1f0" id="r_ab3b03f9bf4b01e0ef4dda4eb37f7a1f0"><td class="memItemLeft" align="right" valign="top"><a id="ab3b03f9bf4b01e0ef4dda4eb37f7a1f0" name="ab3b03f9bf4b01e0ef4dda4eb37f7a1f0"></a>
+<a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">transcode_view</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a>  *&#160;</td><td class="memItemRight" valign="bottom"><b>parent_</b> = <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">nullptr</a></td></tr>
+<tr class="separator:ab3b03f9bf4b01e0ef4dda4eb37f7a1f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91731d60502a7bd4df257b0d3e3b1cbf" id="r_a91731d60502a7bd4df257b0d3e3b1cbf"><td class="memItemLeft" align="right" valign="top"><a id="a91731d60502a7bd4df257b0d3e3b1cbf" name="a91731d60502a7bd4df257b0d3e3b1cbf"></a>
+<a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">state</a>&#160;</td><td class="memItemRight" valign="bottom"><b>state_</b> {}</td></tr>
+<tr class="separator:a91731d60502a7bd4df257b0d3e3b1cbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>

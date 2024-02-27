@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['base_0',['base',['../classicubaby_1_1iterator.html#ac3a641295770b3b8b5868f1160e7e004',1,'icubaby::iterator::base()'],['../classicubaby_1_1ranges_1_1transcode__view.html#ae4a1a77de8a8e7c1f72be84f0acbe9d0',1,'icubaby::ranges::transcode_view::base() const &amp;'],['../classicubaby_1_1ranges_1_1transcode__view.html#a9d5a74911a74b4476092f9edfb051e52',1,'icubaby::ranges::transcode_view::base() &amp;&amp;'],['../classicubaby_1_1ranges_1_1transcode__view_1_1iterator.html#a2ff385c9ef7bb3fd0dd8e13488530caf',1,'icubaby::ranges::transcode_view::iterator::base() const &amp;noexcept'],['../classicubaby_1_1ranges_1_1transcode__view_1_1iterator.html#ac7d07ea0a69db91a07a815bbb7b3ddfe',1,'icubaby::ranges::transcode_view::iterator::base() &amp;&amp;']]],
-  ['begin_1',['begin',['../classicubaby_1_1ranges_1_1transcode__view.html#a7646f530ddd02425bcbb6888fd75e2e5',1,'icubaby::ranges::transcode_view']]]
+  ['adjusted_5fhigh_0',['adjusted_high',['../classicubaby_1_1transcoder_3_01char16__t_00_01char32__t_01_4.html#a0507c81d2954fdb7dcc3f61c09774a5d',1,'icubaby::transcoder&lt; char16_t, char32_t &gt;']]],
+  ['adjusted_5fsubrange_1',['adjusted_subrange',['../classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html#a0193177f0ad68a808d3f828f24ce6a3b',1,'icubaby::ranges::transcode_view::iterator::state']]],
+  ['advance_2',['advance',['../classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html#a4fd2b60e9f4685eb8e2d77857c04c1bf',1,'icubaby::ranges::transcode_view::iterator::state']]]
 ];

@@ -1,3 +1,8 @@
+domain: paulhuggett.github.io
+url: https://paulhuggett.github.io
+baseurl: /docs/
+repository: "paulhuggett/icubaby"
+
 theme: jekyll-theme-dinky
 markdown: kramdown
 kramdown:

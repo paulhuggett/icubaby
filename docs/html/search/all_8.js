@@ -1,11 +1,12 @@
 var searchData=
 [
-  ['make_0',['make',['../structicubaby_1_1details_1_1make.html',1,'icubaby::details']]],
-  ['make_3c_20t_2c_20ts_2e_2e_2e_20_3e_1',['make&lt; T, Ts... &gt;',['../structicubaby_1_1details_1_1make_3_01_t_00_01_ts_8_8_8_01_4.html',1,'icubaby::details']]],
-  ['make_3c_3e_2',['make&lt;&gt;',['../structicubaby_1_1details_1_1make_3_4.html',1,'icubaby::details']]],
-  ['make_5ft_3',['make_t',['../namespaceicubaby_1_1details.html#adbb34770895bcbd3253764c3dd1c2099',1,'icubaby::details']]],
-  ['max_5fcode_5fpoint_4',['max_code_point',['../namespaceicubaby.html#ae766eb318cb7c32d1a25b05c2a2a4a8a',1,'icubaby']]],
-  ['max_5foutput_5fbytes_5',['max_output_bytes',['../structicubaby_1_1ranges_1_1max__output__bytes.html',1,'icubaby::ranges']]],
-  ['max_5foutput_5fbytes_3c_20char16_5ft_2c_20char32_5ft_20_3e_6',['max_output_bytes&lt; char16_t, char32_t &gt;',['../structicubaby_1_1ranges_1_1max__output__bytes_3_01char16__t_00_01char32__t_01_4.html',1,'icubaby::ranges']]],
-  ['max_5foutput_5fbytes_3c_20char16_5ft_2c_20icubaby_3a_3achar8_20_3e_7',['max_output_bytes&lt; char16_t, icubaby::char8 &gt;',['../structicubaby_1_1ranges_1_1max__output__bytes_3_01char16__t_00_01icubaby_1_1char8_01_4.html',1,'icubaby::ranges']]]
+  ['last_5fhigh_5fsurrogate_0',['last_high_surrogate',['../namespaceicubaby.html#aaff16af9c65e113f64154763e01f53c9',1,'icubaby']]],
+  ['last_5flow_5fsurrogate_1',['last_low_surrogate',['../namespaceicubaby.html#aea038962c6a14a81e9db7802da791589',1,'icubaby']]],
+  ['length_2',['length',['../namespaceicubaby.html#a7dcd6d49cc93e0d72d6805e5040b53c3',1,'icubaby::length(Range &amp;&amp;range, Proj proj={})'],['../namespaceicubaby.html#a671eee084fedfbbcd556e0d77ae852bd',1,'icubaby::length(I first, S last, Proj proj={})']]],
+  ['little_5fendian_3',['little_endian',['../classicubaby_1_1transcoder_3_01std_1_1byte_00_01_to_encoding_01_4.html#a5da0ae402d8a97fe2e9de37e6f8ac950',1,'icubaby::transcoder&lt; std::byte, ToEncoding &gt;']]],
+  ['longest_5fsequence_4',['longest_sequence',['../structicubaby_1_1longest__sequence.html',1,'icubaby']]],
+  ['longest_5fsequence_3c_20char16_5ft_20_3e_5',['longest_sequence&lt; char16_t &gt;',['../structicubaby_1_1longest__sequence_3_01char16__t_01_4.html',1,'icubaby']]],
+  ['longest_5fsequence_3c_20char32_5ft_20_3e_6',['longest_sequence&lt; char32_t &gt;',['../structicubaby_1_1longest__sequence_3_01char32__t_01_4.html',1,'icubaby']]],
+  ['longest_5fsequence_3c_20char8_20_3e_7',['longest_sequence&lt; char8 &gt;',['../structicubaby_1_1longest__sequence_3_01char8_01_4.html',1,'icubaby']]],
+  ['longest_5fsequence_5fv_8',['longest_sequence_v',['../namespaceicubaby.html#a730d7c87639d8f1af683bbf9c76ac632',1,'icubaby']]]
 ];

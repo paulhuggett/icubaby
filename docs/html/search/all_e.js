@@ -1,11 +1,10 @@
 var searchData=
 [
-  ['u8string_0',['u8string',['../namespaceicubaby.html#a03880ce9233ffad1f3ced4d2d4930647',1,'icubaby']]],
-  ['u8string_5fview_1',['u8string_view',['../namespaceicubaby.html#aa24b0ff9fc30c0ef43dbf6b475ecd5f4',1,'icubaby']]],
-  ['unknown_2',['unknown',['../namespaceicubaby.html#ad60f75ab68d739404afc53cb2e0afe77aad921d60486366258809553a3db49a4a',1,'icubaby']]],
-  ['utf16be_3',['utf16be',['../namespaceicubaby.html#ad60f75ab68d739404afc53cb2e0afe77a8a6ebea5dae54c97dbf3120e2dbfb111',1,'icubaby']]],
-  ['utf16le_4',['utf16le',['../namespaceicubaby.html#ad60f75ab68d739404afc53cb2e0afe77aea62f9cd1592e967c33b7421a983d896',1,'icubaby']]],
-  ['utf32be_5',['utf32be',['../namespaceicubaby.html#ad60f75ab68d739404afc53cb2e0afe77aef1451df48d7a4e7c5d329ca8d2ad5fc',1,'icubaby']]],
-  ['utf32le_6',['utf32le',['../namespaceicubaby.html#ad60f75ab68d739404afc53cb2e0afe77a6864a05c6a7d0e68bb4f8ff549308c8c',1,'icubaby']]],
-  ['utf8_7',['utf8',['../namespaceicubaby.html#ad60f75ab68d739404afc53cb2e0afe77a30df7f629fcf6b940bcaef5faf2490bb',1,'icubaby']]]
+  ['selected_5fencoding_0',['selected_encoding',['../classicubaby_1_1transcoder_3_01std_1_1byte_00_01_to_encoding_01_4.html#af88aa3143fe72887effb83f3b807038c',1,'icubaby::transcoder&lt; std::byte, ToEncoding &gt;']]],
+  ['sentinel_1',['sentinel',['../classicubaby_1_1ranges_1_1transcode__view_1_1sentinel.html',1,'icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;::sentinel'],['../classicubaby_1_1ranges_1_1transcode__view_1_1sentinel.html#aaa3529527367b508da6695c0bce52f68',1,'icubaby::ranges::transcode_view::sentinel::sentinel()']]],
+  ['start_2',['start',['../classicubaby_1_1transcoder_3_01std_1_1byte_00_01_to_encoding_01_4.html#a72777906cbca9825b1090020fde4bb7faea2b2676c28c0db26d39331a336c6b92',1,'icubaby::transcoder&lt; std::byte, ToEncoding &gt;']]],
+  ['start_5fstate_3',['start_state',['../classicubaby_1_1transcoder_3_01std_1_1byte_00_01_to_encoding_01_4.html#aa756a99a22e6282dc88bd6e7f795072e',1,'icubaby::transcoder&lt; std::byte, ToEncoding &gt;']]],
+  ['state_4',['state',['../classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html',1,'icubaby::ranges::transcode_view::iterator']]],
+  ['state_5f_5',['state_',['../classicubaby_1_1transcoder_3_01char8_00_01char32__t_01_4.html#aa0cf792af8be489de6b2122bce55e4a9',1,'icubaby::transcoder&lt; char8, char32_t &gt;::state_'],['../classicubaby_1_1transcoder_3_01std_1_1byte_00_01_to_encoding_01_4.html#a05db4cf87a4094f1259646e2c7bd5437',1,'icubaby::transcoder&lt; std::byte, ToEncoding &gt;::state_']]],
+  ['states_6',['states',['../classicubaby_1_1transcoder_3_01std_1_1byte_00_01_to_encoding_01_4.html#a72777906cbca9825b1090020fde4bb7f',1,'icubaby::transcoder&lt; std::byte, ToEncoding &gt;']]]
 ];

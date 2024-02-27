@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['is_5funicode_5fchar_5ftype_5fv_0',['is_unicode_char_type_v',['../namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5',1,'icubaby']]],
-  ['is_5funicode_5finput_5fv_1',['is_unicode_input_v',['../namespaceicubaby.html#a015c71c66db33b48b88ed845b896700d',1,'icubaby']]]
+  ['first_5fhigh_5fsurrogate_0',['first_high_surrogate',['../namespaceicubaby.html#a1b2be3829e2c43864021554c8c06eff2',1,'icubaby']]],
+  ['first_5flow_5fsurrogate_1',['first_low_surrogate',['../namespaceicubaby.html#ae86013270d53c6b3bcd8d2a9e4f0238f',1,'icubaby']]]
 ];

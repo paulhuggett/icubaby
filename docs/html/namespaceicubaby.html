@@ -120,6 +120,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of code-units in the longest legal UTF-8 representation of a code-point.  <a href="structicubaby_1_1longest__sequence_3_01char8_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1transcoder.html">transcoder</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A transcoder takes a sequence of zero or more bytes or code-units in one Unicode encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another.  <a href="classicubaby_1_1transcoder.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1transcoder_3_01char16__t_00_01char16__t_01_4.html">transcoder&lt; char16_t, char16_t &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes a sequence of UTF-16 code units and converts them to UTF-16.  <a href="classicubaby_1_1transcoder_3_01char16__t_00_01char16__t_01_4.html#details">More...</a><br /></td></tr>
@@ -180,7 +181,9 @@ Typedefs</h2></td></tr>
 <tr class="separator:aa24b0ff9fc30c0ef43dbf6b475ecd5f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d42b879177110c2c987df1d0975f052" id="r_a5d42b879177110c2c987df1d0975f052"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5d42b879177110c2c987df1d0975f052">character_types</a> = <a class="el" href="namespaceicubaby_1_1details.html#adbb34770895bcbd3253764c3dd1c2099">details::make_t</a>&lt;<a class="el" href="#aeb850a8056425f0af9320dbeeef55987">char8</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>&gt;</td></tr>
 <tr class="separator:a5d42b879177110c2c987df1d0975f052"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e2be7dc6e2ef5f10e8423f9c71ad256" id="r_a9e2be7dc6e2ef5f10e8423f9c71ad256"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9e2be7dc6e2ef5f10e8423f9c71ad256">t8_8</a> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#aeb850a8056425f0af9320dbeeef55987">char8</a>, <a class="el" href="#aeb850a8056425f0af9320dbeeef55987">char8</a>&gt;</td></tr>
+<tr class="memitem:a9e2be7dc6e2ef5f10e8423f9c71ad256" id="r_a9e2be7dc6e2ef5f10e8423f9c71ad256"><td class="memItemLeft" align="right" valign="top"><a id="a9e2be7dc6e2ef5f10e8423f9c71ad256" name="a9e2be7dc6e2ef5f10e8423f9c71ad256"></a>
+<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>t8_8</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#aeb850a8056425f0af9320dbeeef55987">char8</a>, <a class="el" href="#aeb850a8056425f0af9320dbeeef55987">char8</a>&gt;</td></tr>
+<tr class="memdesc:a9e2be7dc6e2ef5f10e8423f9c71ad256"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shorter name for the UTF-8 to UTF-8 transcoder. This, assuming well-formed input, represents no change. <br /></td></tr>
 <tr class="separator:a9e2be7dc6e2ef5f10e8423f9c71ad256"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27c71675b342f497a05000fcc5bb5e46" id="r_a27c71675b342f497a05000fcc5bb5e46"><td class="memItemLeft" align="right" valign="top"><a id="a27c71675b342f497a05000fcc5bb5e46" name="a27c71675b342f497a05000fcc5bb5e46"></a>
 <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>t8_16</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#aeb850a8056425f0af9320dbeeef55987">char8</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&gt;</td></tr>
@@ -194,7 +197,9 @@ Typedefs</h2></td></tr>
 <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>t16_8</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="#aeb850a8056425f0af9320dbeeef55987">char8</a>&gt;</td></tr>
 <tr class="memdesc:a2916b27edfe362f0150db03ceeacd531"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shorter name for the UTF-16 to UTF-8 transcoder. <br /></td></tr>
 <tr class="separator:a2916b27edfe362f0150db03ceeacd531"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64e5f2c20eed982d60d7e607d716e0a4" id="r_a64e5f2c20eed982d60d7e607d716e0a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a64e5f2c20eed982d60d7e607d716e0a4">t16_16</a> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&gt;</td></tr>
+<tr class="memitem:a64e5f2c20eed982d60d7e607d716e0a4" id="r_a64e5f2c20eed982d60d7e607d716e0a4"><td class="memItemLeft" align="right" valign="top"><a id="a64e5f2c20eed982d60d7e607d716e0a4" name="a64e5f2c20eed982d60d7e607d716e0a4"></a>
+<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>t16_16</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&gt;</td></tr>
+<tr class="memdesc:a64e5f2c20eed982d60d7e607d716e0a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shorter name for the UTF-16 to UTF-16 transcoder. This, assuming well-formed input, represents no change. <br /></td></tr>
 <tr class="separator:a64e5f2c20eed982d60d7e607d716e0a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aab9ba8d558019deb7fbae4704f759008" id="r_aab9ba8d558019deb7fbae4704f759008"><td class="memItemLeft" align="right" valign="top"><a id="aab9ba8d558019deb7fbae4704f759008" name="aab9ba8d558019deb7fbae4704f759008"></a>
 <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>t16_32</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>&gt;</td></tr>
@@ -208,7 +213,9 @@ Typedefs</h2></td></tr>
 <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>t32_16</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&gt;</td></tr>
 <tr class="memdesc:a58afe01470c339693c5574197e002bf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shorter name for the UTF-32 to UTF-16 transcoder. <br /></td></tr>
 <tr class="separator:a58afe01470c339693c5574197e002bf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aceb7258819ddea7e883fc436a491eeab" id="r_aceb7258819ddea7e883fc436a491eeab"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aceb7258819ddea7e883fc436a491eeab">t32_32</a> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>&gt;</td></tr>
+<tr class="memitem:aceb7258819ddea7e883fc436a491eeab" id="r_aceb7258819ddea7e883fc436a491eeab"><td class="memItemLeft" align="right" valign="top"><a id="aceb7258819ddea7e883fc436a491eeab" name="aceb7258819ddea7e883fc436a491eeab"></a>
+<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>t32_32</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>&gt;</td></tr>
+<tr class="memdesc:aceb7258819ddea7e883fc436a491eeab"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shorter name for the UTF-32 to UTF-32 transcoder. This, assuming well-formed input, represents no change. <br /></td></tr>
 <tr class="separator:aceb7258819ddea7e883fc436a491eeab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae89e0d7608770eb1a7cb30900b4b9724" id="r_ae89e0d7608770eb1a7cb30900b4b9724"><td class="memItemLeft" align="right" valign="top"><a id="ae89e0d7608770eb1a7cb30900b4b9724" name="ae89e0d7608770eb1a7cb30900b4b9724"></a>
 <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>tx_8</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;std::byte, <a class="el" href="#aeb850a8056425f0af9320dbeeef55987">char8</a>&gt;</td></tr>
@@ -348,51 +355,6 @@ template&lt;<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">typename</a>
       </table>
 </div><div class="memdoc">
 <p>A list of the character types used for UTF-8 UTF-16, and UTF-32 encoded text. </p>
-
-</div>
-</div>
-<a id="a64e5f2c20eed982d60d7e607d716e0a4" name="a64e5f2c20eed982d60d7e607d716e0a4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64e5f2c20eed982d60d7e607d716e0a4">&#9670;&#160;</a></span>t16_16</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a> <a class="el" href="#a64e5f2c20eed982d60d7e607d716e0a4">icubaby::t16_16</a> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>A shorter name for the UTF-16 to UTF-16 transcoder. This, of course, represents no change and is included for completeness. </p>
-
-</div>
-</div>
-<a id="aceb7258819ddea7e883fc436a491eeab" name="aceb7258819ddea7e883fc436a491eeab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aceb7258819ddea7e883fc436a491eeab">&#9670;&#160;</a></span>t32_32</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a> <a class="el" href="#aceb7258819ddea7e883fc436a491eeab">icubaby::t32_32</a> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>, <a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>A shorter name for the UTF-32 to UTF-32 transcoder. This, of course, represents no change and is included for completeness. </p>
-
-</div>
-</div>
-<a id="a9e2be7dc6e2ef5f10e8423f9c71ad256" name="a9e2be7dc6e2ef5f10e8423f9c71ad256"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9e2be7dc6e2ef5f10e8423f9c71ad256">&#9670;&#160;</a></span>t8_8</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="#a2c609e46b62b83db7239b7fd43a010b5">using</a> <a class="el" href="#a9e2be7dc6e2ef5f10e8423f9c71ad256">icubaby::t8_8</a> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="#aeb850a8056425f0af9320dbeeef55987">char8</a>, <a class="el" href="#aeb850a8056425f0af9320dbeeef55987">char8</a>&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>A shorter name for the UTF-8 to UTF-8 transcoder. This, of course, represents no change and is included for completeness. </p>
 
 </div>
 </div>

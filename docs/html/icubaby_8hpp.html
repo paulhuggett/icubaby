@@ -197,6 +197,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1transcoder_3_01std_1_1byte_00_01_to_encoding_01_4.html">icubaby::transcoder&lt; std::byte, ToEncoding &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes a sequence of bytes, determines their encoding and converts to a specified encoding.  <a href="classicubaby_1_1transcoder_3_01std_1_1byte_00_01_to_encoding_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structicubaby_1_1transcoder_3_01std_1_1byte_00_01_to_encoding_01_4_1_1is__nothrowable.html">icubaby::transcoder&lt; std::byte, ToEncoding &gt;::is_nothrowable&lt; T &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A helper for ensuring that a type will not cause variant_ to become valueless by exception.  <a href="structicubaby_1_1transcoder_3_01std_1_1byte_00_01_to_encoding_01_4_1_1is__nothrowable.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structicubaby_1_1details_1_1triangulator__intermediate__code__units.html">icubaby::details::triangulator_intermediate_code_units&lt; From, To &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum number of code units produced as the intermediate output from the triangulator's conversion to UTF-32. The maximum number of code units produced from a single input code unit varies if the input is malformed.  <a href="structicubaby_1_1details_1_1triangulator__intermediate__code__units.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -204,7 +207,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum number of code units produced when converting from UTF-16.  <a href="structicubaby_1_1details_1_1triangulator__intermediate__code__units_3_01char16__t_00_01_to_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1details_1_1triangulator.html">icubaby::details::triangulator&lt; From, To &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A "triangulator" converts from the From encoding to the To encoding via and intermediate UTF-32 encoding.  <a href="classicubaby_1_1details_1_1triangulator.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A "triangulator" converts from the From encoding to the To encoding via an intermediate UTF-32 encoding.  <a href="classicubaby_1_1details_1_1triangulator.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1transcoder_3_01char8_00_01char16__t_01_4.html">icubaby::transcoder&lt; char8, char16_t &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes a sequence of UTF-8 code units and converts them to UTF-16.  <a href="classicubaby_1_1transcoder_3_01char8_00_01char16__t_01_4.html#details">More...</a><br /></td></tr>
@@ -224,14 +227,11 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A range adaptor for lazily converting between Unicode encodings.  <a href="classicubaby_1_1ranges_1_1transcode__view.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structicubaby_1_1ranges_1_1max__output__bytes.html">icubaby::ranges::max_output_bytes&lt; FromEncoding, ToEncoding &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structicubaby_1_1ranges_1_1max__output__bytes_3_01char16__t_00_01icubaby_1_1char8_01_4.html">icubaby::ranges::max_output_bytes&lt; char16_t, icubaby::char8 &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structicubaby_1_1ranges_1_1max__output__bytes_3_01char16__t_00_01char32__t_01_4.html">icubaby::ranges::max_output_bytes&lt; char16_t, char32_t &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator.html">icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;::iterator</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The iterator type of <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html" title="A range adaptor for lazily converting between Unicode encodings.">transcode_view</a>.  <a href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;::iterator::state</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state class is responsible for transforming the input values to output code units.  <a href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1sentinel.html">icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;::sentinel</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sentinel type of <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html" title="A range adaptor for lazily converting between Unicode encodings.">transcode_view</a> when the underlying view is not a common_range.  <a href="classicubaby_1_1ranges_1_1transcode__view_1_1sentinel.html#details">More...</a><br /></td></tr>
@@ -273,7 +273,7 @@ Macros</h2></td></tr>
 <tr class="memdesc:a9a5ee38bba3b371ace6ba5bc720a7444"><td class="mdescLeft">&#160;</td><td class="mdescRight">ICUBABY_CXX20 has value 1 when compiling with C++ 20 or later and 0 otherwise. <br /></td></tr>
 <tr class="separator:a9a5ee38bba3b371ace6ba5bc720a7444"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14e04c0271d46af616d2a95dab4573d0" id="r_a14e04c0271d46af616d2a95dab4573d0"><td class="memItemLeft" align="right" valign="top"><a id="a14e04c0271d46af616d2a95dab4573d0" name="a14e04c0271d46af616d2a95dab4573d0"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>ICUBABY_CPP_LIB_RANGES_DEFINED</b>&#160;&#160;&#160;(1)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ICUBABY_CPP_LIB_RANGES_DEFINED</b></td></tr>
 <tr class="memdesc:a14e04c0271d46af616d2a95dab4573d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defined as 1 if the standard library's __cpp_lib_ranges macro is available and 0 otherwise. <br /></td></tr>
 <tr class="separator:a14e04c0271d46af616d2a95dab4573d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63ae8d451c32a91bae3a34c9fcbbc9d9" id="r_a63ae8d451c32a91bae3a34c9fcbbc9d9"><td class="memItemLeft" align="right" valign="top"><a id="a63ae8d451c32a91bae3a34c9fcbbc9d9" name="a63ae8d451c32a91bae3a34c9fcbbc9d9"></a>
@@ -288,18 +288,20 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>ICUBABY_CPP_LIB_CONCEPTS_DEFINED</b></td></tr>
 <tr class="memdesc:a8823bb74028f3ac32290c2a63fd5bfbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defined as 1 if the standard library's __cpp_lib_concepts macro is available and 0 otherwise. <br /></td></tr>
 <tr class="separator:a8823bb74028f3ac32290c2a63fd5bfbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5f251c6e7feace9319cf50e9bea2f0d" id="r_aa5f251c6e7feace9319cf50e9bea2f0d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa5f251c6e7feace9319cf50e9bea2f0d">ICUBABY_HAVE_CONCEPTS</a></td></tr>
-<tr class="memdesc:aa5f251c6e7feace9319cf50e9bea2f0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">A macro that evaluates true if the compiler and library have support for C++ 20 concepts.  <br /></td></tr>
+<tr class="memitem:aa5f251c6e7feace9319cf50e9bea2f0d" id="r_aa5f251c6e7feace9319cf50e9bea2f0d"><td class="memItemLeft" align="right" valign="top"><a id="aa5f251c6e7feace9319cf50e9bea2f0d" name="aa5f251c6e7feace9319cf50e9bea2f0d"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ICUBABY_HAVE_CONCEPTS</b></td></tr>
+<tr class="memdesc:aa5f251c6e7feace9319cf50e9bea2f0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">A macro that evaluates true if the compiler and library have support for C++ 20 concepts. <br /></td></tr>
 <tr class="separator:aa5f251c6e7feace9319cf50e9bea2f0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae03a66fffd90c8f49d9d0414d6529a4c" id="r_ae03a66fffd90c8f49d9d0414d6529a4c"><td class="memItemLeft" align="right" valign="top"><a id="ae03a66fffd90c8f49d9d0414d6529a4c" name="ae03a66fffd90c8f49d9d0414d6529a4c"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>ICUBABY_REQUIRES</b>(x)</td></tr>
-<tr class="memdesc:ae03a66fffd90c8f49d9d0414d6529a4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defined as <code>requires x</code> if concepts are supported and as nothing otherwise. <br /></td></tr>
+<tr class="memdesc:ae03a66fffd90c8f49d9d0414d6529a4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defined as <code>requires x</code> if C++ 20 concepts are supported and as nothing otherwise. <br /></td></tr>
 <tr class="separator:ae03a66fffd90c8f49d9d0414d6529a4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f5aaf9497e0132943cd0f3295497fbd" id="r_a2f5aaf9497e0132943cd0f3295497fbd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2f5aaf9497e0132943cd0f3295497fbd">ICUBABY_CONCEPT_OUTPUT_ITERATOR</a>(x)</td></tr>
-<tr class="memdesc:a2f5aaf9497e0132943cd0f3295497fbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defined as <code>std::output_iterator\&lt;x\&gt;</code> if concepts are supported and as <code>typename</code> otherwise.  <br /></td></tr>
+<tr class="memdesc:a2f5aaf9497e0132943cd0f3295497fbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defined as <code>std::output_iterator&lt;x&gt;</code> if C++ 20 concepts are supported and as <code>typename</code> otherwise.  <br /></td></tr>
 <tr class="separator:a2f5aaf9497e0132943cd0f3295497fbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a39dddcd97703a2c026e7f731550a3e" id="r_a8a39dddcd97703a2c026e7f731550a3e"><td class="memItemLeft" align="right" valign="top"><a id="a8a39dddcd97703a2c026e7f731550a3e" name="a8a39dddcd97703a2c026e7f731550a3e"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>ICUBABY_CONCEPT_UNICODE_CHAR_TYPE</b>&#160;&#160;&#160;unicode_char_type</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ICUBABY_CONCEPT_UNICODE_CHAR_TYPE</b></td></tr>
+<tr class="memdesc:a8a39dddcd97703a2c026e7f731550a3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">A convenience macro for defining a template argument that must be <a class="el" href="concepticubaby_1_1unicode__char__type.html" title="Checks whether the argument is one of the unicode character types.">icubaby::unicode_char_type</a>. <br /></td></tr>
 <tr class="separator:a8a39dddcd97703a2c026e7f731550a3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4df4ab3717cd4934d73f5be06c66a14" id="r_ab4df4ab3717cd4934d73f5be06c66a14"><td class="memItemLeft" align="right" valign="top"><a id="ab4df4ab3717cd4934d73f5be06c66a14" name="ab4df4ab3717cd4934d73f5be06c66a14"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>ICUBABY_NO_UNIQUE_ADDRESS</b></td></tr>
@@ -332,7 +334,9 @@ template&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd4
 <tr class="memitem:a1235043ebba5f0c309c1683e86a6acb6"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><b>icubaby::details::array2d</b> = std::array&lt;std::array&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">T</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">Col</a>&gt;, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">Row</a>&gt;</td></tr>
 <tr class="memdesc:a1235043ebba5f0c309c1683e86a6acb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias template for a two-dimensional std::array. <br /></td></tr>
 <tr class="separator:a1235043ebba5f0c309c1683e86a6acb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e2be7dc6e2ef5f10e8423f9c71ad256" id="r_a9e2be7dc6e2ef5f10e8423f9c71ad256"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceicubaby.html#a9e2be7dc6e2ef5f10e8423f9c71ad256">icubaby::t8_8</a> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#aeb850a8056425f0af9320dbeeef55987">char8</a>, <a class="el" href="namespaceicubaby.html#aeb850a8056425f0af9320dbeeef55987">char8</a>&gt;</td></tr>
+<tr class="memitem:a9e2be7dc6e2ef5f10e8423f9c71ad256" id="r_a9e2be7dc6e2ef5f10e8423f9c71ad256"><td class="memItemLeft" align="right" valign="top"><a id="a9e2be7dc6e2ef5f10e8423f9c71ad256" name="a9e2be7dc6e2ef5f10e8423f9c71ad256"></a>
+<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>icubaby::t8_8</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#aeb850a8056425f0af9320dbeeef55987">char8</a>, <a class="el" href="namespaceicubaby.html#aeb850a8056425f0af9320dbeeef55987">char8</a>&gt;</td></tr>
+<tr class="memdesc:a9e2be7dc6e2ef5f10e8423f9c71ad256"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shorter name for the UTF-8 to UTF-8 transcoder. This, assuming well-formed input, represents no change. <br /></td></tr>
 <tr class="separator:a9e2be7dc6e2ef5f10e8423f9c71ad256"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27c71675b342f497a05000fcc5bb5e46" id="r_a27c71675b342f497a05000fcc5bb5e46"><td class="memItemLeft" align="right" valign="top"><a id="a27c71675b342f497a05000fcc5bb5e46" name="a27c71675b342f497a05000fcc5bb5e46"></a>
 <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>icubaby::t8_16</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#aeb850a8056425f0af9320dbeeef55987">char8</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&gt;</td></tr>
@@ -346,7 +350,9 @@ template&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd4
 <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>icubaby::t16_8</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="namespaceicubaby.html#aeb850a8056425f0af9320dbeeef55987">char8</a>&gt;</td></tr>
 <tr class="memdesc:a2916b27edfe362f0150db03ceeacd531"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shorter name for the UTF-16 to UTF-8 transcoder. <br /></td></tr>
 <tr class="separator:a2916b27edfe362f0150db03ceeacd531"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64e5f2c20eed982d60d7e607d716e0a4" id="r_a64e5f2c20eed982d60d7e607d716e0a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceicubaby.html#a64e5f2c20eed982d60d7e607d716e0a4">icubaby::t16_16</a> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&gt;</td></tr>
+<tr class="memitem:a64e5f2c20eed982d60d7e607d716e0a4" id="r_a64e5f2c20eed982d60d7e607d716e0a4"><td class="memItemLeft" align="right" valign="top"><a id="a64e5f2c20eed982d60d7e607d716e0a4" name="a64e5f2c20eed982d60d7e607d716e0a4"></a>
+<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>icubaby::t16_16</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&gt;</td></tr>
+<tr class="memdesc:a64e5f2c20eed982d60d7e607d716e0a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shorter name for the UTF-16 to UTF-16 transcoder. This, assuming well-formed input, represents no change. <br /></td></tr>
 <tr class="separator:a64e5f2c20eed982d60d7e607d716e0a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aab9ba8d558019deb7fbae4704f759008" id="r_aab9ba8d558019deb7fbae4704f759008"><td class="memItemLeft" align="right" valign="top"><a id="aab9ba8d558019deb7fbae4704f759008" name="aab9ba8d558019deb7fbae4704f759008"></a>
 <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>icubaby::t16_32</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>&gt;</td></tr>
@@ -360,7 +366,9 @@ template&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd4
 <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>icubaby::t32_16</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&gt;</td></tr>
 <tr class="memdesc:a58afe01470c339693c5574197e002bf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shorter name for the UTF-32 to UTF-16 transcoder. <br /></td></tr>
 <tr class="separator:a58afe01470c339693c5574197e002bf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aceb7258819ddea7e883fc436a491eeab" id="r_aceb7258819ddea7e883fc436a491eeab"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceicubaby.html#aceb7258819ddea7e883fc436a491eeab">icubaby::t32_32</a> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>&gt;</td></tr>
+<tr class="memitem:aceb7258819ddea7e883fc436a491eeab" id="r_aceb7258819ddea7e883fc436a491eeab"><td class="memItemLeft" align="right" valign="top"><a id="aceb7258819ddea7e883fc436a491eeab" name="aceb7258819ddea7e883fc436a491eeab"></a>
+<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>icubaby::t32_32</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>&gt;</td></tr>
+<tr class="memdesc:aceb7258819ddea7e883fc436a491eeab"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shorter name for the UTF-32 to UTF-32 transcoder. This, assuming well-formed input, represents no change. <br /></td></tr>
 <tr class="separator:aceb7258819ddea7e883fc436a491eeab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae89e0d7608770eb1a7cb30900b4b9724" id="r_ae89e0d7608770eb1a7cb30900b4b9724"><td class="memItemLeft" align="right" valign="top"><a id="ae89e0d7608770eb1a7cb30900b4b9724" name="ae89e0d7608770eb1a7cb30900b4b9724"></a>
 <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>icubaby::tx_8</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;std::byte, <a class="el" href="namespaceicubaby.html#aeb850a8056425f0af9320dbeeef55987">char8</a>&gt;</td></tr>
@@ -431,9 +439,8 @@ template&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd4
 <tr class="memitem:aac25d74139c0740b21d77c666bd7897a"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>icubaby::iterator</b> (<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">Transcoder</a> &amp;<a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">out</a>) -&gt; iterator&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">Transcoder</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> &gt;</td></tr>
 <tr class="memdesc:aac25d74139c0740b21d77c666bd7897a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class template argument deduction guide for <a class="el" href="classicubaby_1_1iterator.html" title="An output iterator which passes code units being output through a transcoder.">icubaby::iterator</a>. <br /></td></tr>
 <tr class="separator:aac25d74139c0740b21d77c666bd7897a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5e74d412935bb1fb2e52cc7e511e0b9" id="r_ab5e74d412935bb1fb2e52cc7e511e0b9"><td class="memTemplParams" colspan="2"><a id="ab5e74d412935bb1fb2e52cc7e511e0b9" name="ab5e74d412935bb1fb2e52cc7e511e0b9"></a>
-template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::viewable_range Range&gt; </td></tr>
-<tr class="memitem:ab5e74d412935bb1fb2e52cc7e511e0b9"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><b>icubaby::ranges::views::transcode::operator|</b> (<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">Range</a> &amp;&amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">range</a>, <a class="el" href="classicubaby_1_1ranges_1_1views_1_1transcode_1_1transcode__range__adaptor.html">transcode_range_adaptor</a>&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> &amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">adaptor</a>)</td></tr>
+<tr class="memitem:ab5e74d412935bb1fb2e52cc7e511e0b9" id="r_ab5e74d412935bb1fb2e52cc7e511e0b9"><td class="memTemplParams" colspan="2">template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::viewable_range Range&gt; </td></tr>
+<tr class="memitem:ab5e74d412935bb1fb2e52cc7e511e0b9"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ab5e74d412935bb1fb2e52cc7e511e0b9">icubaby::ranges::views::transcode::operator|</a> (<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">Range</a> &amp;&amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">range</a>, <a class="el" href="classicubaby_1_1ranges_1_1views_1_1transcode_1_1transcode__range__adaptor.html">transcode_range_adaptor</a>&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> &amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">adaptor</a>)</td></tr>
 <tr class="separator:ab5e74d412935bb1fb2e52cc7e511e0b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
@@ -495,9 +502,18 @@ template&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd4
 <tr class="separator:a015c71c66db33b48b88ed845b896700d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf3c00cfbdc52d685a77d6dee7b18de9" id="r_aaf3c00cfbdc52d685a77d6dee7b18de9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby_1_1details.html#a1235043ebba5f0c309c1683e86a6acb6">array2d</a>&lt; std::byte, 5, 4 &gt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceicubaby_1_1details.html#aaf3c00cfbdc52d685a77d6dee7b18de9">icubaby::details::boms</a></td></tr>
 <tr class="separator:aaf3c00cfbdc52d685a77d6dee7b18de9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb83da8b84586c2712568b49f5a22dc0" id="r_acb83da8b84586c2712568b49f5a22dc0"><td class="memTemplParams" colspan="2"><a id="acb83da8b84586c2712568b49f5a22dc0" name="acb83da8b84586c2712568b49f5a22dc0"></a>
-template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding&gt; </td></tr>
-<tr class="memitem:acb83da8b84586c2712568b49f5a22dc0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><b>icubaby::ranges::transcode</b> = <a class="el" href="classicubaby_1_1ranges_1_1views_1_1transcode_1_1transcode__range__adaptor.html">views::transcode::transcode_range_adaptor</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;{}</td></tr>
+<tr class="memitem:a188a24f33fb23269fdfd6b5d28d69c3d" id="r_a188a24f33fb23269fdfd6b5d28d69c3d"><td class="memTemplParams" colspan="2"><a id="a188a24f33fb23269fdfd6b5d28d69c3d" name="a188a24f33fb23269fdfd6b5d28d69c3d"></a>
+template&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">typename</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a> , <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">typename</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt; </td></tr>
+<tr class="memitem:a188a24f33fb23269fdfd6b5d28d69c3d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><b>icubaby::ranges::max_output_bytes</b> = <a class="el" href="namespaceicubaby.html#a730d7c87639d8f1af683bbf9c76ac632">longest_sequence_v</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;</td></tr>
+<tr class="memdesc:a188a24f33fb23269fdfd6b5d28d69c3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum number of bytes that can be produced by a single code-unit being passed to a transcoder. <br /></td></tr>
+<tr class="separator:a188a24f33fb23269fdfd6b5d28d69c3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a1f13e3a94d70cf8427cf8f5e51d45d" id="r_a8a1f13e3a94d70cf8427cf8f5e51d45d"><td class="memItemLeft" align="right" valign="top"><a id="a8a1f13e3a94d70cf8427cf8f5e51d45d" name="a8a1f13e3a94d70cf8427cf8f5e51d45d"></a>
+template&lt;&gt; </td></tr>
+<tr class="memitem:a8a1f13e3a94d70cf8427cf8f5e51d45d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><b>icubaby::ranges::max_output_bytes&lt; char16_t, char32_t &gt;</b> = std::size_t{2}</td></tr>
+<tr class="memdesc:a8a1f13e3a94d70cf8427cf8f5e51d45d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum number of bytes produced by a single code-unit being passed to a transcoder consuming UTF-32. <br /></td></tr>
+<tr class="separator:a8a1f13e3a94d70cf8427cf8f5e51d45d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb83da8b84586c2712568b49f5a22dc0" id="r_acb83da8b84586c2712568b49f5a22dc0"><td class="memTemplParams" colspan="2">template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding&gt; </td></tr>
+<tr class="memitem:acb83da8b84586c2712568b49f5a22dc0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceicubaby_1_1ranges.html#acb83da8b84586c2712568b49f5a22dc0">icubaby::ranges::transcode</a> = <a class="el" href="classicubaby_1_1ranges_1_1views_1_1transcode_1_1transcode__range__adaptor.html">views::transcode::transcode_range_adaptor</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;{}</td></tr>
 <tr class="separator:acb83da8b84586c2712568b49f5a22dc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -518,28 +534,48 @@ template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding&gt; </td></
       </table>
 </div><div class="memdoc">
 
-<p>Defined as <code>std::output_iterator\&lt;x\&gt;</code> if concepts are supported and as <code>typename</code> otherwise. </p>
+<p>Defined as <code>std::output_iterator&lt;x&gt;</code> if C++ 20 concepts are supported and as <code>typename</code> otherwise. </p>
 <p>Used as a shortcut to restrict a specific template argument to be an output iterator in C++ 20 and simply declaring a typename in C++ 17. </p>
 
 </div>
 </div>
-<a id="aa5f251c6e7feace9319cf50e9bea2f0d" name="aa5f251c6e7feace9319cf50e9bea2f0d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa5f251c6e7feace9319cf50e9bea2f0d">&#9670;&#160;</a></span>ICUBABY_HAVE_CONCEPTS</h2>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="ab5e74d412935bb1fb2e52cc7e511e0b9" name="ab5e74d412935bb1fb2e52cc7e511e0b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5e74d412935bb1fb2e52cc7e511e0b9">&#9670;&#160;</a></span>operator|()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::viewable_range Range&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">#define ICUBABY_HAVE_CONCEPTS</td>
+          <td class="memname">constexpr auto <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">icubaby::ranges::views::transcode::operator</a>| </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">Range</a> &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>range</em>, </span></td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classicubaby_1_1ranges_1_1views_1_1transcode_1_1transcode__range__adaptor.html">transcode_range_adaptor</a>&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>adaptor</em></span>&#160;)</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">  (<a class="code hl_define" href="#a0ff8e82beb865a994a22102e87503651">ICUBABY_CPP_CONCEPTS_DEFINED</a> &amp;&amp; __cpp_concepts &gt;= 201907L &amp;&amp; <a class="code hl_define" href="#a8823bb74028f3ac32290c2a63fd5bfbc">ICUBABY_CPP_LIB_CONCEPTS_DEFINED</a> &amp;&amp; \</div>
-<div class="line">   __cpp_lib_concepts &gt;= 202002L)</div>
-<div class="ttc" id="aicubaby_8hpp_html_a0ff8e82beb865a994a22102e87503651"><div class="ttname"><a href="#a0ff8e82beb865a994a22102e87503651">ICUBABY_CPP_CONCEPTS_DEFINED</a></div><div class="ttdeci">#define ICUBABY_CPP_CONCEPTS_DEFINED</div><div class="ttdoc">Defined as true if compiler and library support for concepts are available.</div><div class="ttdef"><b>Definition</b> icubaby.hpp:115</div></div>
-<div class="ttc" id="aicubaby_8hpp_html_a8823bb74028f3ac32290c2a63fd5bfbc"><div class="ttname"><a href="#a8823bb74028f3ac32290c2a63fd5bfbc">ICUBABY_CPP_LIB_CONCEPTS_DEFINED</a></div><div class="ttdeci">#define ICUBABY_CPP_LIB_CONCEPTS_DEFINED</div><div class="ttdoc">Defined as 1 if the standard library's __cpp_lib_concepts macro is available and 0 otherwise.</div><div class="ttdef"><b>Definition</b> icubaby.hpp:123</div></div>
-</div><!-- fragment -->
-<p>A macro that evaluates true if the compiler and library have support for C++ 20 concepts. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">FromEncoding</td><td>The encoding used by the underlying sequence. </td></tr>
+    <tr><td class="paramname">ToEncoding</td><td>The encoding that will be produced. </td></tr>
+    <tr><td class="paramname">Range</td><td>The type of the range that will be consumed. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

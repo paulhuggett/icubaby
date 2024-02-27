@@ -88,26 +88,61 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structicubaby_1_1ranges_1_1max__output__bytes.html">max_output_bytes</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structicubaby_1_1ranges_1_1max__output__bytes_3_01char16__t_00_01char32__t_01_4.html">max_output_bytes&lt; char16_t, char32_t &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structicubaby_1_1ranges_1_1max__output__bytes_3_01char16__t_00_01icubaby_1_1char8_01_4.html">max_output_bytes&lt; char16_t, icubaby::char8 &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">transcode_view</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A range adaptor for lazily converting between Unicode encodings.  <a href="classicubaby_1_1ranges_1_1transcode__view.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:acb83da8b84586c2712568b49f5a22dc0" id="r_acb83da8b84586c2712568b49f5a22dc0"><td class="memTemplParams" colspan="2"><a id="acb83da8b84586c2712568b49f5a22dc0" name="acb83da8b84586c2712568b49f5a22dc0"></a>
-template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding&gt; </td></tr>
-<tr class="memitem:acb83da8b84586c2712568b49f5a22dc0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><b>transcode</b> = <a class="el" href="classicubaby_1_1ranges_1_1views_1_1transcode_1_1transcode__range__adaptor.html">views::transcode::transcode_range_adaptor</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;{}</td></tr>
+<tr class="memitem:a188a24f33fb23269fdfd6b5d28d69c3d" id="r_a188a24f33fb23269fdfd6b5d28d69c3d"><td class="memTemplParams" colspan="2"><a id="a188a24f33fb23269fdfd6b5d28d69c3d" name="a188a24f33fb23269fdfd6b5d28d69c3d"></a>
+template&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">typename</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a> , <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">typename</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt; </td></tr>
+<tr class="memitem:a188a24f33fb23269fdfd6b5d28d69c3d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><b>max_output_bytes</b> = <a class="el" href="namespaceicubaby.html#a730d7c87639d8f1af683bbf9c76ac632">longest_sequence_v</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;</td></tr>
+<tr class="memdesc:a188a24f33fb23269fdfd6b5d28d69c3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum number of bytes that can be produced by a single code-unit being passed to a transcoder. <br /></td></tr>
+<tr class="separator:a188a24f33fb23269fdfd6b5d28d69c3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a1f13e3a94d70cf8427cf8f5e51d45d" id="r_a8a1f13e3a94d70cf8427cf8f5e51d45d"><td class="memItemLeft" align="right" valign="top"><a id="a8a1f13e3a94d70cf8427cf8f5e51d45d" name="a8a1f13e3a94d70cf8427cf8f5e51d45d"></a>
+template&lt;&gt; </td></tr>
+<tr class="memitem:a8a1f13e3a94d70cf8427cf8f5e51d45d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><b>max_output_bytes&lt; char16_t, char32_t &gt;</b> = std::size_t{2}</td></tr>
+<tr class="memdesc:a8a1f13e3a94d70cf8427cf8f5e51d45d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum number of bytes produced by a single code-unit being passed to a transcoder consuming UTF-32. <br /></td></tr>
+<tr class="separator:a8a1f13e3a94d70cf8427cf8f5e51d45d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb83da8b84586c2712568b49f5a22dc0" id="r_acb83da8b84586c2712568b49f5a22dc0"><td class="memTemplParams" colspan="2">template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding&gt; </td></tr>
+<tr class="memitem:acb83da8b84586c2712568b49f5a22dc0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#acb83da8b84586c2712568b49f5a22dc0">transcode</a> = <a class="el" href="classicubaby_1_1ranges_1_1views_1_1transcode_1_1transcode__range__adaptor.html">views::transcode::transcode_range_adaptor</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;{}</td></tr>
 <tr class="separator:acb83da8b84586c2712568b49f5a22dc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>icubaby C++ 20 ranges support types. </p>
-</div></div><!-- contents -->
+</div><h2 class="groupheader">Variable Documentation</h2>
+<a id="acb83da8b84586c2712568b49f5a22dc0" name="acb83da8b84586c2712568b49f5a22dc0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb83da8b84586c2712568b49f5a22dc0">&#9670;&#160;</a></span>transcode</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a> icubaby::ranges::transcode = <a class="el" href="classicubaby_1_1ranges_1_1views_1_1transcode_1_1transcode__range__adaptor.html">views::transcode::transcode_range_adaptor</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;{}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">FromEncoding</td><td>The encoding used by the underlying sequence. </td></tr>
+    <tr><td class="paramname">ToEncoding</td><td>The encoding that will be produced. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.10.0

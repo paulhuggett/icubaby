@@ -1,5 +1,7 @@
 <map id="icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;" name="icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;">
-<area shape="rect" id="Node000001" title="A range adaptor for lazily converting between Unicode encodings." alt="" coords="5,109,237,165"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="9,5,233,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,77,124,108,118,108,118,77"/>
+<area shape="rect" id="Node000001" title="A range adaptor for lazily converting between Unicode encodings." alt="" coords="317,39,548,94"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,230,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="245,44,317,52,316,57,245,49"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="92,86,143,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,92,316,76,317,81,159,97"/>
 </map>
