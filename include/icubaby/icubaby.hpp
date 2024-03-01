@@ -1672,8 +1672,7 @@ public:
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
     auto const last = intermediate_.end_cp (first);
     assert (last >= first && last <= std::end (intermediate));
-    (void)this->copy (first, last, dest);
-    return output_.end_cp (dest);
+    return output_.end_cp (this->copy (first, last, dest));
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
