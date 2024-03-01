@@ -150,7 +150,7 @@ std::vector<ToEncoding> convert (std::vector<FromEncoding> const& input) {
   std::vector<ToEncoding> output;
   auto out_inserter = std::back_inserter (output);
 #if ICUBABY_HAVE_RANGES
-  auto range = input | icubaby::ranges::transcode<FromEncoding, ToEncoding>;
+  auto range = input | icubaby::views::transcode<FromEncoding, ToEncoding>;
   (void)std::ranges::copy (range, out_inserter);
   assert (range.well_formed ());
 #else

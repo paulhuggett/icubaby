@@ -79,8 +79,8 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pri-types">Private Types</a> &#124;
-<a href="#pri-static-methods">Static Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
+<a href="#pri-static-attribs">Static Private Attributes</a> &#124;
 <a href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;::iterator::state Class Reference</div></div>
 </div><!--header-->
@@ -91,81 +91,69 @@ $(function() {
 <div class="dynheader">
 Collaboration diagram for icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;::iterator::state:</div>
 <div class="dyncontent">
-<div class="center"><img src="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state__coll__graph.png" border="0" usemap="#aicubaby_1_1ranges_1_1transcode__view_3_01_from_encoding_00_01_to_encoding_00_01_view_01_4_1_1iterator_1_1state_coll__map" alt="Collaboration graph"/></div>
-<map name="aicubaby_1_1ranges_1_1transcode__view_3_01_from_encoding_00_01_to_encoding_00_01_view_01_4_1_1iterator_1_1state_coll__map" id="aicubaby_1_1ranges_1_1transcode__view_3_01_from_encoding_00_01_to_encoding_00_01_view_01_4_1_1iterator_1_1state_coll__map">
-<area shape="rect" title="The state class is responsible for transforming the input values to output code units." alt="" coords="5,109,237,165"/>
-<area shape="rect" href="classicubaby_1_1transcoder.html" title=" " alt="" coords="18,5,224,46"/>
-<area shape="poly" title=" " alt="" coords="124,62,124,109,118,109,118,62"/>
-</map>
+<div class="center"><iframe scrolling="no" frameborder="0" src="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state__coll__graph.svg" width="243" height="171"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ae0a7a9d5c862b93eab16f6207a8f8763" id="r_ae0a7a9d5c862b93eab16f6207a8f8763"><td class="memItemLeft" align="right" valign="top"><a id="ae0a7a9d5c862b93eab16f6207a8f8763" name="ae0a7a9d5c862b93eab16f6207a8f8763"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><b>state</b> (std::ranges::iterator_t&lt; View &gt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">iter</a>)</td></tr>
+<tr class="memitem:ae0a7a9d5c862b93eab16f6207a8f8763" id="r_ae0a7a9d5c862b93eab16f6207a8f8763"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae0a7a9d5c862b93eab16f6207a8f8763">state</a> (std::ranges::iterator_t&lt; View &gt; iter)</td></tr>
+<tr class="memdesc:ae0a7a9d5c862b93eab16f6207a8f8763"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the state and primes the internal buffer with an initial code-point read from the input.  <br /></td></tr>
 <tr class="separator:ae0a7a9d5c862b93eab16f6207a8f8763"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9981e8604592a44646ca51cdd4a87628" id="r_a9981e8604592a44646ca51cdd4a87628"><td class="memItemLeft" align="right" valign="top"><a id="a9981e8604592a44646ca51cdd4a87628" name="a9981e8604592a44646ca51cdd4a87628"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><b>state</b> (<a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">state</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> &amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">rhs</a>)</td></tr>
-<tr class="separator:a9981e8604592a44646ca51cdd4a87628"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a62d8173fb7cfdc3489a0ccee6de0850b" id="r_a62d8173fb7cfdc3489a0ccee6de0850b"><td class="memItemLeft" align="right" valign="top"><a id="a62d8173fb7cfdc3489a0ccee6de0850b" name="a62d8173fb7cfdc3489a0ccee6de0850b"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><b>state</b> (<a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">state</a> &amp;&amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">rhs</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
-<tr class="separator:a62d8173fb7cfdc3489a0ccee6de0850b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0810446ef9c3d9cbc46528cb4f520611" id="r_a0810446ef9c3d9cbc46528cb4f520611"><td class="memItemLeft" align="right" valign="top"><a id="a0810446ef9c3d9cbc46528cb4f520611" name="a0810446ef9c3d9cbc46528cb4f520611"></a>
-<a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">state</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">state</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> &amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">rhs</a>)</td></tr>
-<tr class="separator:a0810446ef9c3d9cbc46528cb4f520611"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae02079f332439c5885aa2be74fc9cc18" id="r_ae02079f332439c5885aa2be74fc9cc18"><td class="memItemLeft" align="right" valign="top"><a id="ae02079f332439c5885aa2be74fc9cc18" name="ae02079f332439c5885aa2be74fc9cc18"></a>
-<a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">state</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">state</a> &amp;&amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">rhs</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
-<tr class="separator:ae02079f332439c5885aa2be74fc9cc18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff1248cc80dfb88ac06fbd1e278bedfa" id="r_aff1248cc80dfb88ac06fbd1e278bedfa"><td class="memItemLeft" align="right" valign="top"><a id="aff1248cc80dfb88ac06fbd1e278bedfa" name="aff1248cc80dfb88ac06fbd1e278bedfa"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><b>empty</b> () <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><b>empty</b> () const noexcept</td></tr>
 <tr class="memdesc:aff1248cc80dfb88ac06fbd1e278bedfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the output buffer is empty and false otherwise. <br /></td></tr>
 <tr class="separator:aff1248cc80dfb88ac06fbd1e278bedfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad1d86966ef3944b6e25236c7de13d818" id="r_ad1d86966ef3944b6e25236c7de13d818"><td class="memItemLeft" align="right" valign="top"><a id="ad1d86966ef3944b6e25236c7de13d818" name="ad1d86966ef3944b6e25236c7de13d818"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>front</b> () <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+constexpr auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>front</b> () const noexcept</td></tr>
 <tr class="memdesc:ad1d86966ef3944b6e25236c7de13d818"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the first element from the range of code units forming the current code point. <br /></td></tr>
 <tr class="separator:ad1d86966ef3944b6e25236c7de13d818"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4fd2b60e9f4685eb8e2d77857c04c1bf" id="r_a4fd2b60e9f4685eb8e2d77857c04c1bf"><td class="memItemLeft" align="right" valign="top"><a id="a4fd2b60e9f4685eb8e2d77857c04c1bf" name="a4fd2b60e9f4685eb8e2d77857c04c1bf"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">void</a>&#160;</td><td class="memItemRight" valign="bottom"><b>advance</b> () <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+constexpr void&#160;</td><td class="memItemRight" valign="bottom"><b>advance</b> () noexcept</td></tr>
 <tr class="memdesc:a4fd2b60e9f4685eb8e2d77857c04c1bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the first element from the range of code units forming the current code point. <br /></td></tr>
 <tr class="separator:a4fd2b60e9f4685eb8e2d77857c04c1bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2243d4694677b4c5bbbc9f58707a081" id="r_ad2243d4694677b4c5bbbc9f58707a081"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> std::ranges::iterator_t&lt; View &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad2243d4694677b4c5bbbc9f58707a081">fill</a> (<a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">transcode_view</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> *<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">parent</a>)</td></tr>
+<tr class="memitem:ad2243d4694677b4c5bbbc9f58707a081" id="r_ad2243d4694677b4c5bbbc9f58707a081"><td class="memItemLeft" align="right" valign="top">constexpr std::ranges::iterator_t&lt; View &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad2243d4694677b4c5bbbc9f58707a081">fill</a> (<a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">transcode_view</a> const *parent)</td></tr>
+<tr class="memdesc:ad2243d4694677b4c5bbbc9f58707a081"><td class="mdescLeft">&#160;</td><td class="mdescRight">Consumes enough code-units from the base iterator to form a single code-point.  <br /></td></tr>
 <tr class="separator:ad2243d4694677b4c5bbbc9f58707a081"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-types" name="pri-types"></a>
 Private Types</h2></td></tr>
-<tr class="memitem:a9eba9e48374f6bb560adaa0b7bea25c0" id="r_a9eba9e48374f6bb560adaa0b7bea25c0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9eba9e48374f6bb560adaa0b7bea25c0">out_type</a> = std::array&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>, <a class="el" href="namespaceicubaby_1_1ranges.html#a188a24f33fb23269fdfd6b5d28d69c3d">max_output_bytes</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;&gt;</td></tr>
+<tr class="memitem:a9eba9e48374f6bb560adaa0b7bea25c0" id="r_a9eba9e48374f6bb560adaa0b7bea25c0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9eba9e48374f6bb560adaa0b7bea25c0">out_type</a> = std::array&lt;ToEncoding, <a class="el" href="namespaceicubaby_1_1ranges.html#a188a24f33fb23269fdfd6b5d28d69c3d">max_output_bytes</a>&lt;FromEncoding, ToEncoding&gt;&gt;</td></tr>
 <tr class="separator:a9eba9e48374f6bb560adaa0b7bea25c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d27c3e795ee85df00eb6175897b7480" id="r_a6d27c3e795ee85df00eb6175897b7480"><td class="memItemLeft" align="right" valign="top"><a id="a6d27c3e795ee85df00eb6175897b7480" name="a6d27c3e795ee85df00eb6175897b7480"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>iterator</b> = <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">typename</a> out_type::iterator</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>iterator</b> = typename out_type::iterator</td></tr>
 <tr class="memdesc:a6d27c3e795ee85df00eb6175897b7480"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output buffer iterator type. <br /></td></tr>
 <tr class="separator:a6d27c3e795ee85df00eb6175897b7480"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-methods" name="pri-static-methods"></a>
-Static Private Member Functions</h2></td></tr>
-<tr class="memitem:a0193177f0ad68a808d3f828f24ce6a3b" id="r_a0193177f0ad68a808d3f828f24ce6a3b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> std::ranges::subrange&lt; <a class="el" href="#a6d27c3e795ee85df00eb6175897b7480">iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0193177f0ad68a808d3f828f24ce6a3b">adjusted_subrange</a> (<a class="el" href="#a9eba9e48374f6bb560adaa0b7bea25c0">out_type</a> &amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">out</a>, <a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">state</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> &amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">other</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
-<tr class="separator:a0193177f0ad68a808d3f828f24ce6a3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a713579ff41ab79ac9c746eda748f250d" id="r_a713579ff41ab79ac9c746eda748f250d"><td class="memItemLeft" align="right" valign="top"><a id="a713579ff41ab79ac9c746eda748f250d" name="a713579ff41ab79ac9c746eda748f250d"></a>
-std::ranges::iterator_t&lt; View &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>next_</b></td></tr>
+std::ranges::iterator_t&lt; View &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>next_</b> {}</td></tr>
 <tr class="memdesc:a713579ff41ab79ac9c746eda748f250d"><td class="mdescLeft">&#160;</td><td class="mdescRight">An iterator referencing the next input code-unit to be consumed. <br /></td></tr>
 <tr class="separator:a713579ff41ab79ac9c746eda748f250d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5d6f59b9a37260b35fe02c4d7836d1a" id="r_aa5d6f59b9a37260b35fe02c4d7836d1a"><td class="memItemLeft" align="right" valign="top"><a id="aa5d6f59b9a37260b35fe02c4d7836d1a" name="aa5d6f59b9a37260b35fe02c4d7836d1a"></a>
-<a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>transcoder_</b></td></tr>
-<tr class="memdesc:aa5d6f59b9a37260b35fe02c4d7836d1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The transcoder used to convert a series of code-units in the source encoding to the destination encoding. <br /></td></tr>
-<tr class="separator:aa5d6f59b9a37260b35fe02c4d7836d1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2687ed57efae8ba72b8d97efcee4cd1a" id="r_a2687ed57efae8ba72b8d97efcee4cd1a"><td class="memItemLeft" align="right" valign="top"><a id="a2687ed57efae8ba72b8d97efcee4cd1a" name="a2687ed57efae8ba72b8d97efcee4cd1a"></a>
 <a class="el" href="#a9eba9e48374f6bb560adaa0b7bea25c0">out_type</a>&#160;</td><td class="memItemRight" valign="bottom"><b>out_</b> {}</td></tr>
 <tr class="memdesc:a2687ed57efae8ba72b8d97efcee4cd1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The container into which the transcoder's output will be written. <br /></td></tr>
 <tr class="separator:a2687ed57efae8ba72b8d97efcee4cd1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abc697bf27a7fa63eb0b6c16f59e65a72" id="r_abc697bf27a7fa63eb0b6c16f59e65a72"><td class="memItemLeft" align="right" valign="top">std::ranges::subrange&lt; <a class="el" href="#a6d27c3e795ee85df00eb6175897b7480">iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abc697bf27a7fa63eb0b6c16f59e65a72">valid_</a></td></tr>
-<tr class="separator:abc697bf27a7fa63eb0b6c16f59e65a72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5d6f59b9a37260b35fe02c4d7836d1a" id="r_aa5d6f59b9a37260b35fe02c4d7836d1a"><td class="memItemLeft" align="right" valign="top"><a id="aa5d6f59b9a37260b35fe02c4d7836d1a" name="aa5d6f59b9a37260b35fe02c4d7836d1a"></a>
+<a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt; FromEncoding, ToEncoding &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>transcoder_</b></td></tr>
+<tr class="memdesc:aa5d6f59b9a37260b35fe02c4d7836d1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The transcoder used to convert a series of code-units in the source encoding to the destination encoding. <br /></td></tr>
+<tr class="separator:aa5d6f59b9a37260b35fe02c4d7836d1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd2860712d1c041302e3b2929602d93f" id="r_abd2860712d1c041302e3b2929602d93f"><td class="memItemLeft" align="right" valign="top">std::uint_least8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abd2860712d1c041302e3b2929602d93f">first_</a>: <a class="el" href="#a4935ba604c2adcaf73b0f23adff76df4">valid_range_bits</a> = 0</td></tr>
+<tr class="memdesc:abd2860712d1c041302e3b2929602d93f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the start of the valid range of code units in the <a class="el" href="#a2687ed57efae8ba72b8d97efcee4cd1a" title="The container into which the transcoder&#39;s output will be written.">state::out_</a> container.  <br /></td></tr>
+<tr class="separator:abd2860712d1c041302e3b2929602d93f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a797c8b08cf454c1f3463f23842994948" id="r_a797c8b08cf454c1f3463f23842994948"><td class="memItemLeft" align="right" valign="top">std::uint_least8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a797c8b08cf454c1f3463f23842994948">last_</a>: <a class="el" href="#a4935ba604c2adcaf73b0f23adff76df4">valid_range_bits</a> = 0</td></tr>
+<tr class="memdesc:a797c8b08cf454c1f3463f23842994948"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index one beyond the end of the the valid range of code units in the <a class="el" href="#a2687ed57efae8ba72b8d97efcee4cd1a" title="The container into which the transcoder&#39;s output will be written.">state::out_</a> container.  <br /></td></tr>
+<tr class="separator:a797c8b08cf454c1f3463f23842994948"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-attribs" name="pri-static-attribs"></a>
+Static Private Attributes</h2></td></tr>
+<tr class="memitem:a4935ba604c2adcaf73b0f23adff76df4" id="r_a4935ba604c2adcaf73b0f23adff76df4"><td class="memItemLeft" align="right" valign="top">static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4935ba604c2adcaf73b0f23adff76df4">valid_range_bits</a> = 4U</td></tr>
+<tr class="separator:a4935ba604c2adcaf73b0f23adff76df4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View&gt;<br />
 class icubaby::ranges::transcode_view&lt; FromEncoding, ToEncoding, View &gt;::iterator::state</div><p>The state class is responsible for transforming the input values to output code units. </p>
-<p>It maintains a code point's worth of output code units in its internal buffer. These may be accessed by the owning iterator using the <a class="el" href="#ad1d86966ef3944b6e25236c7de13d818" title="Returns the first element from the range of code units forming the current code point.">front()</a> and <a class="el" href="#a4fd2b60e9f4685eb8e2d77857c04c1bf" title="Removes the first element from the range of code units forming the current code point.">advance()</a> member functions. Once the buffer is empty, it is refilled using the <a class="el" href="#ad2243d4694677b4c5bbbc9f58707a081">fill()</a> function. </p>
+<p>It maintains a code point's worth of output code units in its internal buffer. These may be accessed by the owning iterator using the <a class="el" href="#ad1d86966ef3944b6e25236c7de13d818" title="Returns the first element from the range of code units forming the current code point.">front()</a> and <a class="el" href="#a4fd2b60e9f4685eb8e2d77857c04c1bf" title="Removes the first element from the range of code units forming the current code point.">advance()</a> member functions. Once the buffer is empty, it is refilled using the <a class="el" href="#ad2243d4694677b4c5bbbc9f58707a081" title="Consumes enough code-units from the base iterator to form a single code-point.">fill()</a> function. </p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a9eba9e48374f6bb560adaa0b7bea25c0" name="a9eba9e48374f6bb560adaa0b7bea25c0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9eba9e48374f6bb560adaa0b7bea25c0">&#9670;&#160;</a></span>out_type</h2>
@@ -179,7 +167,7 @@ template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::range
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a> <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view</a>&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>, View &gt;::iterator::state::out_type = std::array&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>, <a class="el" href="namespaceicubaby_1_1ranges.html#a188a24f33fb23269fdfd6b5d28d69c3d">max_output_bytes</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;&gt;</td>
+          <td class="memname">using <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view</a>&lt; FromEncoding, ToEncoding, View &gt;::iterator::state::out_type = std::array&lt;ToEncoding, <a class="el" href="namespaceicubaby_1_1ranges.html#a188a24f33fb23269fdfd6b5d28d69c3d">max_output_bytes</a>&lt;FromEncoding, ToEncoding&gt;&gt;</td>
         </tr>
       </table>
   </td>
@@ -192,9 +180,9 @@ template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::range
 
 </div>
 </div>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="a0193177f0ad68a808d3f828f24ce6a3b" name="a0193177f0ad68a808d3f828f24ce6a3b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0193177f0ad68a808d3f828f24ce6a3b">&#9670;&#160;</a></span>adjusted_subrange()</h2>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="ae0a7a9d5c862b93eab16f6207a8f8763" name="ae0a7a9d5c862b93eab16f6207a8f8763"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0a7a9d5c862b93eab16f6207a8f8763">&#9670;&#160;</a></span>state()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -205,34 +193,30 @@ template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::range
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> std::ranges::subrange&lt; <a class="el" href="#a6d27c3e795ee85df00eb6175897b7480">iterator</a> &gt; <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view</a>&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>, View &gt;::iterator::state::adjusted_subrange </td>
+          <td class="memname">constexpr <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view</a>&lt; FromEncoding, ToEncoding, View &gt;::iterator::state::state </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="#a9eba9e48374f6bb560adaa0b7bea25c0">out_type</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em>, </span></td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">std::ranges::iterator_t&lt; View &gt;</td>          <td class="paramname"><span class="paramname"><em>iter</em></span></td><td>)</td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classicubaby_1_1ranges_1_1transcode__view_1_1iterator_1_1state.html">state</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">constexpr</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Returns a subrange which references the <code>out</code> array to match the position of the subrange in the <code>rhs</code> instance. This function is used to adjust the valid_ subrange so that it matches thta of another object when copying or moving.</p>
+
+<p>Initializes the state and primes the internal buffer with an initial code-point read from the input. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">out</td><td>The out_ array in the object being initialized. </td></tr>
-    <tr><td class="paramname">other</td><td>The object from which we are copying or moving. </td></tr>
+    <tr><td class="paramname">iter</td><td>An iterator referencing the next element in the input range to be consumed.&#x2413; </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>A subrange to be assigned to the valid_ field in the object being initialized. </dd></dl>
 
 </div>
 </div>
+<h2 class="groupheader">Member Function Documentation</h2>
 <a id="ad2243d4694677b4c5bbbc9f58707a081" name="ad2243d4694677b4c5bbbc9f58707a081"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad2243d4694677b4c5bbbc9f58707a081">&#9670;&#160;</a></span>fill()</h2>
 
@@ -245,9 +229,9 @@ template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::range
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> std::ranges::iterator_t&lt; View &gt; <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view</a>&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>, View &gt;::iterator::state::fill </td>
+          <td class="memname">constexpr std::ranges::iterator_t&lt; View &gt; <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view</a>&lt; FromEncoding, ToEncoding, View &gt;::iterator::state::fill </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">transcode_view</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">transcode_view</a> const *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -257,14 +241,22 @@ template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::range
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Consumes enough code-units from the base iterator to form a single code-point. The resulting code-units in the output encoding can be sequentially accessed using the <a class="el" href="#ad1d86966ef3944b6e25236c7de13d818" title="Returns the first element from the range of code units forming the current code point.">front()</a> and <a class="el" href="#a4fd2b60e9f4685eb8e2d77857c04c1bf" title="Removes the first element from the range of code units forming the current code point.">advance()</a> methods.</p>
+
+<p>Consumes enough code-units from the base iterator to form a single code-point. </p>
+<p>The resulting code-units in the output encoding can be sequentially accessed using the <a class="el" href="#ad1d86966ef3944b6e25236c7de13d818" title="Returns the first element from the range of code units forming the current code point.">front()</a> and <a class="el" href="#a4fd2b60e9f4685eb8e2d77857c04c1bf" title="Removes the first element from the range of code units forming the current code point.">advance()</a> methods.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">parent</td><td>The view from which input values are to be consumed. </td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="section return"><dt>Returns</dt><dd>The updated base iterator. </dd></dl>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="abc697bf27a7fa63eb0b6c16f59e65a72" name="abc697bf27a7fa63eb0b6c16f59e65a72"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abc697bf27a7fa63eb0b6c16f59e65a72">&#9670;&#160;</a></span>valid_</h2>
+<a id="abd2860712d1c041302e3b2929602d93f" name="abd2860712d1c041302e3b2929602d93f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd2860712d1c041302e3b2929602d93f">&#9670;&#160;</a></span>first_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -275,7 +267,7 @@ template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::range
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::ranges::subrange&lt;<a class="el" href="#a6d27c3e795ee85df00eb6175897b7480">iterator</a>&gt; <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view</a>&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">FromEncoding</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>, View &gt;::iterator::state::valid_</td>
+          <td class="memname">std::uint_least8_t <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view</a>&lt; FromEncoding, ToEncoding, View &gt;::iterator::state::first_</td>
         </tr>
       </table>
   </td>
@@ -284,7 +276,61 @@ template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::range
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The valid range of code units in the out_ container. Determines the code-units to be produced when the view is dereferenced. </p>
+
+<p>The index of the start of the valid range of code units in the <a class="el" href="#a2687ed57efae8ba72b8d97efcee4cd1a" title="The container into which the transcoder&#39;s output will be written.">state::out_</a> container. </p>
+<p>Together with the last_ field, determines the code-units to be produced when the view is dereferenced. </p>
+
+</div>
+</div>
+<a id="a797c8b08cf454c1f3463f23842994948" name="a797c8b08cf454c1f3463f23842994948"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a797c8b08cf454c1f3463f23842994948">&#9670;&#160;</a></span>last_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::uint_least8_t <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view</a>&lt; FromEncoding, ToEncoding, View &gt;::iterator::state::last_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The index one beyond the end of the the valid range of code units in the <a class="el" href="#a2687ed57efae8ba72b8d97efcee4cd1a" title="The container into which the transcoder&#39;s output will be written.">state::out_</a> container. </p>
+<p>Together with the last_ field, determines the code-units to be produced when the view is dereferenced. </p>
+
+</div>
+</div>
+<a id="a4935ba604c2adcaf73b0f23adff76df4" name="a4935ba604c2adcaf73b0f23adff76df4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4935ba604c2adcaf73b0f23adff76df4">&#9670;&#160;</a></span>valid_range_bits</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr auto <a class="el" href="classicubaby_1_1ranges_1_1transcode__view.html">icubaby::ranges::transcode_view</a>&lt; FromEncoding, ToEncoding, View &gt;::iterator::state::valid_range_bits = 4U</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The number of bits allocated for the first_ and last_ members. Must be enough to represent all valid indexes in out_type. </p>
 
 </div>
 </div>

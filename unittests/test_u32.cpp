@@ -222,7 +222,7 @@ TYPED_TEST (Utf32, RangesCopy) {
       static_cast<char32_t> (code_point::start_of_text),
   };
 
-  auto range = input | icubaby::ranges::transcode<char32_t, TypeParam>;
+  auto range = input | icubaby::views::transcode<char32_t, TypeParam>;
   (void)std::ranges::copy (range, std::back_inserter (output));
 
   std::vector<TypeParam> expected;
@@ -250,7 +250,7 @@ TYPED_TEST (Utf32, RangesCopy) {
 TYPED_TEST (Utf32, RangesBadInput) {
   auto& output = this->output_;
   std::vector const input{char32_t{0xFFFFFFFF}};
-  auto const range = input | icubaby::ranges::transcode<char32_t, TypeParam>;
+  auto const range = input | icubaby::views::transcode<char32_t, TypeParam>;
   (void)std::ranges::copy (range, std::back_inserter (output));
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
   EXPECT_FALSE (range.well_formed ());
@@ -305,7 +305,7 @@ template <typename OutputEncoding> static void ManualAndRangeAdaptorAlwaysMatch 
   auto const [man_out, man_well_formed] = Manual<OutputEncoding> (input);
   // Use the range adaptor interface to perform the conversion...
   std::vector<OutputEncoding> rng_out;
-  auto r = input | icubaby::ranges::transcode<char32_t, OutputEncoding>;
+  auto r = input | icubaby::views::transcode<char32_t, OutputEncoding>;
   std::ranges::copy (r, std::back_inserter (rng_out));
   EXPECT_EQ (man_well_formed, r.well_formed ());
   EXPECT_THAT (man_out, testing::ContainerEq (rng_out));

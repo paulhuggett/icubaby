@@ -65,7 +65,7 @@ a single range adaptor:
 
 ```cpp
 auto const in = std::array{char32_t{0x1F600}};
-auto r = in | icubaby::ranges::transcode<char32_t, char16_t>;
+auto r = in | icubaby::views::transcode<char32_t, char16_t>;
 std::vector<char16_t> out;
 std::ranges::copy(r, std::back_inserter(out));
 ```
@@ -77,7 +77,7 @@ the `out` vector.
 ```cpp
 auto const in = std::array{std::byte{0xFE}, std::byte{0xFF}, std::byte{0x00},
                            std::byte{'A'},  std::byte{0x00}, std::byte{'b'}};
-auto r = in | icubaby::ranges::transcode<std::byte, icubaby::char8>;
+auto r = in | icubaby::views::transcode<std::byte, icubaby::char8>;
 std::vector<icubaby::char8> out;
 std::ranges::copy(r, std::back_inserter(out));
 ```

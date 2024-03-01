@@ -87,11 +87,13 @@ $(function() {
 class icubaby::transcoder&lt; From, To &gt;</div><p>A transcoder takes a sequence of zero or more bytes or code-units in one Unicode encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another. </p>
 <p>Each of the specializations of this template (there is one for each input/output combination) supplies the same interface. We have:</p>
 <ul>
-<li><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5" title="A helper variable template to simplify use of icubaby::is_unicode_char_type.">operator()</a>. This member function accepts accepts a code unit in the source encoding and writes code units in the output encoding to an output iterator as they are produced.</li>
-<li>end_cp(). Call once the entire input sequence has been fed to <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5" title="A helper variable template to simplify use of icubaby::is_unicode_char_type.">operator()</a>. This function ensures that the sequence did not end with a partial code point and flushes any remaining output.</li>
+<li>operator(). This member function accepts accepts a code unit in the source encoding and writes code units in the output encoding to an output iterator as they are produced.</li>
+<li>end_cp(). Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not end with a partial code point and flushes any remaining output.</li>
 <li>well_formed(). Indicates whether the input was well formed.</li>
-<li>partial(). Indicates whether a "partial" code point has been passed to <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5" title="A helper variable template to simplify use of icubaby::is_unicode_char_type.">operator()</a>. If true, one or more code units are required to build the complete code point. </li>
+<li>partial(). Indicates whether a "partial" code point has been passed to operator(). If true, one or more code units are required to build the complete code point. </li>
 </ul>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="manual_bytes_to_utf8_8cpp-example.html#_a0">manual_bytes_to_utf8.cpp</a>.</dd>
+</dl>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>include/icubaby/<a class="el" href="icubaby_8hpp_source.html">icubaby.hpp</a></li>
 </ul>

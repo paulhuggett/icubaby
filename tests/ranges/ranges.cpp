@@ -137,7 +137,7 @@ template <std::ranges::input_range Range>
 std::vector<char16_t> convert_8_to_16 (Range const& input) {
   std::cout << "Convert the UTF-8 stream to UTF-16:\n ";
 
-  auto range = input | icubaby::ranges::transcode<char8_t, char16_t>;
+  auto range = input | icubaby::views::transcode<char8_t, char16_t>;
   std::vector<char16_t> out16;
   (void)std::ranges::copy (range, std::back_inserter (out16));
 
@@ -152,7 +152,7 @@ std::vector<char32_t> convert_8_to_32 (Range const& input) {
   std::cout << "Convert the UTF-8 stream to UTF-32:\n ";
 
   std::vector<char32_t> out32;
-  auto range = input | icubaby::ranges::transcode<char8_t, char32_t>;
+  auto range = input | icubaby::views::transcode<char8_t, char32_t>;
   (void)std::ranges::copy (range, std::back_inserter (out32));
 
   dump_vector (std::cout, out32);
@@ -166,7 +166,7 @@ std::vector<char16_t> convert_32_to_16 (Range const& input) {
   std::cout << "Convert the UTF-32 stream to UTF-16:\n ";
 
   std::vector<char16_t> out16;
-  auto range = input | icubaby::ranges::transcode<char32_t, char16_t>;
+  auto range = input | icubaby::views::transcode<char32_t, char16_t>;
   (void)std::ranges::copy (range, std::back_inserter (out16));
 
   dump_vector (std::cout, out16);
@@ -180,7 +180,7 @@ std::vector<char32_t> convert_16_to_32 (Range const& input) {
   std::cout << "Convert the UTF-16 stream to UTF-32:\n ";
 
   std::vector<char32_t> out32;
-  auto range = input | icubaby::ranges::transcode<char16_t, char32_t>;
+  auto range = input | icubaby::views::transcode<char16_t, char32_t>;
   (void)std::ranges::copy (range, std::back_inserter (out32));
 
   dump_vector (std::cout, out32);
@@ -194,7 +194,7 @@ std::vector<char8_t> convert_16_to_8 (Range const& input) {
   std::cout << "Convert the UTF-16 stream to UTF-8:\n ";
 
   std::vector<char8_t> out8;
-  auto range = input | icubaby::ranges::transcode<char16_t, char8_t>;
+  auto range = input | icubaby::views::transcode<char16_t, char8_t>;
   (void)std::ranges::copy (range, std::back_inserter (out8));
 
   dump_vector (std::cout, out8);
