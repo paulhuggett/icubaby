@@ -104,30 +104,31 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a698ef254e0a0169ecc3c4544fcd2850d" id="r_a698ef254e0a0169ecc3c4544fcd2850d"><td class="memItemLeft" align="right" valign="top"><a id="a698ef254e0a0169ecc3c4544fcd2850d" name="a698ef254e0a0169ecc3c4544fcd2850d"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>input_type</b> = std::byte</td></tr>
-<tr class="memdesc:a698ef254e0a0169ecc3c4544fcd2850d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of the code units consumed by this transcoder. <br /></td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>input_type</b> = std::byte</td></tr>
+<tr class="memdesc:a698ef254e0a0169ecc3c4544fcd2850d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of the values consumed by this transcoder. <br /></td></tr>
 <tr class="separator:a698ef254e0a0169ecc3c4544fcd2850d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2980506a0400cd626a13b0b47a0bcbde" id="r_a2980506a0400cd626a13b0b47a0bcbde"><td class="memItemLeft" align="right" valign="top"><a id="a2980506a0400cd626a13b0b47a0bcbde" name="a2980506a0400cd626a13b0b47a0bcbde"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>output_type</b> = <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a></td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>output_type</b> = ToEncoding</td></tr>
 <tr class="memdesc:a2980506a0400cd626a13b0b47a0bcbde"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of the code units produced by this transcoder. <br /></td></tr>
 <tr class="separator:a2980506a0400cd626a13b0b47a0bcbde"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a0be8940b91c92fad96f84ca6e821f6f8" id="r_a0be8940b91c92fad96f84ca6e821f6f8"><td class="memTemplParams" colspan="2">template&lt;std::output_iterator&lt; <a class="el" href="#a2980506a0400cd626a13b0b47a0bcbde">output_type</a> &gt; OutputIterator&gt; </td></tr>
-<tr class="memitem:a0be8940b91c92fad96f84ca6e821f6f8"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a0be8940b91c92fad96f84ca6e821f6f8">operator()</a> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">value</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">dest</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+<tr class="memitem:a0be8940b91c92fad96f84ca6e821f6f8"><td class="memTemplItemLeft" align="right" valign="top">OutputIterator&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a0be8940b91c92fad96f84ca6e821f6f8">operator()</a> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> value, OutputIterator dest) noexcept</td></tr>
+<tr class="memdesc:a0be8940b91c92fad96f84ca6e821f6f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accepts a byte for decoding.  <br /></td></tr>
 <tr class="separator:a0be8940b91c92fad96f84ca6e821f6f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac6d1c8232009387e667d6c43c348b8e9" id="r_ac6d1c8232009387e667d6c43c348b8e9"><td class="memTemplParams" colspan="2">template&lt;std::output_iterator&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt; OutputIterator&gt; </td></tr>
-<tr class="memitem:ac6d1c8232009387e667d6c43c348b8e9"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ac6d1c8232009387e667d6c43c348b8e9">end_cp</a> (<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">dest</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+<tr class="memitem:ac6d1c8232009387e667d6c43c348b8e9" id="r_ac6d1c8232009387e667d6c43c348b8e9"><td class="memTemplParams" colspan="2">template&lt;std::output_iterator&lt; ToEncoding &gt; OutputIterator&gt; </td></tr>
+<tr class="memitem:ac6d1c8232009387e667d6c43c348b8e9"><td class="memTemplItemLeft" align="right" valign="top">OutputIterator&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ac6d1c8232009387e667d6c43c348b8e9">end_cp</a> (OutputIterator dest) noexcept</td></tr>
 <tr class="separator:ac6d1c8232009387e667d6c43c348b8e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ba0fc8791c3177c79f489ab1b41200e" id="r_a6ba0fc8791c3177c79f489ab1b41200e"><td class="memTemplParams" colspan="2">template&lt;std::output_iterator&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt; OutputIterator&gt; </td></tr>
-<tr class="memitem:a6ba0fc8791c3177c79f489ab1b41200e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="classicubaby_1_1iterator.html">iterator</a>&lt; <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a6ba0fc8791c3177c79f489ab1b41200e">end_cp</a> (<a class="el" href="classicubaby_1_1iterator.html">iterator</a>&lt; <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> &gt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> &amp;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">dest</a>)</td></tr>
-<tr class="separator:a6ba0fc8791c3177c79f489ab1b41200e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ce8e5ca71a444c6fc34332374347d63" id="r_a0ce8e5ca71a444c6fc34332374347d63"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ce8e5ca71a444c6fc34332374347d63">well_formed</a> () <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+<tr class="memitem:a981671f2f97dc61c0f59b263473f7c0d" id="r_a981671f2f97dc61c0f59b263473f7c0d"><td class="memTemplParams" colspan="2">template&lt;std::output_iterator&lt; ToEncoding &gt; OutputIterator&gt; </td></tr>
+<tr class="memitem:a981671f2f97dc61c0f59b263473f7c0d"><td class="memTemplItemLeft" align="right" valign="top">constexpr <a class="el" href="classicubaby_1_1iterator.html">iterator</a>&lt; <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>, OutputIterator &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a981671f2f97dc61c0f59b263473f7c0d">end_cp</a> (<a class="el" href="classicubaby_1_1iterator.html">iterator</a>&lt; <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>, OutputIterator &gt; dest)</td></tr>
+<tr class="separator:a981671f2f97dc61c0f59b263473f7c0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ce8e5ca71a444c6fc34332374347d63" id="r_a0ce8e5ca71a444c6fc34332374347d63"><td class="memItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ce8e5ca71a444c6fc34332374347d63">well_formed</a> () const noexcept</td></tr>
 <tr class="separator:a0ce8e5ca71a444c6fc34332374347d63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a007c1ab8fb60c18b20c273e9d4c2f67b" id="r_a007c1ab8fb60c18b20c273e9d4c2f67b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a007c1ab8fb60c18b20c273e9d4c2f67b">partial</a> () <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+<tr class="memitem:a007c1ab8fb60c18b20c273e9d4c2f67b" id="r_a007c1ab8fb60c18b20c273e9d4c2f67b"><td class="memItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a007c1ab8fb60c18b20c273e9d4c2f67b">partial</a> () const noexcept</td></tr>
 <tr class="separator:a007c1ab8fb60c18b20c273e9d4c2f67b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af88aa3143fe72887effb83f3b807038c" id="r_af88aa3143fe72887effb83f3b807038c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#ad60f75ab68d739404afc53cb2e0afe77">encoding</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af88aa3143fe72887effb83f3b807038c">selected_encoding</a> () <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+<tr class="memitem:af88aa3143fe72887effb83f3b807038c" id="r_af88aa3143fe72887effb83f3b807038c"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="namespaceicubaby.html#ad60f75ab68d739404afc53cb2e0afe77">encoding</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af88aa3143fe72887effb83f3b807038c">selected_encoding</a> () const noexcept</td></tr>
 <tr class="separator:af88aa3143fe72887effb83f3b807038c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-types" name="pri-types"></a>
@@ -166,65 +167,65 @@ Private Types</h2></td></tr>
 <tr class="memdesc:a72777906cbca9825b1090020fde4bb7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The states that the finite state machine can occupy.  <a href="#a72777906cbca9825b1090020fde4bb7f">More...</a><br /></td></tr>
 <tr class="separator:a72777906cbca9825b1090020fde4bb7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92600db171ab4ab976da93cb56e37350" id="r_a92600db171ab4ab976da93cb56e37350"><td class="memItemLeft" align="right" valign="top"><a id="a92600db171ab4ab976da93cb56e37350" name="a92600db171ab4ab976da93cb56e37350"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>t8_type</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#aeb850a8056425f0af9320dbeeef55987">icubaby::char8</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>t8_type</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#aeb850a8056425f0af9320dbeeef55987">icubaby::char8</a>, ToEncoding&gt;</td></tr>
 <tr class="memdesc:a92600db171ab4ab976da93cb56e37350"><td class="mdescLeft">&#160;</td><td class="mdescRight">A short name for the transcoder used when UTF-8 input has been detected. <br /></td></tr>
 <tr class="separator:a92600db171ab4ab976da93cb56e37350"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae15dfc00cfbd636c911efd7b30a5b23d" id="r_ae15dfc00cfbd636c911efd7b30a5b23d"><td class="memItemLeft" align="right" valign="top"><a id="ae15dfc00cfbd636c911efd7b30a5b23d" name="ae15dfc00cfbd636c911efd7b30a5b23d"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>t16_type</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>t16_type</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;char16_t, ToEncoding&gt;</td></tr>
 <tr class="memdesc:ae15dfc00cfbd636c911efd7b30a5b23d"><td class="mdescLeft">&#160;</td><td class="mdescRight">A short name for the transcoder used when UTF-16 input has been detected. <br /></td></tr>
 <tr class="separator:ae15dfc00cfbd636c911efd7b30a5b23d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e1c2cbfe4367ce9b6d15d2a1a53b030" id="r_a7e1c2cbfe4367ce9b6d15d2a1a53b030"><td class="memItemLeft" align="right" valign="top"><a id="a7e1c2cbfe4367ce9b6d15d2a1a53b030" name="a7e1c2cbfe4367ce9b6d15d2a1a53b030"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">using</a>&#160;</td><td class="memItemRight" valign="bottom"><b>t32_type</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a>&gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>t32_type</b> = <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt;char32_t, ToEncoding&gt;</td></tr>
 <tr class="memdesc:a7e1c2cbfe4367ce9b6d15d2a1a53b030"><td class="mdescLeft">&#160;</td><td class="mdescRight">A short name for the transcoder used when UTF-32 input has been detected. <br /></td></tr>
 <tr class="separator:a7e1c2cbfe4367ce9b6d15d2a1a53b030"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
 <tr class="memitem:aa756a99a22e6282dc88bd6e7f795072e" id="r_aa756a99a22e6282dc88bd6e7f795072e"><td class="memTemplParams" colspan="2">template&lt;std::output_iterator&lt; <a class="el" href="#a2980506a0400cd626a13b0b47a0bcbde">output_type</a> &gt; OutputIterator&gt; </td></tr>
-<tr class="memitem:aa756a99a22e6282dc88bd6e7f795072e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#aa756a99a22e6282dc88bd6e7f795072e">start_state</a> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">value</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">dest</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+<tr class="memitem:aa756a99a22e6282dc88bd6e7f795072e"><td class="memTemplItemLeft" align="right" valign="top">OutputIterator&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#aa756a99a22e6282dc88bd6e7f795072e">start_state</a> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> const value, OutputIterator dest) noexcept</td></tr>
 <tr class="separator:aa756a99a22e6282dc88bd6e7f795072e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28901367e4ec939c5d5272d9cd4353c9" id="r_a28901367e4ec939c5d5272d9cd4353c9"><td class="memTemplParams" colspan="2">template&lt;std::output_iterator&lt; <a class="el" href="#a2980506a0400cd626a13b0b47a0bcbde">output_type</a> &gt; OutputIterator&gt; </td></tr>
-<tr class="memitem:a28901367e4ec939c5d5272d9cd4353c9"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a28901367e4ec939c5d5272d9cd4353c9">run8_start</a> (<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">copy_buffer</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">dest</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+<tr class="memitem:a28901367e4ec939c5d5272d9cd4353c9"><td class="memTemplItemLeft" align="right" valign="top">OutputIterator&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a28901367e4ec939c5d5272d9cd4353c9">run8_start</a> (bool const copy_buffer, OutputIterator dest) noexcept</td></tr>
 <tr class="separator:a28901367e4ec939c5d5272d9cd4353c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a725a9b8552e13d150e67816c067a21f0" id="r_a725a9b8552e13d150e67816c067a21f0"><td class="memTemplParams" colspan="2"><a id="a725a9b8552e13d150e67816c067a21f0" name="a725a9b8552e13d150e67816c067a21f0"></a>
-template&lt;std::output_iterator&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt; OutputIterator&gt; </td></tr>
-<tr class="memitem:a725a9b8552e13d150e67816c067a21f0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><b>run16_start</b> (<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">dest</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+template&lt;std::output_iterator&lt; ToEncoding &gt; OutputIterator&gt; </td></tr>
+<tr class="memitem:a725a9b8552e13d150e67816c067a21f0"><td class="memTemplItemLeft" align="right" valign="top">OutputIterator&#160;</td><td class="memTemplItemRight" valign="bottom"><b>run16_start</b> (OutputIterator dest) noexcept</td></tr>
 <tr class="separator:a725a9b8552e13d150e67816c067a21f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4bf53637ef5026425f5ba37aeb281d50" id="r_a4bf53637ef5026425f5ba37aeb281d50"><td class="memItemLeft" align="right" valign="top"><a id="a4bf53637ef5026425f5ba37aeb281d50" name="a4bf53637ef5026425f5ba37aeb281d50"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>char16_from_big_endian_buffer</b> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">value</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+constexpr char16_t&#160;</td><td class="memItemRight" valign="bottom"><b>char16_from_big_endian_buffer</b> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> const value) const noexcept</td></tr>
 <tr class="separator:a4bf53637ef5026425f5ba37aeb281d50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b0bbf66689bdff9de0a04b8771d81e9" id="r_a5b0bbf66689bdff9de0a04b8771d81e9"><td class="memItemLeft" align="right" valign="top"><a id="a5b0bbf66689bdff9de0a04b8771d81e9" name="a5b0bbf66689bdff9de0a04b8771d81e9"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char16_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>char16_from_little_endian_buffer</b> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">value</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+constexpr char16_t&#160;</td><td class="memItemRight" valign="bottom"><b>char16_from_little_endian_buffer</b> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> const value) const noexcept</td></tr>
 <tr class="separator:a5b0bbf66689bdff9de0a04b8771d81e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4401ceb1d7efd7f1dba7f61136a57610" id="r_a4401ceb1d7efd7f1dba7f61136a57610"><td class="memItemLeft" align="right" valign="top"><a id="a4401ceb1d7efd7f1dba7f61136a57610" name="a4401ceb1d7efd7f1dba7f61136a57610"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>char32_from_big_endian_buffer</b> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">value</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+constexpr char32_t&#160;</td><td class="memItemRight" valign="bottom"><b>char32_from_big_endian_buffer</b> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> const value) const noexcept</td></tr>
 <tr class="separator:a4401ceb1d7efd7f1dba7f61136a57610"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32a2faa6360c55a48cd68c52d28f25c2" id="r_a32a2faa6360c55a48cd68c52d28f25c2"><td class="memItemLeft" align="right" valign="top"><a id="a32a2faa6360c55a48cd68c52d28f25c2" name="a32a2faa6360c55a48cd68c52d28f25c2"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">char32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>char32_from_little_endian_buffer</b> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">value</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+constexpr char32_t&#160;</td><td class="memItemRight" valign="bottom"><b>char32_from_little_endian_buffer</b> (<a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> const value) const noexcept</td></tr>
 <tr class="separator:a32a2faa6360c55a48cd68c52d28f25c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-methods" name="pri-static-methods"></a>
 Static Private Member Functions</h2></td></tr>
-<tr class="memitem:a029dbb0eff81c587a29ec051051f0415" id="r_a029dbb0eff81c587a29ec051051f0415"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> std::byte&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a029dbb0eff81c587a29ec051051f0415">byte_no</a> (std::uint_least8_t <a class="el" href="namespaceicubaby.html#a523359f2a9f59becd314e35e3544af31">index</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+<tr class="memitem:a029dbb0eff81c587a29ec051051f0415" id="r_a029dbb0eff81c587a29ec051051f0415"><td class="memItemLeft" align="right" valign="top">static constexpr std::byte&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a029dbb0eff81c587a29ec051051f0415">byte_no</a> (std::uint_least8_t <a class="el" href="namespaceicubaby.html#a523359f2a9f59becd314e35e3544af31">index</a>) noexcept</td></tr>
 <tr class="separator:a029dbb0eff81c587a29ec051051f0415"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a75482ffb93b5e2c046d49837b3fbb29e" id="r_a75482ffb93b5e2c046d49837b3fbb29e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a75482ffb93b5e2c046d49837b3fbb29e">is_run_mode</a> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> state) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+<tr class="memitem:a75482ffb93b5e2c046d49837b3fbb29e" id="r_a75482ffb93b5e2c046d49837b3fbb29e"><td class="memItemLeft" align="right" valign="top">static constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a75482ffb93b5e2c046d49837b3fbb29e">is_run_mode</a> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> const state) noexcept</td></tr>
 <tr class="separator:a75482ffb93b5e2c046d49837b3fbb29e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a839d3f1bcbebbf85e347d35467a752a5" id="r_a839d3f1bcbebbf85e347d35467a752a5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a839d3f1bcbebbf85e347d35467a752a5">is_little_endian</a> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> state) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+<tr class="memitem:a839d3f1bcbebbf85e347d35467a752a5" id="r_a839d3f1bcbebbf85e347d35467a752a5"><td class="memItemLeft" align="right" valign="top">static constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a839d3f1bcbebbf85e347d35467a752a5">is_little_endian</a> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> const state) noexcept</td></tr>
 <tr class="separator:a839d3f1bcbebbf85e347d35467a752a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8977fdb464d2d235cd96d2029fe5ca7f" id="r_a8977fdb464d2d235cd96d2029fe5ca7f"><td class="memItemLeft" align="right" valign="top"><a id="a8977fdb464d2d235cd96d2029fe5ca7f" name="a8977fdb464d2d235cd96d2029fe5ca7f"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> std::uint_least8_t&#160;</td><td class="memItemRight" valign="bottom"><b>byte_no</b> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> state) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+static constexpr std::uint_least8_t&#160;</td><td class="memItemRight" valign="bottom"><b>byte_no</b> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> const state) noexcept</td></tr>
 <tr class="separator:a8977fdb464d2d235cd96d2029fe5ca7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac8b4c423acefa51e01b0ef7cecfc1092" id="r_ac8b4c423acefa51e01b0ef7cecfc1092"><td class="memItemLeft" align="right" valign="top"><a id="ac8b4c423acefa51e01b0ef7cecfc1092" name="ac8b4c423acefa51e01b0ef7cecfc1092"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a>&#160;</td><td class="memItemRight" valign="bottom"><b>set_byte</b> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> state, std::uint_least8_t <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">byte_number</a>) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+static constexpr <a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a>&#160;</td><td class="memItemRight" valign="bottom"><b>set_byte</b> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> const state, std::uint_least8_t const byte_number) noexcept</td></tr>
 <tr class="separator:ac8b4c423acefa51e01b0ef7cecfc1092"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b81661363e3b2d99c663e38c633599b" id="r_a8b81661363e3b2d99c663e38c633599b"><td class="memItemLeft" align="right" valign="top"><a id="a8b81661363e3b2d99c663e38c633599b" name="a8b81661363e3b2d99c663e38c633599b"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a>&#160;</td><td class="memItemRight" valign="bottom"><b>next_byte</b> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> state) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+static constexpr <a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a>&#160;</td><td class="memItemRight" valign="bottom"><b>next_byte</b> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> const state) noexcept</td></tr>
 <tr class="separator:a8b81661363e3b2d99c663e38c633599b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78323595004ac89d64e573865f86cf42" id="r_a78323595004ac89d64e573865f86cf42"><td class="memItemLeft" align="right" valign="top"><a id="a78323595004ac89d64e573865f86cf42" name="a78323595004ac89d64e573865f86cf42"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a>&#160;</td><td class="memItemRight" valign="bottom"><b>set_run_mode</b> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> state) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+static constexpr <a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a>&#160;</td><td class="memItemRight" valign="bottom"><b>set_run_mode</b> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> const state) noexcept</td></tr>
 <tr class="separator:a78323595004ac89d64e573865f86cf42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb0a2a812baef7fe0905e8ced0309e8f" id="r_acb0a2a812baef7fe0905e8ced0309e8f"><td class="memItemLeft" align="right" valign="top"><a id="acb0a2a812baef7fe0905e8ced0309e8f" name="acb0a2a812baef7fe0905e8ced0309e8f"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>boms_index_from_state</b> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> state) <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">noexcept</a></td></tr>
+static constexpr std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>boms_index_from_state</b> (<a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> const state) noexcept</td></tr>
 <tr class="separator:acb0a2a812baef7fe0905e8ced0309e8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
@@ -244,60 +245,60 @@ std::variant&lt; std::monostate, <a class="el" href="#a92600db171ab4ab976da93cb5
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-attribs" name="pri-static-attribs"></a>
 Static Private Attributes</h2></td></tr>
 <tr class="memitem:ac56b1c7e7a83bc7477f4346833125570" id="r_ac56b1c7e7a83bc7477f4346833125570"><td class="memItemLeft" align="right" valign="top"><a id="ac56b1c7e7a83bc7477f4346833125570" name="ac56b1c7e7a83bc7477f4346833125570"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_shift</b> = 4<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">U</a></td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_shift</b> = 4U</td></tr>
 <tr class="separator:ac56b1c7e7a83bc7477f4346833125570"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acac1c91e2af0b2b82eb7d006ed4eb612" id="r_acac1c91e2af0b2b82eb7d006ed4eb612"><td class="memItemLeft" align="right" valign="top"><a id="acac1c91e2af0b2b82eb7d006ed4eb612" name="acac1c91e2af0b2b82eb7d006ed4eb612"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>endian_shift</b> = 3<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">U</a></td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>endian_shift</b> = 3U</td></tr>
 <tr class="separator:acac1c91e2af0b2b82eb7d006ed4eb612"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab08eb9e5ae41e007221781a5e2207b04" id="r_ab08eb9e5ae41e007221781a5e2207b04"><td class="memItemLeft" align="right" valign="top"><a id="ab08eb9e5ae41e007221781a5e2207b04" name="ab08eb9e5ae41e007221781a5e2207b04"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>run_shift</b> = 2<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">U</a></td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>run_shift</b> = 2U</td></tr>
 <tr class="separator:ab08eb9e5ae41e007221781a5e2207b04"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3708b71934590a957d0105750ddf5333" id="r_a3708b71934590a957d0105750ddf5333"><td class="memItemLeft" align="right" valign="top"><a id="a3708b71934590a957d0105750ddf5333" name="a3708b71934590a957d0105750ddf5333"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_mask</b> = std::byte{0b11 &lt;&lt; encoding_shift}</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_mask</b> = std::byte{0b11 &lt;&lt; encoding_shift}</td></tr>
 <tr class="memdesc:a3708b71934590a957d0105750ddf5333"><td class="mdescLeft">&#160;</td><td class="mdescRight">One of unknown or UTF-8/16/32. <br /></td></tr>
 <tr class="separator:a3708b71934590a957d0105750ddf5333"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5e8d80f4c71b0bd8a9018f075c06690" id="r_af5e8d80f4c71b0bd8a9018f075c06690"><td class="memItemLeft" align="right" valign="top"><a id="af5e8d80f4c71b0bd8a9018f075c06690" name="af5e8d80f4c71b0bd8a9018f075c06690"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>endian_mask</b> = std::byte{1<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">U</a> &lt;&lt; endian_shift}</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>endian_mask</b> = std::byte{1U &lt;&lt; endian_shift}</td></tr>
 <tr class="memdesc:af5e8d80f4c71b0bd8a9018f075c06690"><td class="mdescLeft">&#160;</td><td class="mdescRight">One of big_endian or little_endian. <br /></td></tr>
 <tr class="separator:af5e8d80f4c71b0bd8a9018f075c06690"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac9d23d328e227294b17052f803dea058" id="r_ac9d23d328e227294b17052f803dea058"><td class="memItemLeft" align="right" valign="top"><a id="ac9d23d328e227294b17052f803dea058" name="ac9d23d328e227294b17052f803dea058"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>run_mask</b> = std::byte{1<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">U</a> &lt;&lt; run_shift}</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>run_mask</b> = std::byte{1U &lt;&lt; run_shift}</td></tr>
 <tr class="memdesc:ac9d23d328e227294b17052f803dea058"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run or bom mode. <br /></td></tr>
 <tr class="separator:ac9d23d328e227294b17052f803dea058"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2beb650a756ebdc17954d9d82a79b5f3" id="r_a2beb650a756ebdc17954d9d82a79b5f3"><td class="memItemLeft" align="right" valign="top"><a id="a2beb650a756ebdc17954d9d82a79b5f3" name="a2beb650a756ebdc17954d9d82a79b5f3"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>byte_no_mask</b> = std::byte{0b11}</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>byte_no_mask</b> = std::byte{0b11}</td></tr>
 <tr class="memdesc:a2beb650a756ebdc17954d9d82a79b5f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Values from 0-3. <br /></td></tr>
 <tr class="separator:a2beb650a756ebdc17954d9d82a79b5f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37407160c47f84e3dfe076460c69d999" id="r_a37407160c47f84e3dfe076460c69d999"><td class="memItemLeft" align="right" valign="top"><a id="a37407160c47f84e3dfe076460c69d999" name="a37407160c47f84e3dfe076460c69d999"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_utf16</b> = std::byte{0b00 &lt;&lt; encoding_shift}</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_utf16</b> = std::byte{0b00 &lt;&lt; encoding_shift}</td></tr>
 <tr class="memdesc:a37407160c47f84e3dfe076460c69d999"><td class="mdescLeft">&#160;</td><td class="mdescRight">UTF-16 BE or UTF-16 LE encoding. <a class="anchor" id="transcoder-encoding_utf16"></a>Bitwise-or this value to create a state representing UTF-16 (BE or LE) encoding. <br /></td></tr>
 <tr class="separator:a37407160c47f84e3dfe076460c69d999"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab1bdaf529919e4fcf25930999d9f301e" id="r_ab1bdaf529919e4fcf25930999d9f301e"><td class="memItemLeft" align="right" valign="top"><a id="ab1bdaf529919e4fcf25930999d9f301e" name="ab1bdaf529919e4fcf25930999d9f301e"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_utf32</b> = std::byte{0b01 &lt;&lt; encoding_shift}</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_utf32</b> = std::byte{0b01 &lt;&lt; encoding_shift}</td></tr>
 <tr class="memdesc:ab1bdaf529919e4fcf25930999d9f301e"><td class="mdescLeft">&#160;</td><td class="mdescRight">UTF-32 BE or UTF-32 LE encoding. <a class="anchor" id="transcoder-encoding_utf32"></a>Bitwise-or this value to create a state representing UTF-32 (BE or LE) encoding. <br /></td></tr>
 <tr class="separator:ab1bdaf529919e4fcf25930999d9f301e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7dc2135524689978d5b5cbe6b52b97f9" id="r_a7dc2135524689978d5b5cbe6b52b97f9"><td class="memItemLeft" align="right" valign="top"><a id="a7dc2135524689978d5b5cbe6b52b97f9" name="a7dc2135524689978d5b5cbe6b52b97f9"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_utf8</b> = std::byte{0b10 &lt;&lt; encoding_shift}</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_utf8</b> = std::byte{0b10 &lt;&lt; encoding_shift}</td></tr>
 <tr class="memdesc:a7dc2135524689978d5b5cbe6b52b97f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">UTF-8 encoding. <a class="anchor" id="transcoder-encoding_utf8"></a>Bitwise-or this value to create a state representing UTF-8 encoding. <br /></td></tr>
 <tr class="separator:a7dc2135524689978d5b5cbe6b52b97f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a74abc8c036acf3b4b52e73a08b08dda9" id="r_a74abc8c036acf3b4b52e73a08b08dda9"><td class="memItemLeft" align="right" valign="top"><a id="a74abc8c036acf3b4b52e73a08b08dda9" name="a74abc8c036acf3b4b52e73a08b08dda9"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_unknown</b> = std::byte{0b11 &lt;&lt; encoding_shift}</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>encoding_unknown</b> = std::byte{0b11 &lt;&lt; encoding_shift}</td></tr>
 <tr class="memdesc:a74abc8c036acf3b4b52e73a08b08dda9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The input encoding is not yet known. <br /></td></tr>
 <tr class="separator:a74abc8c036acf3b4b52e73a08b08dda9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0fb73cfa0bb521fbfc60e64de59363c" id="r_ae0fb73cfa0bb521fbfc60e64de59363c"><td class="memItemLeft" align="right" valign="top"><a id="ae0fb73cfa0bb521fbfc60e64de59363c" name="ae0fb73cfa0bb521fbfc60e64de59363c"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bom_mode</b> = std::byte{0}</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>bom_mode</b> = std::byte{0}</td></tr>
 <tr class="memdesc:ae0fb73cfa0bb521fbfc60e64de59363c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bitwise-or this value to create a state representing the FSM identifying the BOM. <a class="anchor" id="transcoder-bom_mode"></a>. <br /></td></tr>
 <tr class="separator:ae0fb73cfa0bb521fbfc60e64de59363c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbde21b543a5ab7766bb1946544c49a9" id="r_adbde21b543a5ab7766bb1946544c49a9"><td class="memItemLeft" align="right" valign="top"><a id="adbde21b543a5ab7766bb1946544c49a9" name="adbde21b543a5ab7766bb1946544c49a9"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>run_mode</b> = <a class="el" href="#ac9d23d328e227294b17052f803dea058">run_mask</a></td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>run_mode</b> = <a class="el" href="#ac9d23d328e227294b17052f803dea058">run_mask</a></td></tr>
 <tr class="memdesc:adbde21b543a5ab7766bb1946544c49a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bitwise-or this value to create a state representing the FSM consuming runs of bytes and emitting code-units. <a class="anchor" id="transcoder-run_mode"></a>. <br /></td></tr>
 <tr class="separator:adbde21b543a5ab7766bb1946544c49a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0495c448f40fc8e21537d458c7ea4540" id="r_a0495c448f40fc8e21537d458c7ea4540"><td class="memItemLeft" align="right" valign="top"><a id="a0495c448f40fc8e21537d458c7ea4540" name="a0495c448f40fc8e21537d458c7ea4540"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>big_endian</b> = std::byte{0}</td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>big_endian</b> = std::byte{0}</td></tr>
 <tr class="memdesc:a0495c448f40fc8e21537d458c7ea4540"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bitwise-or this value to create a state consuming big-endian values. <a class="anchor" id="transcoder-big_endian"></a>. <br /></td></tr>
 <tr class="separator:a0495c448f40fc8e21537d458c7ea4540"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5da0ae402d8a97fe2e9de37e6f8ac950" id="r_a5da0ae402d8a97fe2e9de37e6f8ac950"><td class="memItemLeft" align="right" valign="top"><a id="a5da0ae402d8a97fe2e9de37e6f8ac950" name="a5da0ae402d8a97fe2e9de37e6f8ac950"></a>
-<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><b>little_endian</b> = <a class="el" href="#af5e8d80f4c71b0bd8a9018f075c06690">endian_mask</a></td></tr>
+static constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><b>little_endian</b> = <a class="el" href="#af5e8d80f4c71b0bd8a9018f075c06690">endian_mask</a></td></tr>
 <tr class="memdesc:a5da0ae402d8a97fe2e9de37e6f8ac950"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bitwise-or this value to create a state consuming little-endian values. <a class="anchor" id="transcoder-little_endian"></a>. <br /></td></tr>
 <tr class="separator:a5da0ae402d8a97fe2e9de37e6f8ac950"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -318,7 +319,7 @@ template&lt;unicode_char_type ToEncoding&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">enum</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">class</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::states : std::uint_least8_t</td>
+          <td class="memname">enum class <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::states : std::uint_least8_t</td>
         </tr>
       </table>
   </td>
@@ -413,7 +414,7 @@ template&lt;unicode_char_type ToEncoding&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> std::byte <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::byte_no </td>
+          <td class="memname">static constexpr std::byte <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::byte_no </td>
           <td>(</td>
           <td class="paramtype">std::uint_least8_t</td>          <td class="paramname"><span class="paramname"><em>index</em></span></td><td>)</td>
           <td></td>
@@ -435,23 +436,23 @@ template&lt;unicode_char_type ToEncoding&gt; </div>
 
 </div>
 </div>
-<a id="a6ba0fc8791c3177c79f489ab1b41200e" name="a6ba0fc8791c3177c79f489ab1b41200e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ba0fc8791c3177c79f489ab1b41200e">&#9670;&#160;</a></span>end_cp() <span class="overload">[1/2]</span></h2>
+<a id="a981671f2f97dc61c0f59b263473f7c0d" name="a981671f2f97dc61c0f59b263473f7c0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a981671f2f97dc61c0f59b263473f7c0d">&#9670;&#160;</a></span>end_cp() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;unicode_char_type ToEncoding&gt; </div>
 <div class="memtemplate">
-template&lt;std::output_iterator&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt; OutputIterator&gt; </div>
+template&lt;std::output_iterator&lt; ToEncoding &gt; OutputIterator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="classicubaby_1_1iterator.html">iterator</a>&lt; <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> &gt; <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::end_cp </td>
+          <td class="memname">constexpr <a class="el" href="classicubaby_1_1iterator.html">iterator</a>&lt; <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>, OutputIterator &gt; <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::end_cp </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classicubaby_1_1iterator.html">iterator</a>&lt; <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> &gt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>dest</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="classicubaby_1_1iterator.html">iterator</a>&lt; <a class="el" href="classicubaby_1_1transcoder.html">transcoder</a>&lt; std::byte, ToEncoding &gt;, OutputIterator &gt;</td>          <td class="paramname"><span class="paramname"><em>dest</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -461,7 +462,7 @@ template&lt;std::output_iterator&lt; <a class="el" href="namespaceicubaby.html#a
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Call once the entire input sequence has been fed to <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5" title="A helper variable template to simplify use of icubaby::is_unicode_char_type.">operator()</a>. This function ensures that the sequence did not end with a partial code point.</p>
+<p>Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not end with a partial code point.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">OutputIterator</td><td>An output iterator type to which values of type output_type can be written. </td></tr>
@@ -486,15 +487,15 @@ template&lt;std::output_iterator&lt; <a class="el" href="namespaceicubaby.html#a
 <div class="memtemplate">
 template&lt;unicode_char_type ToEncoding&gt; </div>
 <div class="memtemplate">
-template&lt;std::output_iterator&lt; <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt; OutputIterator&gt; </div>
+template&lt;std::output_iterator&lt; ToEncoding &gt; OutputIterator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::end_cp </td>
+          <td class="memname">OutputIterator <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::end_cp </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a></td>          <td class="paramname"><span class="paramname"><em>dest</em></span></td><td>)</td>
+          <td class="paramtype">OutputIterator</td>          <td class="paramname"><span class="paramname"><em>dest</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -504,7 +505,7 @@ template&lt;std::output_iterator&lt; <a class="el" href="namespaceicubaby.html#a
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Call once the entire input sequence has been fed to <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5" title="A helper variable template to simplify use of icubaby::is_unicode_char_type.">operator()</a>. This function ensures that the sequence did not end with a partial code point.</p>
+<p>Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not end with a partial code point.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">OutputIterator</td><td>An output iterator type to which values of type output_type can be written. </td></tr>
@@ -533,9 +534,9 @@ template&lt;unicode_char_type ToEncoding&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::is_little_endian </td>
+          <td class="memname">static constexpr bool <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::is_little_endian </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a></td>          <td class="paramname"><span class="paramname"><em>state</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> const</td>          <td class="paramname"><span class="paramname"><em>state</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -567,9 +568,9 @@ template&lt;unicode_char_type ToEncoding&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">static</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::is_run_mode </td>
+          <td class="memname">static constexpr bool <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::is_run_mode </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a></td>          <td class="paramname"><span class="paramname"><em>state</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="#a72777906cbca9825b1090020fde4bb7f">states</a> const</td>          <td class="paramname"><span class="paramname"><em>state</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -603,14 +604,14 @@ template&lt;std::output_iterator&lt; <a class="el" href="#a2980506a0400cd626a13b
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;<a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">::operator</a>() </td>
+          <td class="memname">OutputIterator <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::operator() </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a></td>          <td class="paramname"><span class="paramname"><em>value</em>, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a></td>          <td class="paramname"><span class="paramname"><em>dest</em></span>&#160;)</td>
+          <td class="paramtype">OutputIterator</td>          <td class="paramname"><span class="paramname"><em>dest</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -619,7 +620,9 @@ template&lt;std::output_iterator&lt; <a class="el" href="#a2980506a0400cd626a13b
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Accepts a byte for decoding. As output code units are generated, they are written to the output iterator <code>dest</code>.</p>
+
+<p>Accepts a byte for decoding. </p>
+<p>As output code units are generated, they are written to the output iterator <code>dest</code>.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">OutputIterator</td><td>An output iterator type to which values of type output_type can be written. </td></tr>
@@ -649,7 +652,7 @@ template&lt;unicode_char_type ToEncoding&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::partial </td>
+          <td class="memname">constexpr bool <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::partial </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"></span></td><td>)</td>
           <td> const</td>
@@ -661,7 +664,7 @@ template&lt;unicode_char_type ToEncoding&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>True if a partial code-point has been passed to <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5" title="A helper variable template to simplify use of icubaby::is_unicode_char_type.">operator()</a> and false otherwise. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>True if a partial code-point has been passed to operator() and false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -679,14 +682,14 @@ template&lt;std::output_iterator&lt; <a class="el" href="#a2980506a0400cd626a13b
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::run8_start </td>
+          <td class="memname">OutputIterator <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::run8_start </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a></td>          <td class="paramname"><span class="paramname"><em>copy_buffer</em>, </span></td>
+          <td class="paramtype">bool const</td>          <td class="paramname"><span class="paramname"><em>copy_buffer</em>, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a></td>          <td class="paramname"><span class="paramname"><em>dest</em></span>&#160;)</td>
+          <td class="paramtype">OutputIterator</td>          <td class="paramname"><span class="paramname"><em>dest</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -725,7 +728,7 @@ template&lt;unicode_char_type ToEncoding&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#ad60f75ab68d739404afc53cb2e0afe77">encoding</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::selected_encoding </td>
+          <td class="memname">constexpr <a class="el" href="namespaceicubaby.html#ad60f75ab68d739404afc53cb2e0afe77">encoding</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::selected_encoding </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"></span></td><td>)</td>
           <td> const</td>
@@ -755,14 +758,14 @@ template&lt;std::output_iterator&lt; <a class="el" href="#a2980506a0400cd626a13b
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::start_state </td>
+          <td class="memname">OutputIterator <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::start_state </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">const</a></td>          <td class="paramname"><span class="paramname"><em>value</em>, </span></td>
+          <td class="paramtype"><a class="el" href="#a698ef254e0a0169ecc3c4544fcd2850d">input_type</a> const</td>          <td class="paramname"><span class="paramname"><em>value</em>, </span></td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">OutputIterator</a></td>          <td class="paramname"><span class="paramname"><em>dest</em></span>&#160;)</td>
+          <td class="paramtype">OutputIterator</td>          <td class="paramname"><span class="paramname"><em>dest</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -801,7 +804,7 @@ template&lt;unicode_char_type ToEncoding&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">constexpr</a> <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">bool</a> <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, <a class="el" href="namespaceicubaby.html#a2c609e46b62b83db7239b7fd43a010b5">ToEncoding</a> &gt;::well_formed </td>
+          <td class="memname">constexpr bool <a class="el" href="classicubaby_1_1transcoder.html">icubaby::transcoder</a>&lt; std::byte, ToEncoding &gt;::well_formed </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"></span></td><td>)</td>
           <td> const</td>

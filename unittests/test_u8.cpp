@@ -554,7 +554,7 @@ TYPED_TEST (Utf8, RangesCopy) {
   src_out = append<code_point::cjk_unified_ideograph_754c, icubaby::char8> (src_out);
   (void)append<code_point::line_feed, icubaby::char8> (src_out);
 
-  (void)std::ranges::copy (src | icubaby::ranges::transcode<char8_t, TypeParam>, std::back_inserter (output));
+  (void)std::ranges::copy (src | icubaby::views::transcode<char8_t, TypeParam>, std::back_inserter (output));
 
   std::vector<TypeParam> expected;
   auto expected_out = std::back_inserter (expected);
@@ -573,7 +573,7 @@ TYPED_TEST (Utf8, RangesBadInput) {
   auto& output = this->output_;
 
   std::array const bad_input{static_cast<icubaby::char8> (0xC3), static_cast<icubaby::char8> (0x28)};
-  auto range = bad_input | icubaby::ranges::transcode<char8_t, TypeParam>;
+  auto range = bad_input | icubaby::views::transcode<char8_t, TypeParam>;
   (void)std::ranges::copy (range, std::back_inserter (output));
   EXPECT_FALSE (range.well_formed ());
 
@@ -593,7 +593,7 @@ TEST (Utf8To32, RangesBadInput) {
   };
   // clang-format on
   std::vector<char32_t> out32;
-  auto const range = input | icubaby::ranges::transcode<char8_t, char32_t>;
+  auto const range = input | icubaby::views::transcode<char8_t, char32_t>;
   (void)std::ranges::copy (range, std::back_inserter (out32));
   EXPECT_THAT (out32, ElementsAre (char32_t{icubaby::replacement_char}));
   EXPECT_FALSE (range.well_formed ());
@@ -649,7 +649,7 @@ static void ManualAndRangeAdaptorAlwaysMatch (std::vector<icubaby::char8> const&
   auto const [man_out, man_well_formed] = Manual<OutputEncoding> (input);
   // Use the range adaptor interface to perform the conversion...
   std::vector<OutputEncoding> rng_out;
-  auto r = input | icubaby::ranges::transcode<icubaby::char8, OutputEncoding>;
+  auto r = input | icubaby::views::transcode<icubaby::char8, OutputEncoding>;
   std::ranges::copy (r, std::back_inserter (rng_out));
   EXPECT_EQ (man_well_formed, r.well_formed ());
   EXPECT_THAT (rng_out, ContainerEq (man_out));

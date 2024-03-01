@@ -1077,7 +1077,7 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           =
+EXAMPLE_PATH           = examples
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and
@@ -1735,7 +1735,7 @@ OBFUSCATE_EMAILS       = YES
 # The default value is: png.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_FORMULA_FORMAT    = png
+HTML_FORMULA_FORMAT    = svg
 
 # Use this tag to change the font size of LaTeX formulas included as images in
 # the HTML documentation. When you change the font size after a successful
@@ -2375,7 +2375,7 @@ DIR_GRAPH_MAX_DEPTH    = 1
 # The default value is: png.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-DOT_IMAGE_FORMAT       = png
+DOT_IMAGE_FORMAT       = svg
 
 # If DOT_IMAGE_FORMAT is set to svg, then this option can be set to YES to
 # enable generation of interactive SVG images that allow zooming and panning.
@@ -2387,7 +2387,7 @@ DOT_IMAGE_FORMAT       = png
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-INTERACTIVE_SVG        = NO
+INTERACTIVE_SVG        = Yes
 
 # The DOT_PATH tag can be used to specify the path where the dot tool can be
 # found. If left blank, it is assumed the dot tool can be found in the path.
@@ -2461,10 +2461,8 @@ MAX_DOT_GRAPH_DEPTH    = 0
 # files in one run (i.e. multiple -o and -T options on the command line). This
 # makes dot run faster, but since only newer versions of dot (>1.8.10) support
 # this, this feature is disabled by default.
-# The default value is: NO.
-# This tag requires that the tag HAVE_DOT is set to YES.
 
-DOT_MULTI_TARGETS      = NO
+DOT_MULTI_TARGETS      = Yes
 
 # If the GENERATE_LEGEND tag is set to YES doxygen will generate a legend page
 # explaining the meaning of the various boxes and arrows in the dot generated
@@ -2472,16 +2470,11 @@ DOT_MULTI_TARGETS      = NO
 # Note: This tag requires that UML_LOOK isn't set, i.e. the doxygen internal
 # graphical representation for inheritance and collaboration diagrams is used.
 # The default value is: YES.
-# This tag requires that the tag HAVE_DOT is set to YES.
 
 GENERATE_LEGEND        = YES
 
 # If the DOT_CLEANUP tag is set to YES, doxygen will remove the intermediate
 # files that are used to generate the various graphs.
-#
-# Note: This setting is not only used for dot files but also for msc temporary
-# files.
-# The default value is: YES.
 
 DOT_CLEANUP            = YES
 

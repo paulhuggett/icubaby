@@ -26,6 +26,7 @@ project (icubaby CXX)
 
 option (ICUBABY_COVERAGE "Generate LLVM Source-based Coverage")
 option (ICUBABY_CXX17 "Use C++17 (rather than the default C++20)")
+option (ICUBABY_EXAMPLES "Include example code in the generated build")
 option (ICUBABY_FUZZTEST "Enable FuzzTest")
 option (ICUBABY_LIBCXX "Use libc++ rather than libstdc++ (clang only)")
 option (ICUBABY_SANITIZE "Enable undefined behavior- and address-sanitizers where supported")
@@ -59,6 +60,10 @@ add_library (icubaby INTERFACE
   "${icubaby_project_root}/include/icubaby/icubaby.hpp"
 )
 target_include_directories (icubaby INTERFACE "${icubaby_project_root}/include")
+
+if (ICUBABY_EXAMPLES)
+  add_subdirectory (examples)
+endif (ICUBABY_EXAMPLES)
 
 add_subdirectory (tests)
 if (TARGET gtest)

@@ -368,7 +368,7 @@ TEST (ByteTranscoder, RangesNoBOM) {
   std::array const input{std::byte{'H'}, std::byte{'e'}, std::byte{'l'}, std::byte{'l'}, std::byte{'o'}};
   std::vector<char32_t> output;
 
-  auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
+  auto range = input | icubaby::views::transcode<std::byte, char32_t>;
   (void)std::ranges::copy (range, std::back_inserter (output));
 
   EXPECT_THAT (output, ElementsAre (char32_t{'H'}, char32_t{'e'}, char32_t{'l'}, char32_t{'l'}, char32_t{'o'}));
@@ -380,7 +380,7 @@ TEST (ByteTranscoder, RangesUtf8BOM) {
                          std::byte{'e'},  std::byte{'l'},  std::byte{'l'},  std::byte{'o'}};
   std::vector<char32_t> output;
 
-  auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
+  auto range = input | icubaby::views::transcode<std::byte, char32_t>;
   (void)std::ranges::copy (range, std::back_inserter (output));
 
   EXPECT_THAT (output, ElementsAre (char32_t{'H'}, char32_t{'e'}, char32_t{'l'}, char32_t{'l'}, char32_t{'o'}));
@@ -392,7 +392,7 @@ TEST (ByteTranscoder, RangesUtf16BE) {
                          std::byte{'A'},  std::byte{0x00}, std::byte{'b'}};
   std::vector<char32_t> output;
 
-  auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
+  auto range = input | icubaby::views::transcode<std::byte, char32_t>;
   (void)std::ranges::copy (range, std::back_inserter (output));
   EXPECT_THAT (output, ElementsAre (char32_t{'A'}, char32_t{'b'}));
   EXPECT_TRUE (range.well_formed ());
@@ -403,7 +403,7 @@ TEST (ByteTranscoder, Utf16BEAndIterMove) {
                          std::byte{'A'},  std::byte{0x00}, std::byte{'b'}};
   std::vector<char32_t> output;
   output.reserve (2);
-  auto range = input | icubaby::ranges::transcode<std::byte, char32_t>;
+  auto range = input | icubaby::views::transcode<std::byte, char32_t>;
   for (std::move_iterator first{range.begin ()}, last{range.end ()}; first != last; ++first) {
     (void)output.emplace_back (iter_move (first));
   }

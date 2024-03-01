@@ -329,7 +329,7 @@ template <typename OutputEncoding> static void ManualAndRangeAdaptorAlwaysMatch 
   auto const [man_out, man_well_formed] = Manual<OutputEncoding> (input);
   // Use the range adaptor interface to perform the conversion...
   std::vector<OutputEncoding> rng_out;
-  auto r = input | icubaby::ranges::transcode<char16_t, OutputEncoding>;
+  auto r = input | icubaby::views::transcode<char16_t, OutputEncoding>;
   std::ranges::copy (r, std::back_inserter (rng_out));
   EXPECT_EQ (man_well_formed, r.well_formed ());
   EXPECT_THAT (rng_out, testing::ContainerEq (man_out));

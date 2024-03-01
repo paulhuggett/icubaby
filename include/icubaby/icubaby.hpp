@@ -29,14 +29,33 @@
 // SOFTWARE.
 
 /// \file   icubaby.hpp
-/// \brief  A C++ Baby Library to Immediately Convert Unicode. A header only,
-///   dependency free, library for C++ 17 or later. Fast, minimal, and easy to
-///   use for converting a sequence in any of UTF-8, UTF-16, or UTF-32.
-
+///
+/// \brief  A C++ Baby Library to Immediately Convert Unicode. A header only, dependency free,
+///         library for C++ 17 or later. Fast, minimal, and easy to use for converting a sequence
+///         in any of UTF-8, UTF-16, or UTF-32.
+///
 /// \mainpage
 /// A C++ Library to Immediately Convert Unicode. It is a portable, header-only, dependency-free library for C++ 17 or
 /// later. Fast, minimal, and easy to use for converting sequences of text between any of the Unicode UTF encodings. It
 /// does not allocate dynamic memory and neither throws or catches exceptions.
+///
+/// \example view_utf32_to_16.cpp
+/// An example showing conversion of an array UTF-32 encoded code points can be converted to UTF-16 using the C++ 20
+/// ranges interface.
+///
+/// \example iterator.cpp
+/// The icubaby::iterator<> class offers a familiar output iterator for using a transcoder. Each code unit from the
+/// input encoding is written to the iterator and this in turn writes the output encoding to a second iterator. This
+/// enables use of standard algorithms such as std::copy() with the library.
+///
+/// \example bytes_to_utf8.cpp
+/// This code converts an array of bytes containing the string "Hello World" in UTF-16 BE with an initial byte order
+/// mark first to UTF-8 and then to an array of std::uint_least8_t. We finally copy these values to std::cout.
+///
+/// \example manual_bytes_to_utf8.cpp
+/// This code shows how icubaby makes it straightforward to convert a byte array to a sequence of Unicode code units
+/// passing one byte at a time to a transcoder instance. We take the bytes making up the string "Hello World" expressed
+/// in big endian UTF-16 (with a byte order marker) and convert them to UTF-8 which is written directly to `std::cout`.
 
 // UTF-8 to UTF-32 conversion is based on the "Flexible and Economical UTF-8
 // Decoder" by Bjoern Hoehrmann <bjoern@hoehrmann.de> See
@@ -171,7 +190,7 @@ namespace ICUBABY_INSIDE_NS {
 /// \brief The namespace for the icubaby library.
 namespace icubaby {
 
-/// \brief Implementation details of the icubaby interface.
+/// \brief Private implementation details of the icubaby interface.
 ///
 /// Functions and types defined in this namespace are not part of the icubaby public interface
 /// and should not be used in client code. They may change at any time!
@@ -251,7 +270,9 @@ template <typename TypeList, typename Element> inline constexpr bool contains_v 
 
 }  // end namespace details
 
-/// The type of a UTF-8 code unit.
+/// \brief The type of a UTF-8 code unit.
+/// Defined as `char8_t` when the native type is available and `char` otherwise.
+/// \hideinitializer
 #if defined(__cpp_char8_t) && defined(__cpp_lib_char8_t)
 using char8 = char8_t;
 #else
@@ -289,18 +310,6 @@ inline constexpr auto last_low_surrogate = char32_t{0xDFFF};
 inline constexpr auto max_code_point = char32_t{0x10FFFF};
 static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
 
-/// \brief The number of code-units in the longest legal representation of a code-point.
-template <typename Encoding> struct longest_sequence {};
-/// \brief The number of code-units in the longest legal UTF-8 representation of a code-point.
-template <> struct longest_sequence<char8> : std::integral_constant<std::size_t, 4> {};
-/// \brief The number of code-units in the longest legal UTF-16 representation of a code-point.
-template <> struct longest_sequence<char16_t> : std::integral_constant<std::size_t, 2> {};
-/// \brief The number of code-units in the longest legal UTF-32 representation of a code-point.
-template <> struct longest_sequence<char32_t> : std::integral_constant<std::size_t, 1> {};
-
-/// A helper variable template to simplify use of longest_sequence<>.
-template <typename Encoding> inline constexpr std::size_t longest_sequence_v = longest_sequence<Encoding>::value;
-
 /// A list of the character types used for UTF-8 UTF-16, and UTF-32 encoded
 /// text.
 using character_types = details::make_t<char8, char16_t, char32_t>;
@@ -309,6 +318,7 @@ using character_types = details::make_t<char8, char16_t, char32_t>;
 ///
 /// Provides the constant `value` which is equal to true, if T is one of the unicode character types as defined by
 /// icubaby::character_types. Otherwise, value is equal to false.
+///
 /// \tparam T  The type to be checked.
 template <typename T> struct is_unicode_char_type : std::bool_constant<details::contains_v<character_types, T>> {};
 /// \brief A helper variable template to simplify use of icubaby::is_unicode_char_type.
@@ -316,9 +326,12 @@ template <typename T> inline constexpr bool is_unicode_char_type_v = is_unicode_
 
 /// \brief Checks whether the argument is one of the unicode data source types
 ///
-/// Provides the constant `value` which is equal to true, if T is one of the types which may contain unicode data. Otherwise, value is equal to false.
+/// Provides the constant `value` which is equal to true, if T is one of the types which may contain unicode data.
+/// Otherwise, value is equal to false.
+///
 /// \tparam T  The type to be checked.
-template <typename T> struct is_unicode_input_type : std::bool_constant<is_unicode_char_type_v<T> || std::is_same_v<T, std::byte>> {};
+template <typename T>
+struct is_unicode_input_type : std::bool_constant<is_unicode_char_type_v<T> || std::is_same_v<T, std::byte>> {};
 
 /// \brief A helper variable template to simplify use of icubaby::is_unicode_input_type.
 template <typename T> inline constexpr bool is_unicode_input_v = is_unicode_input_type<T>::value;
@@ -339,7 +352,19 @@ concept unicode_char_type = is_unicode_char_type_v<T>;
 template <typename T>
 concept unicode_input = is_unicode_input_v<T>;
 
-#endif // ICUBABY_HAVE_CONCEPTS
+#endif  // ICUBABY_HAVE_CONCEPTS
+
+/// \brief The number of code-units in the longest legal representation of a code-point.
+template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE Encoding> struct longest_sequence {};
+/// \brief The number of code-units in the longest legal UTF-8 representation of a code-point.
+template <> struct longest_sequence<char8> : std::integral_constant<std::size_t, 4> {};
+/// \brief The number of code-units in the longest legal UTF-16 representation of a code-point.
+template <> struct longest_sequence<char16_t> : std::integral_constant<std::size_t, 2> {};
+/// \brief The number of code-units in the longest legal UTF-32 representation of a code-point.
+template <> struct longest_sequence<char32_t> : std::integral_constant<std::size_t, 1> {};
+/// A helper variable template to simplify use of longest_sequence<>.
+template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE Encoding>
+inline constexpr std::size_t longest_sequence_v = longest_sequence<Encoding>::value;
 
 /// \brief Returns true if the code point \p code_point represents a UTF-16 high surrogate.
 ///
@@ -632,7 +657,7 @@ public:
   /// \param code_unit  A code unit in the source encoding.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
     if (code_unit < 0x80) {
       *(dest++) = static_cast<output_type> (code_unit);
@@ -659,7 +684,7 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr OutputIterator end_cp (OutputIterator dest) const {
     return dest;
   }
@@ -670,7 +695,7 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto tcdr = dest.transcoder ();
     assert (tcdr == this);
@@ -758,7 +783,7 @@ public:
   /// \param code_unit  A UTF-8 code unit,
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     // Prior to C++20, char8 might be signed.
     static_assert (sizeof (input_type) == sizeof (std::uint8_t));
@@ -792,7 +817,7 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr OutputIterator end_cp (OutputIterator dest) {
     if (state_ != accept) {
       state_ = reject;
@@ -808,7 +833,7 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto tcdr = dest.transcoder ();
     assert (tcdr == this);
@@ -825,7 +850,7 @@ private:
   /// The utf8d_ table consists of two parts. The first part maps bytes to character classes, the second part encodes a
   /// deterministic finite automaton using these character classes as transitions.
   static inline std::array<uint8_t, 364> const utf8d_ = {{
-    // clang-format off
+      // clang-format off
     // The first part of the table maps bytes to character classes that
     // to reduce the size of the transition table and create bitmasks.
      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -844,7 +869,7 @@ private:
     12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
     12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
     12,36,12,12,12,12,12,12,12,12,12,12,
-    // clang-format on
+      // clang-format on
   }};
   /// The code point value being assembled from input code units.
   uint_least32_t code_point_ : code_point_bits;
@@ -880,8 +905,8 @@ public:
   /// \param code_unit  A UTF-32 code unit,
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
     if (is_surrogate (code_unit) || code_unit > max_code_point) {
       dest = (*this) (replacement_char, dest);
       well_formed_ = false;
@@ -900,8 +925,8 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
-  constexpr OutputIterator end_cp (OutputIterator dest) {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  constexpr OutputIterator end_cp (OutputIterator dest) noexcept {
     return dest;
   }
 
@@ -911,7 +936,7 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto tcdr = dest.transcoder ();
     assert (tcdr == this);
@@ -954,8 +979,8 @@ public:
   /// \param code_unit  A code unit in the source encoding.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
     if (!has_high_) {
       if (is_high_surrogate (code_unit)) {
         // A high surrogate code unit indicates that this is the first of a
@@ -1006,8 +1031,7 @@ public:
   ///
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
-  OutputIterator end_cp (OutputIterator dest) {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator> OutputIterator end_cp (OutputIterator dest) {
     if (has_high_) {
       *(dest++) = replacement_char;
       high_ = 0;
@@ -1023,7 +1047,7 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto tcdr = dest.transcoder ();
     assert (tcdr == this);
@@ -1067,12 +1091,12 @@ private:
 
 /// \brief An enumeration representing the encoding detected by transcoder<std::byte, X>.
 enum class encoding {
-  unknown, ///< No encoding has yet been determined.
-  utf8, ///< The detected encoding is UTF-8.
-  utf16be, ///< The detected encoding is big-endian UTF-16.
-  utf16le, ///< The detected encoding is little-endian UTF-16.
-  utf32be, ///< The detected encoding is big-endian UTF-32.
-  utf32le, ///< The detected encoding is little-endian UTF-32.
+  unknown,  ///< No encoding has yet been determined.
+  utf8,     ///< The detected encoding is UTF-8.
+  utf16be,  ///< The detected encoding is big-endian UTF-16.
+  utf16le,  ///< The detected encoding is little-endian UTF-16.
+  utf32be,  ///< The detected encoding is big-endian UTF-32.
+  utf32le,  ///< The detected encoding is little-endian UTF-32.
 };
 
 namespace details {
@@ -1513,9 +1537,10 @@ private:
                                   static_cast<std::uint_least16_t> (buffer_[0]));
   }
   [[nodiscard]] constexpr char32_t char32_from_big_endian_buffer (input_type const value) const noexcept {
-    return static_cast<char32_t> (
-        (static_cast<std::uint_least32_t> (buffer_[0]) << 24U) | (static_cast<std::uint_least32_t> (buffer_[1]) << 16U) |
-        (static_cast<std::uint_least32_t> (buffer_[2]) << 8U) | static_cast<std::uint_least32_t> (value));
+    return static_cast<char32_t> ((static_cast<std::uint_least32_t> (buffer_[0]) << 24U) |
+                                  (static_cast<std::uint_least32_t> (buffer_[1]) << 16U) |
+                                  (static_cast<std::uint_least32_t> (buffer_[2]) << 8U) |
+                                  static_cast<std::uint_least32_t> (value));
   }
   [[nodiscard]] constexpr char32_t char32_from_little_endian_buffer (input_type const value) const noexcept {
     return static_cast<char32_t> (
@@ -1587,21 +1612,33 @@ constexpr encoding transcoder<std::byte, ToEncoding>::selected_encoding () const
 
 namespace details {
 
-/// \brief The maximum number of code units produced as the intermediate output from the triangulator's conversion to UTF-32.
-/// The maximum number of code units produced from a single input code unit varies if the input is malformed.
-template <typename From, typename To>
+/// \brief The maximum number of code units produced as the intermediate output from the triangulator's conversion to
+///        UTF-32.
+///
+/// The maximum number of code units produced from a single input code unit can vary (particularly if the input is
+/// malformed).
+///
+/// \tparam FromEncoding  The soure encoding.
+/// \tparam ToEncoding  The destination encoding.
+template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE FromEncoding, ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
 struct triangulator_intermediate_code_units : public std::integral_constant<std::size_t, 1> {};
 /// \brief The maximum number of code units produced when converting from UTF-16.
-template <typename To>
-struct triangulator_intermediate_code_units<char16_t, To> : public std::integral_constant<std::size_t, 2> {};
+/// \tparam ToEncoding  The destination encoding.
+template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
+struct triangulator_intermediate_code_units<char16_t, ToEncoding> : public std::integral_constant<std::size_t, 2> {};
 
-/// \brief A "triangulator" converts from the From encoding to the To encoding via an intermediate UTF-32 encoding.
-template <typename From, typename To> class triangulator {
+/// \brief A "triangulator" converts from the \p FromEncoding encoding to the \p ToEncoding encoding via an
+///        intermediate UTF-32 encoding.
+///
+/// \tparam FromEncoding  The soure encoding.
+/// \tparam ToEncoding  The destination encoding.
+template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE FromEncoding, ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
+class triangulator {
 public:
   /// The type of the code units consumed by this transcoder.
-  using input_type = From;
+  using input_type = FromEncoding;
   /// The type of the code units produced by this transcoder.
-  using output_type = To;
+  using output_type = ToEncoding;
 
   /// Accepts a code unit in the source encoding (as given by triangulator::input_type). These are first converted
   /// to UTF-32 and then to the output encoding (double_transcover::output_type). As output code units are generated,
@@ -1611,15 +1648,15 @@ public:
   /// \param code_unit  A code unit in the source encoding.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     // The (intermediate) output from the conversion to UTF-32. It's possible
     // for the transcoder to produce more than a single output code unit if the
     // input is malformed.
-    std::array<char32_t, triangulator_intermediate_code_units<From, To>::value> intermediate{};
+    std::array<char32_t, triangulator_intermediate_code_units<FromEncoding, ToEncoding>::value> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
     auto const begin = std::begin (intermediate);
-    return copy (begin, to_inter_ (code_unit, begin), dest);
+    return copy (begin, intermediate_ (code_unit, begin), dest);
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
@@ -1628,15 +1665,14 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
-  OutputIterator end_cp (OutputIterator dest) {
-    std::array<char32_t, triangulator_intermediate_code_units<From, To>::value> intermediate{};
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator> OutputIterator end_cp (OutputIterator dest) {
+    std::array<char32_t, triangulator_intermediate_code_units<FromEncoding, ToEncoding>::value> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
     auto const first = std::begin (intermediate);
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-    auto const last = to_inter_.end_cp (first);
+    auto const last = intermediate_.end_cp (first);
     assert (last >= first && last <= std::end (intermediate));
-    return copy (first, last, dest);
+    return output_.end_cp (this->copy (first, last, dest));
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
@@ -1645,9 +1681,9 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
-  constexpr iterator<transcoder<From, To>, OutputIterator> end_cp (
-      iterator<transcoder<From, To>, OutputIterator> dest) {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  constexpr iterator<transcoder<FromEncoding, ToEncoding>, OutputIterator> end_cp (
+      iterator<transcoder<FromEncoding, ToEncoding>, OutputIterator> dest) {
     auto const tcdr = dest.transcoder ();
     assert (tcdr == this);
     return {tcdr, tcdr->end_cp (dest.base ())};
@@ -1655,20 +1691,28 @@ public:
 
   /// \returns True if the input passed to operator() was valid.
   [[nodiscard]] constexpr bool well_formed () const noexcept {
-    return to_inter_.well_formed () && to_out_.well_formed ();
+    return intermediate_.well_formed () && output_.well_formed ();
   }
 
   /// \returns True if a partial code-point has been passed to operator() and
   /// false otherwise.
-  [[nodiscard]] constexpr bool partial () const noexcept { return to_inter_.partial (); }
+  [[nodiscard]] constexpr bool partial () const noexcept { return intermediate_.partial (); }
 
 private:
-  transcoder<input_type, char32_t> to_inter_;
-  transcoder<char32_t, output_type> to_out_;
+  /// We use the intermediate_ transcoder to convert from the input encoding to UTF-32.
+  transcoder<input_type, char32_t> intermediate_;
+  /// The output_ transcoder converts from the intermediate (UTF-32) encoding to the selected output encoding.
+  transcoder<char32_t, output_type> output_;
 
+  /// Copies the range [first, last) to the output iterator \p dest via the output_ transcoder.
+  ///
+  /// \param first  The first of the range to copy.
+  /// \param last  The last of the range to copy.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <typename InputIterator, typename OutputIterator>
   OutputIterator copy (InputIterator first, InputIterator last, OutputIterator dest) {
-    (void)std::for_each (first, last, [this, &dest] (char32_t const code_unit) { dest = to_out_ (code_unit, dest); });
+    (void)std::for_each (first, last, [this, &dest] (char32_t const code_unit) { dest = output_ (code_unit, dest); });
     return dest;
   }
 };
@@ -1699,7 +1743,7 @@ public:
   /// \param code_unit  A UTF-32 code unit,
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     // From D90 in Chapter 3 of Unicode 15.0.0
     // <https://www.unicode.org/versions/Unicode15.0.0/ch03.pdf>:
@@ -1720,7 +1764,7 @@ public:
   ///
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr OutputIterator end_cp (OutputIterator dest) const {
     return dest;
   }
@@ -1731,7 +1775,7 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR(output_type) OutputIterator>
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
     auto tcdr = dest.transcoder ();
     assert (tcdr == this);
@@ -1778,7 +1822,6 @@ using tx_8 = transcoder<std::byte, char8>;
 using tx_16 = transcoder<std::byte, char16_t>;
 /// A shorter name for the UTF-32 "byte transcoder" which consumes bytes in unknown input encoding and produces UTF-32.
 using tx_32 = transcoder<std::byte, char32_t>;
-
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
@@ -2024,7 +2067,7 @@ private:
   std::ranges::sentinel_t<View> end_{};  ///< The underlying view's end sentinel
 };
 
-namespace views::transcode {
+namespace views {
 
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced by this adaptor.
@@ -2043,15 +2086,16 @@ constexpr auto operator| (Range&& range, transcode_range_adaptor<FromEncoding, T
   return adaptor (std::forward<Range> (range));
 }
 
-}  // end namespace views::transcode
-
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced.
 template <unicode_input FromEncoding, unicode_char_type ToEncoding>
-inline constexpr auto transcode = views::transcode::transcode_range_adaptor<FromEncoding, ToEncoding>{};
+inline constexpr auto transcode = views::transcode_range_adaptor<FromEncoding, ToEncoding>{};
+
+}  // end namespace views
 
 }  // end namespace ranges
 
+namespace views = ranges::views;
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 }  // end namespace icubaby

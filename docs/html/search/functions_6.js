@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['not_5fwell_5fformed_0',['not_well_formed',['../classicubaby_1_1transcoder_3_01char32__t_00_01char8_01_4.html#a3f79871ebf5708a1065eb4baeca67d77',1,'icubaby::transcoder&lt; char32_t, char8 &gt;']]]
+  ['length_0',['length',['../namespaceicubaby.html#a7dcd6d49cc93e0d72d6805e5040b53c3',1,'icubaby::length(Range &amp;&amp;range, Proj proj={})'],['../namespaceicubaby.html#a671eee084fedfbbcd556e0d77ae852bd',1,'icubaby::length(I first, S last, Proj proj={})']]]
 ];
