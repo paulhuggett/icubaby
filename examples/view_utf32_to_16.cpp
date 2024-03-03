@@ -1,4 +1,5 @@
 #include <array>
+#include <iostream>
 #include <vector>
 
 #include "icubaby/icubaby.hpp"
