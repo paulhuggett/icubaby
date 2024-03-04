@@ -1,8 +1,8 @@
-#include "icubaby/icubaby.hpp"
-
-#include <iterator>
 #include <iostream>
+#include <iterator>
 #include <vector>
+
+#include "icubaby/icubaby.hpp"
 
 int main () {
   // The bytes to be converted. An array here, but this could obviously come from any source such as user input, a
