@@ -1125,7 +1125,14 @@ inline array2d<std::byte, 5, 4> const boms{{
 /// \brief Takes a sequence of bytes, determines their encoding and converts to a specified encoding.
 ///
 /// The "byte transcoder" is a variation on the transcoder API to be used when the input encoding is not known at
-/// compile-time. A leading byte-order-mark is interpreted if present to select the source encoding.
+/// compile-time. A leading byte-order-mark is interpreted if present to select the source encoding; if not present,
+/// UTF-8 encoding is assumed.
+///
+/// The byte transcoder is implemented as a finite state machine. The following diagram shows the state transition that
+/// can occur as input bytes are received. Each vertex rectangle represents a state (the upper half has the state name
+/// and the lower briefly describes the meaning of that state). Each edge describe the condition for that transition to
+/// be made. An edge without a description is unconditionally taken for the next byte.
+/// \dotfile byte_transcoder.dot
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> class transcoder<std::byte, ToEncoding> {
 public:
   /// The type of the values consumed by this transcoder.
@@ -1133,7 +1140,7 @@ public:
   /// The type of the code units produced by this transcoder.
   using output_type = ToEncoding;
 
-  /// \brief Accepts a byte for decoding.
+  /// \brief Accepts a byte for decoding. Output is written to a supplied output iterator.
   ///
   /// As output code units are generated, they are written to the output iterator \p dest.
   ///
@@ -1195,21 +1202,6 @@ public:
       }
       break;
 
-    case states::run_8:
-      assert (std::holds_alternative<t8_type> (transcoder_variant_));
-      dest = std::get<t8_type> (transcoder_variant_) (static_cast<char8> (value), dest);
-      break;
-
-    case states::run_16be_byte1:
-    case states::run_16le_byte1:
-      assert (std::holds_alternative<t16_type> (transcoder_variant_));
-      dest = std::get<t16_type> (transcoder_variant_) (state_ == states::run_16be_byte1
-                                                           ? char16_from_big_endian_buffer (value)
-                                                           : char16_from_little_endian_buffer (value),
-                                                       dest);
-      state_ = set_byte (state_, 0);
-      break;
-
     case states::run_16be_byte0:
     case states::run_16le_byte0:
     case states::run_32be_byte0:
@@ -1221,20 +1213,26 @@ public:
       buffer_[byte_no (state_)] = value;
       state_ = next_byte (state_);
       break;
-    case states::run_32be_byte3:
-    case states::run_32le_byte3:
-      assert (std::holds_alternative<t32_type> (transcoder_variant_));
-      dest = std::get<t32_type> (transcoder_variant_) (state_ == states::run_32be_byte3
-                                                           ? char32_from_big_endian_buffer (value)
-                                                           : char32_from_little_endian_buffer (value),
-                                                       dest);
-      state_ = set_byte (state_, 0);
+
+    case states::run_8:
+      assert (std::holds_alternative<t8_type> (transcoder_variant_));
+      if (auto* const utf8_input = std::get_if<t8_type> (&transcoder_variant_)) {
+        dest = (*utf8_input) (static_cast<char8> (value), dest);
+      }
       break;
+
+    case states::run_16be_byte1:
+    case states::run_16le_byte1: dest = this->run16 (value, dest); break;
+
+    case states::run_32be_byte3:
+    case states::run_32le_byte3: dest = this->run32 (value, dest); break;
     }
     return dest;
   }
-  /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial code point.
+
+  /// \brief Call once the entire input sequence has been fed to operator().
+  ///
+  /// This function ensures that the sequence did not end with a partial code point.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -1255,8 +1253,9 @@ public:
         transcoder_variant_);
   }
 
-  /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial code point.
+  /// \brief Call once the entire input sequence has been fed to operator().
+  ///
+  /// This function ensures that the sequence did not end with a partial code point.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -1268,14 +1267,18 @@ public:
     return {tcdr, tcdr->end_cp (dest.base ())};
   }
 
-  /// \returns True if the input represented well formed Unicode.
+  /// \brief Returns true if the input represents well formed Unicode.
+  /// \returns True if the input represents well formed Unicode.
   [[nodiscard]] constexpr bool well_formed () const noexcept;
 
+  /// \brief Return true if a partial code-point has been passed to operator().
   /// \returns True if a partial code-point has been passed to operator() and
   /// false otherwise.
   [[nodiscard]] constexpr bool partial () const noexcept;
 
-  /// \returns The encoding of the input stream as detected by consuming an optional leading byte order mark. Initially encoding::unknown.
+  /// \brief The detected encoding of the input stream.
+  /// \returns The encoding of the input stream as detected by consuming an optional leading byte order mark. Initially
+  ///          encoding::unknown.
   [[nodiscard]] constexpr encoding selected_encoding () const noexcept;
 
 private:
@@ -1287,8 +1290,11 @@ private:
     return static_cast<std::byte> (index);
   }
 
+  /// The number of places to left shift when constructing encoding values for the FSM state enumeration.
   static constexpr auto encoding_shift = 4U;
+  /// The number of places to left shift when constructing endian values for the FSM state enumeration.
   static constexpr auto endian_shift = 3U;
+  /// The number of places to left shift when constructing mode values for the FSM state enumeration.
   static constexpr auto run_shift = 2U;
 
   static constexpr auto encoding_mask = std::byte{0b11 << encoding_shift};  ///< One of unknown or UTF-8/16/32.
@@ -1413,35 +1419,70 @@ private:
     run_32le_byte3 = static_cast<std::uint_least8_t> (encoding_utf32 | little_endian | run_mode | byte_no (3U)),
   };
 
+  /// \brief Returns true if the argument represents a state where the FSM is consuming and producing code-units.
+  ///
   /// \param state  A valid state machine state.
   /// \returns True if the parameter represents a state where the FSM is consuming and producing code-units.
   static constexpr bool is_run_mode (states const state) noexcept {
     return (static_cast<std::byte> (state) & run_mask) == run_mode;
   }
+  /// \brief Returns true if the argument represents a state in which the FSM is consuming little endian code units.
+  ///
   /// \param state  A valid state machine state.
   /// \returns True if the transcoder is consuming little-endian values, false otherwise.
   static constexpr bool is_little_endian (states const state) noexcept {
     return (static_cast<std::byte> (state) & endian_mask) == little_endian;
   }
+
+  /// \brief Extracts the byte number referenced by the argument.
+  ///
+  /// Each of the valid FSM states has an embedded byte number in the range [0..4). This is the current byte of the
+  /// current code unit as it is being assembled by the FSM.
+  ///
+  /// \param state  A valid state machine state.
+  /// \returns The byte number referenced by \p state.
   static constexpr std::uint_least8_t byte_no (states const state) noexcept {
     return static_cast<std::uint_least8_t> (static_cast<std::byte> (state) & byte_no_mask);
   }
+  /// \brief Returns a state which references a specific byte number.
+  ///
+  /// \param state  A valid state machine state. The returned state will be the same as this argument but with the byte
+  ///               number set to \p byte_number.
+  /// \param byte_number The byte to be referenced. Must be in the range [0..4).
+  /// \returns A state referencing the supplied byte number.
   static constexpr states set_byte (states const state, std::uint_least8_t const byte_number) noexcept {
-    assert (byte_number < 4);
+    assert (byte_number < 4 && "States must not try to address a byte number > 3");
     return static_cast<states> ((static_cast<std::byte> (state) & ~byte_no_mask) |
                                 static_cast<std::byte> (byte_number));
   }
+  /// \brief Returns a state which references the next byte number.
+  ///
+  /// \param state  A valid state machine state. The returned state will be the same as this argument but with the byte
+  ///               number incremented.
+  /// \returns A state referencing the next byte number.
   static constexpr states next_byte (states const state) noexcept { return set_byte (state, byte_no (state) + 1); }
 
+  /// \brief Adjusts a state so that run mode is selected.
+  ///
+  /// \param state A valid state machine state.
+  /// \returns The modified state.
   static constexpr states set_run_mode (states const state) noexcept {
-    assert ((static_cast<std::byte> (state) & run_mask) == bom_mode);
+    assert ((static_cast<std::byte> (state) & run_mask) == bom_mode && "Expected a BOM mode state");
     return static_cast<states> ((static_cast<std::byte> (state) & ~run_mask) | run_mode);
   }
 
+  /// \brief  Returns an index into the first dimension of the details::boms array from the FSM state value.
+  ///
+  /// The index is based on the encoding and endianness bits of the state.
+  ///
+  /// \param state  The state from which the index is to be extracted.
+  /// \returns  An index into the first dimension of the details::boms array.
   static constexpr std::size_t boms_index_from_state (states const state) noexcept {
     auto const state_byte = static_cast<std::byte> (state);
     assert (((state_byte & (encoding_mask | endian_mask)) >> endian_shift) == (state_byte >> endian_shift));
-    return static_cast<std::size_t> (state_byte >> endian_shift);
+    auto const index = static_cast<std::size_t> (state_byte >> endian_shift);
+    assert (index < details::boms.size () && "The index is too large for the BOMs array");
+    return index;
   }
 
   /// A short name for the transcoder used when UTF-8 input has been detected.
@@ -1453,6 +1494,7 @@ private:
 
   /// The current state of the FSM.
   states state_ = states::start;
+  /// A buffer into which input bytes are gathered as a complete code unit is being assembled by the state machine.
   std::array<std::byte, 4> buffer_{};
   /// Holds the transcoder used to convert input code units. Holds monostate until the input encoding has been selected.
   std::variant<std::monostate, t8_type, t16_type, t32_type> transcoder_variant_;
@@ -1479,8 +1521,8 @@ private:
   /// \param value  The initial input byte.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator start_state (input_type const value, OutputIterator dest) noexcept {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
+  [[nodiscard]] OutputIterator start_state (input_type const value, OutputIterator dest) noexcept {
     buffer_[0] = value;
     if (value == std::byte{0xEF}) {
       state_ = states::utf8_bom_byte1;
@@ -1496,14 +1538,14 @@ private:
     return dest;
   }
 
-  /// Switches to the run state in which the input is determined to be UTF-8 encoded.
+  /// Switches to the run state in which the input has been determined to be UTF-8 encoded.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param copy_buffer  True if the contents of buffer_ should be copied immediately to the output.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator run8_start (bool const copy_buffer, OutputIterator dest) noexcept {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
+  [[nodiscard]] OutputIterator run8_start (bool const copy_buffer, OutputIterator dest) noexcept {
     assert (!is_run_mode (state_) && "The FSM should not be in run mode when run8_start is called");
     assert (std::holds_alternative<std::monostate> (transcoder_variant_) &&
             "The variant should hold monostate until the FSM is in run mode");
@@ -1518,8 +1560,13 @@ private:
     return dest;
   }
 
+  /// Switches to the run state in which the input has been determined to be UTF-16 encoded.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  OutputIterator run16_start (OutputIterator dest) noexcept {
+  [[nodiscard]] OutputIterator run16_start (OutputIterator dest) noexcept {
     assert (!is_run_mode (state_) && "The FSM should not be in run mode when run16_start is called");
     assert (std::holds_alternative<std::monostate> (transcoder_variant_) &&
             "The variant should hold monostate until the FSM is in run mode");
@@ -1528,20 +1575,88 @@ private:
     return dest;
   }
 
+  /// \brief Handler for the states::run_16be_byte1 and states::run_16le_byte1 states.
+  ///
+  /// This function is called once we have received the second byte of a UTF-16 code unit. We build the native-endian
+  /// version of the 16-bit value and pass it to the transcoder which will be expecting UTF-16. The FSM is then reset
+  /// to expect byte 0 of the next code unit.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param value  The final byte of the 16-bit code unit.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
+  [[nodiscard]] OutputIterator run16 (input_type const value, OutputIterator dest) noexcept {
+    assert (state_ == states::run_16be_byte1 || state_ == states::run_16le_byte1);
+    assert (std::holds_alternative<t16_type> (transcoder_variant_));
+
+    if (auto* const utf16_input = std::get_if<t16_type> (&transcoder_variant_)) {
+      dest = (*utf16_input) (state_ == states::run_16be_byte1 ? char16_from_big_endian_buffer (value)
+                                                              : char16_from_little_endian_buffer (value),
+                             dest);
+    }
+    state_ = set_byte (state_, 0);
+    return dest;
+  }
+
+  /// \brief Handler for the state::run_32be_byte3 and state::run_32le_byte3 states.
+  ///
+  /// This function is called once we have received all four bytes of a UTF-32 code unit. We build the native-endian
+  /// version of the 32-bit value and pass it to the transcoder which will be expecting UTF-32. The FSM is then reset
+  /// to expect byte 0 of the next code unit.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param value  The final byte of the 32-bit code unit.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
+  [[nodiscard]] OutputIterator run32 (input_type const value, OutputIterator dest) noexcept {
+    assert (state_ == states::run_32be_byte3 || state_ == states::run_32le_byte3);
+    assert (std::holds_alternative<t32_type> (transcoder_variant_));
+
+    if (auto* const utf32_input = std::get_if<t32_type> (&transcoder_variant_)) {
+      dest = (*utf32_input) (state_ == states::run_32be_byte3 ? char32_from_big_endian_buffer (value)
+                                                              : char32_from_little_endian_buffer (value),
+                             dest);
+    }
+    state_ = set_byte (state_, 0);
+    return dest;
+  }
+
+  /// \brief Produces a native-endian 16-bit value from big endian encoded input by combining the first entry in the
+  ///        buffer_ array with \p value.
+  ///
+  /// \param value An input byte
+  /// \returns A native-endian 16 bit value.
   [[nodiscard]] constexpr char16_t char16_from_big_endian_buffer (input_type const value) const noexcept {
     return static_cast<char16_t> ((static_cast<std::uint_least16_t> (buffer_[0]) << 8U) |
                                   static_cast<std::uint_least16_t> (value));
   }
+  /// \brief Produces a native-endian 16-bit value from little endian encoded input by combining the first entry in the
+  ///        buffer_ array with \p value.
+  ///
+  /// \param value An input byte
+  /// \returns A native-endian 16 bit value.
   [[nodiscard]] constexpr char16_t char16_from_little_endian_buffer (input_type const value) const noexcept {
     return static_cast<char16_t> ((static_cast<std::uint_least16_t> (value) << 8U) |
                                   static_cast<std::uint_least16_t> (buffer_[0]));
   }
+  /// \brief Produces a native-endian 32-bit value from big endian encoded input by combining the entries in the
+  ///        buffer_ array with \p value.
+  ///
+  /// \param value An input byte
+  /// \returns A native-endian 32 bit value.
   [[nodiscard]] constexpr char32_t char32_from_big_endian_buffer (input_type const value) const noexcept {
     return static_cast<char32_t> ((static_cast<std::uint_least32_t> (buffer_[0]) << 24U) |
                                   (static_cast<std::uint_least32_t> (buffer_[1]) << 16U) |
                                   (static_cast<std::uint_least32_t> (buffer_[2]) << 8U) |
                                   static_cast<std::uint_least32_t> (value));
   }
+  /// \brief Produces a native-endian 32-bit value from little endian encoded input by combining the entries in the
+  ///        buffer_ array with \p value.
+  ///
+  /// \param value An input byte
+  /// \returns A native-endian 32 bit value.
   [[nodiscard]] constexpr char32_t char32_from_little_endian_buffer (input_type const value) const noexcept {
     return static_cast<char32_t> (
         (static_cast<std::uint_least32_t> (value << 24U)) | (static_cast<std::uint_least32_t> (buffer_[2]) << 16U) |

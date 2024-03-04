@@ -1,0 +1,105 @@
+digraph StateTransitionDiagram {
+    compound=true;
+    rankdir="TB";
+    fontsize="9pt"
+    #graph [splines=curved ]
+    graph [ranksep="0.3" nodesep="0.15"]
+    node [colorscheme="rdylbu3"  fontsize="9pt"]
+    #node [shape="circle"fixedsize=true height=1.5 width=1.5]
+    node [shape=record]
+    edge [fontsize="9pt"]
+
+    init [label="" shape=none];
+    start [fontsize="12pt"];
+    init -> start;
+
+    utf16_be_bom_byte1[color=1 label="{utf16_be_bom_byte1 | UTF-16BE, BOM, Byte 1}"]
+    utf32_or_16_le_bom_byte2[color=1 label="{utf32_or_16_le_bom_byte2 | UTF-32/16LE, BOM, Byte 2}"]
+    utf8_bom_byte1[color=1 label="{utf8_bom_byte1 | UTF-8, BOM, Byte 1}"]
+    utf8_bom_byte2[color=1 label="{utf8_bom_byte2 | UTF-8, BOM, Byte 2}"]
+    utf32_or_16_le_bom_byte1[color=1 label="{utf32_or_16_le_bom_byte1 | UTF-32/16LE, BOM, Byte 1}"]
+    utf32_or_16_be_bom_byte1[color=1 label="{utf32_or_16_be_bom_byte1 | UTF-32/16BE, BOM, Byte 1}"]
+    utf32_be_bom_byte2[color=1 label="{utf32_be_bom_byte2 | UTF-32BE, BOM, Byte 2}"]
+    utf32_le_bom_byte3[color=1 label="{utf32_le_bom_byte3 | UTF-32LE, BOM, Byte 3}"]
+    utf32_be_bom_byte3[color=1 label="{utf32_be_bom_byte3 | UTF-32BE, BOM, Byte 3}"]
+
+    run8[color=3 label="{run8 | UTF-8, Run}"]
+    run_16be_byte0[color=3 label="{run_16be_byte0 | UTF-16BE,\ Run,\ Byte 0}"]
+    run_16be_byte1[color=3 label="{run_16be_byte1 | UTF-16BE,\ Run,\ Byte 1}"]
+    run_16le_byte0[color=3 label="{run_16le_byte0 | UTF-16LE,\ Run,\ Byte\ 0}"]
+    run_16le_byte1[color=3 label="{run_16le_byte1 | UTF-16LE,\ Run,\ Byte\ 1}"]
+    run_32be_byte0[color=3 label="{run_32be_byte0 | UTF-32BE,\ Run,\ Byte\ 0}"]
+    run_32be_byte1[color=3 label="{run_32be_byte1 | UTF-32BE,\ Run,\ Byte\ 1}"]
+    run_32be_byte2[color=3 label="{run_32be_byte2 | UTF-32BE,\ Run,\ Byte\ 2}"]
+    run_32be_byte3[color=3 label="{run_32be_byte3 | UTF-32BE,\ Run,\ Byte\ 3}"]
+    run_32le_byte0[color=3 label="{run_32le_byte0 | UTF-32LE,\ Run,\ Byte\ 0}"]
+    run_32le_byte1[color=3 label="{run_32le_byte1 | UTF-32LE,\ Run,\ Byte\ 1}"]
+    run_32le_byte2[color=3 label="{run_32le_byte2 | UTF-32LE,\ Run,\ Byte\ 2}"]
+    run_32le_byte3[color=3 label="{run_32le_byte3 | UTF-32LE,\ Run,\ Byte\ 3}"]
+
+    start -> utf8_bom_byte1[xlabel="x=0xEF"];
+    start -> utf16_be_bom_byte1[xlabel="x=0xFE"];
+    start -> utf32_or_16_le_bom_byte1[xlabel="x=0xFF"];
+    start -> utf32_or_16_be_bom_byte1[xlabel="x=0x00"];
+    start -> run8[taillabel="otherwise"];
+
+    subgraph cluster_be16 {
+        peripheries=0;
+        utf16_be_bom_byte1; run_16be_byte0; run_16be_byte1;
+    }
+    subgraph cluster_le {
+        peripheries=0;
+        utf32_or_16_le_bom_byte1; utf32_or_16_le_bom_byte2; utf32_le_bom_byte3;
+        run_32le_byte0; run_32le_byte1; run_32le_byte2; run_32le_byte3;
+        run_16le_byte0; run_16le_byte1;
+    };
+    subgraph cluster_be {
+        peripheries=0;
+        utf32_or_16_be_bom_byte1; utf32_be_bom_byte2; utf32_be_bom_byte3;
+        run_32be_byte0; run_32be_byte1; run_32be_byte2; run_32be_byte3;
+    };
+    subgraph cluster_c {
+        peripheries=0;
+        utf8_bom_byte1;
+        utf8_bom_byte2;
+    };
+
+    utf8_bom_byte1 -> utf8_bom_byte2[xlabel="x=0xBB"];
+    utf8_bom_byte1 -> run8[taillabel="otherwise"];
+    utf8_bom_byte2 -> run8[xlabel="x=0xBF"];
+    utf8_bom_byte2 -> run8[taillabel="otherwise"];
+
+    utf16_be_bom_byte1 -> run_16be_byte0[xlabel="x=0xFF"];
+    utf16_be_bom_byte1 -> run8[taillabel="otherwise"];
+
+    utf32_or_16_le_bom_byte1 -> utf32_or_16_le_bom_byte2[xlabel="x=0xFE"];
+    utf32_or_16_le_bom_byte1 -> run8[taillabel="otherwise"];
+
+    utf32_or_16_le_bom_byte2 -> run_16le_byte0[xlabel="x=0x00"];
+    utf32_or_16_le_bom_byte2 -> utf32_le_bom_byte3[taillabel="otherwise"];
+
+    utf32_le_bom_byte3 -> run_32le_byte0[xlabel="x=0x00"];
+    utf32_le_bom_byte3 -> run8[taillabel="otherwise"];
+
+    utf32_or_16_be_bom_byte1 -> utf32_be_bom_byte2[xlabel="x=0x00"];
+    utf32_or_16_be_bom_byte1 -> run8[taillabel="otherwise"];
+
+    utf32_be_bom_byte2 -> utf32_be_bom_byte3[xlabel="value=0xFE"];
+    utf32_be_bom_byte2 -> run8[taillabel="otherwise"];
+    utf32_be_bom_byte3 -> run_32be_byte0[label="value=0xFF"];
+    utf32_be_bom_byte3 -> run8[taillabel="otherwise"];
+
+    run8 -> run8;
+
+    run_16be_byte0 -> run_16be_byte1 -> run_16be_byte0;
+    run_16le_byte0 -> run_16le_byte1;
+    run_16le_byte1 -> run_16le_byte0;
+
+    run_32be_byte0 -> run_32be_byte1;
+    run_32be_byte1 -> run_32be_byte2;
+    run_32be_byte2 -> run_32be_byte3 -> run_32be_byte0;
+
+    run_32le_byte0 -> run_32le_byte1;
+    run_32le_byte1 -> run_32le_byte2;
+    run_32le_byte2 -> run_32le_byte3 -> run_32le_byte0;
+}

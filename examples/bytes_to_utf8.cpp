@@ -2,6 +2,10 @@
 
 #include "icubaby/icubaby.hpp"
 
+// The ICUBABY_HAVE_RANGES and ICUBABY_HAVE_CONCEPTS macros are true if the corresponding features are available
+// in both the compiler and standard library.
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
 int main () {
   // The bytes to be converted. An array here, but this could obviously come from any source such as user input, a
   // file, or a network endpoint. Note that the icubaby transcoder deals with a single byte at a time so we don't
@@ -21,3 +25,11 @@ int main () {
   // Copy the elements of range directly to `std::cout`.
   (void)std::ranges::copy (range, std::ostream_iterator<std::uint_least8_t> (std::cout));
 }
+
+#else
+
+int main () {
+  std::cout << "Sorry, icubaby C++ 20 ranges aren't supported by your build.\n";
+}
+
+#endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
