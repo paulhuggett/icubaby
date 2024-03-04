@@ -1514,20 +1514,114 @@ private:
   static_assert (is_nothrowable<t16_type>::value);
   static_assert (is_nothrowable<t32_type>::value);
 
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  [[nodiscard]] OutputIterator start_state (input_type const value, OutputIterator dest) noexcept;
-
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  [[nodiscard]] OutputIterator run8_start (bool const copy_buffer, OutputIterator dest) noexcept;
-
+  /// Handles the initial state of the FSM. Checks the inital input byte against the collection of potential byte order
+  /// mark initial bytes and decides on the next action.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param value  The initial input byte.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  [[nodiscard]] OutputIterator run16_start (OutputIterator dest) noexcept;
+  [[nodiscard]] OutputIterator start_state (input_type const value, OutputIterator dest) noexcept {
+    buffer_[0] = value;
+    if (value == std::byte{0xEF}) {
+      state_ = states::utf8_bom_byte1;
+    } else if (value == std::byte{0xFE}) {
+      state_ = states::utf16_be_bom_byte1;
+    } else if (value == std::byte{0xFF}) {
+      state_ = states::utf32_or_16_le_bom_byte1;
+    } else if (value == std::byte{0x00}) {
+      state_ = states::utf32_or_16_be_bom_byte1;
+    } else {
+      dest = this->run8_start (true, dest);
+    }
+    return dest;
+  }
 
+  /// Switches to the run state in which the input has been determined to be UTF-8 encoded.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param copy_buffer  True if the contents of buffer_ should be copied immediately to the output.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  [[nodiscard]] OutputIterator run16 (input_type const value, OutputIterator dest) noexcept;
+  [[nodiscard]] OutputIterator run8_start (bool const copy_buffer, OutputIterator dest) noexcept {
+    assert (!is_run_mode (state_) && "The FSM should not be in run mode when run8_start is called");
+    assert (std::holds_alternative<std::monostate> (transcoder_variant_) &&
+            "The variant should hold monostate until the FSM is in run mode");
+    auto& trans = transcoder_variant_.template emplace<t8_type> ();
+    if (copy_buffer) {
+      // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
+      auto const first = std::begin (buffer_);
+      (void)std::for_each (first, first + byte_no (state_) + 1,
+                           [&trans, &dest] (std::byte value) { dest = trans (static_cast<char8> (value), dest); });
+    }
+    state_ = states::run_8;
+    return dest;
+  }
 
+  /// Switches to the run state in which the input has been determined to be UTF-16 encoded.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  [[nodiscard]] OutputIterator run32 (input_type const value, OutputIterator dest) noexcept;
+  [[nodiscard]] OutputIterator run16_start (OutputIterator dest) noexcept {
+    assert (!is_run_mode (state_) && "The FSM should not be in run mode when run16_start is called");
+    assert (std::holds_alternative<std::monostate> (transcoder_variant_) &&
+            "The variant should hold monostate until the FSM is in run mode");
+    (void)transcoder_variant_.template emplace<t16_type> ();
+    state_ = is_little_endian (state_) ? states::run_16le_byte0 : states::run_16be_byte0;
+    return dest;
+  }
+
+  /// \brief Handler for the states::run_16be_byte1 and states::run_16le_byte1 states.
+  ///
+  /// This function is called once we have received the second byte of a UTF-16 code unit. We build the native-endian
+  /// version of the 16-bit value and pass it to the transcoder which will be expecting UTF-16. The FSM is then reset
+  /// to expect byte 0 of the next code unit.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param value  The final byte of the 16-bit code unit.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
+  [[nodiscard]] OutputIterator run16 (input_type const value, OutputIterator dest) noexcept {
+    assert (state_ == states::run_16be_byte1 || state_ == states::run_16le_byte1);
+    assert (std::holds_alternative<t16_type> (transcoder_variant_));
+
+    if (auto* const utf16_input = std::get_if<t16_type> (&transcoder_variant_)) {
+      dest = (*utf16_input) (state_ == states::run_16be_byte1 ? char16_from_big_endian_buffer (value)
+                                                              : char16_from_little_endian_buffer (value),
+                             dest);
+    }
+    state_ = set_byte (state_, 0);
+    return dest;
+  }
+
+  /// \brief Handler for the state::run_32be_byte3 and state::run_32le_byte3 states.
+  ///
+  /// This function is called once we have received all four bytes of a UTF-32 code unit. We build the native-endian
+  /// version of the 32-bit value and pass it to the transcoder which will be expecting UTF-32. The FSM is then reset
+  /// to expect byte 0 of the next code unit.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param value  The final byte of the 32-bit code unit.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
+  [[nodiscard]] OutputIterator run32 (input_type const value, OutputIterator dest) noexcept {
+    assert (state_ == states::run_32be_byte3 || state_ == states::run_32le_byte3);
+    assert (std::holds_alternative<t32_type> (transcoder_variant_));
+
+    if (auto* const utf32_input = std::get_if<t32_type> (&transcoder_variant_)) {
+      dest = (*utf32_input) (state_ == states::run_32be_byte3 ? char32_from_big_endian_buffer (value)
+                                                              : char32_from_little_endian_buffer (value),
+                             dest);
+    }
+    state_ = set_byte (state_, 0);
+    return dest;
+  }
 
   /// \brief Produces a native-endian 16-bit value from big endian encoded input by combining the first entry in the
   ///        buffer_ array with \p value.
@@ -1569,128 +1663,6 @@ private:
         (static_cast<std::uint_least32_t> (buffer_[1]) << 8U) | (static_cast<std::uint_least32_t> (buffer_[0])));
   }
 };
-
-// start state
-// ~~~~~~~~~~~
-/// Handles the initial state of the FSM. Checks the inital input byte against the collection of potential byte order
-/// mark initial bytes and decides on the next action.
-///
-/// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
-/// \param value  The initial input byte.
-/// \param dest  An output iterator to which the output sequence is written.
-/// \returns  Iterator one past the last element assigned.
-template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
-template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-OutputIterator transcoder<std::byte, ToEncoding>::start_state (input_type const value, OutputIterator dest) noexcept {
-  buffer_[0] = value;
-  if (value == std::byte{0xEF}) {
-    state_ = states::utf8_bom_byte1;
-  } else if (value == std::byte{0xFE}) {
-    state_ = states::utf16_be_bom_byte1;
-  } else if (value == std::byte{0xFF}) {
-    state_ = states::utf32_or_16_le_bom_byte1;
-  } else if (value == std::byte{0x00}) {
-    state_ = states::utf32_or_16_be_bom_byte1;
-  } else {
-    dest = this->run8_start (true, dest);
-  }
-  return dest;
-}
-
-// run 8 start
-// ~~~~~~~~~~~
-/// Switches to the run state in which the input has been determined to be UTF-8 encoded.
-///
-/// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
-/// \param copy_buffer  True if the contents of buffer_ should be copied immediately to the output.
-/// \param dest  An output iterator to which the output sequence is written.
-/// \returns  Iterator one past the last element assigned.
-template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
-template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-OutputIterator transcoder<std::byte, ToEncoding>::run8_start (bool const copy_buffer, OutputIterator dest) noexcept {
-  assert (!is_run_mode (state_) && "The FSM should not be in run mode when run8_start is called");
-  assert (std::holds_alternative<std::monostate> (transcoder_variant_) &&
-          "The variant should hold monostate until the FSM is in run mode");
-  auto& trans = transcoder_variant_.template emplace<t8_type> ();
-  if (copy_buffer) {
-    // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-    auto const first = std::begin (buffer_);
-    (void)std::for_each (first, first + byte_no (state_) + 1,
-                         [&trans, &dest] (std::byte value) { dest = trans (static_cast<char8> (value), dest); });
-  }
-  state_ = states::run_8;
-  return dest;
-}
-
-// run 16 start
-// ~~~~~~~~~~~~
-/// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
-/// \param dest  An output iterator to which the output sequence is written.
-/// \returns  Iterator one past the last element assigned.
-template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
-template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-OutputIterator transcoder<std::byte, ToEncoding>::run16_start (OutputIterator dest) noexcept {
-  assert (!is_run_mode (state_) && "The FSM should not be in run mode when run16_start is called");
-  assert (std::holds_alternative<std::monostate> (transcoder_variant_) &&
-          "The variant should hold monostate until the FSM is in run mode");
-  (void)transcoder_variant_.template emplace<t16_type> ();
-  state_ = is_little_endian (state_) ? states::run_16le_byte0 : states::run_16be_byte0;
-  return dest;
-}
-
-// run 16
-// ~~~~~~
-/// \brief Handler for the states::run_16be_byte1 and states::run_16le_byte1 states.
-///
-/// This function is called once we have received the second byte of a UTF-16 code unit. We build the native-endian
-/// version of the 16-bit value and pass it to the transcoder which will be expecting UTF-16. The FSM is then reset
-/// to expect byte 0 of the next code unit.
-///
-/// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
-/// \param value  The final byte of the 16-bit code unit.
-/// \param dest  An output iterator to which the output sequence is written.
-/// \returns  Iterator one past the last element assigned.
-template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
-template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-OutputIterator transcoder<std::byte, ToEncoding>::run16 (input_type const value, OutputIterator dest) noexcept {
-  assert (state_ == states::run_16be_byte1 || state_ == states::run_16le_byte1);
-  assert (std::holds_alternative<t16_type> (transcoder_variant_));
-
-  if (auto* const utf16_input = std::get_if<t16_type> (&transcoder_variant_)) {
-    dest = (*utf16_input) (state_ == states::run_16be_byte1 ? char16_from_big_endian_buffer (value)
-                                                            : char16_from_little_endian_buffer (value),
-                           dest);
-  }
-  state_ = set_byte (state_, 0);
-  return dest;
-}
-
-// run 32
-// ~~~~~~
-/// \brief Handler for the state::run_32be_byte3 and state::run_32le_byte3 states.
-///
-/// This function is called once we have received all four bytes of a UTF-32 code unit. We build the native-endian
-/// version of the 32-bit value and pass it to the transcoder which will be expecting UTF-32. The FSM is then reset
-/// to expect byte 0 of the next code unit.
-///
-/// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
-/// \param value  The final byte of the 32-bit code unit.
-/// \param dest  An output iterator to which the output sequence is written.
-/// \returns  Iterator one past the last element assigned.
-template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
-template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-OutputIterator transcoder<std::byte, ToEncoding>::run32 (input_type const value, OutputIterator dest) noexcept {
-  assert (state_ == states::run_32be_byte3 || state_ == states::run_32le_byte3);
-  assert (std::holds_alternative<t32_type> (transcoder_variant_));
-
-  if (auto* const utf32_input = std::get_if<t32_type> (&transcoder_variant_)) {
-    dest = (*utf32_input) (state_ == states::run_32be_byte3 ? char32_from_big_endian_buffer (value)
-                                                            : char32_from_little_endian_buffer (value),
-                           dest);
-  }
-  state_ = set_byte (state_, 0);
-  return dest;
-}
 
 // partial
 // ~~~~~~~
