@@ -316,8 +316,8 @@ using character_types = details::make_t<char8, char16_t, char32_t>;
 
 /// \brief Checks whether the argument is one of the unicode character types
 ///
-/// Provides the constant `value` which is equal to true, if T is one of the unicode character types as defined by
-/// icubaby::character_types. Otherwise, value is equal to false.
+/// Provides the boolean constant `value` which is true if T is one of the unicode character types as defined by
+/// icubaby::character_types and false otherwise.
 ///
 /// \tparam T  The type to be checked.
 template <typename T> struct is_unicode_char_type : std::bool_constant<details::contains_v<character_types, T>> {};
@@ -355,6 +355,7 @@ concept unicode_input = is_unicode_input_v<T>;
 #endif  // ICUBABY_HAVE_CONCEPTS
 
 /// \brief The number of code-units in the longest legal representation of a code-point.
+/// \tparam Encoding The encoding to be used.
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE Encoding> struct longest_sequence {};
 /// \brief The number of code-units in the longest legal UTF-8 representation of a code-point.
 template <> struct longest_sequence<char8> : std::integral_constant<std::size_t, 4> {};
@@ -362,7 +363,7 @@ template <> struct longest_sequence<char8> : std::integral_constant<std::size_t,
 template <> struct longest_sequence<char16_t> : std::integral_constant<std::size_t, 2> {};
 /// \brief The number of code-units in the longest legal UTF-32 representation of a code-point.
 template <> struct longest_sequence<char32_t> : std::integral_constant<std::size_t, 1> {};
-/// A helper variable template to simplify use of longest_sequence<>.
+/// \brief A helper variable template to simplify use of longest_sequence<>.
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE Encoding>
 inline constexpr std::size_t longest_sequence_v = longest_sequence<Encoding>::value;
 
