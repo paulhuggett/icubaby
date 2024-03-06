@@ -364,7 +364,6 @@ template <> struct longest_sequence<char16_t> : std::integral_constant<std::size
 /// \brief The number of code-units in the longest legal UTF-32 representation of a code-point.
 template <> struct longest_sequence<char32_t> : std::integral_constant<std::size_t, 1> {};
 /// \brief A helper variable template to simplify use of longest_sequence<>.
-/// \tparam Encoding The encoding to be used.
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE Encoding>
 inline constexpr std::size_t longest_sequence_v = longest_sequence<Encoding>::value;
 
