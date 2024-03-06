@@ -1,6 +1,6 @@
-CLANG_ASSISTED_PARSING = YES
-CLANG_ADD_INC_PATHS = Yes
-CLANG_OPTIONS = -std=c++20 -I /usr/lib/llvm-15/lib/clang/15.0.7/include
+#CLANG_ASSISTED_PARSING = YES
+#CLANG_ADD_INC_PATHS = Yes
+#CLANG_OPTIONS = -std=c++20 -I /usr/lib/llvm-15/lib/clang/15.0.7/include
 
 # Doxyfile 1.10.0
 
