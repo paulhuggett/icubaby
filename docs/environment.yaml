@@ -3,7 +3,10 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.12
-  - doxygen=1.10.0
   - breathe
+  - doxygen=1.10.0
   - graphviz
+  - pip:
+    - readthedocs-sphinx-ext
+  - python=3.12
+  - sphinx
