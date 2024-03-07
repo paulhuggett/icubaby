@@ -1133,7 +1133,6 @@ inline array2d<std::byte, 5, 4> const boms{{
 /// can occur as input bytes are received. Each vertex rectangle represents a state (the upper half has the state name
 /// and the lower briefly describes the meaning of that state). Each edge describe the condition for that transition to
 /// be made. An edge without a description is unconditionally taken for the next byte.
-/// \dotfile byte_transcoder.dot
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> class transcoder<std::byte, ToEncoding> {
 public:
   /// The type of the values consumed by this transcoder.
