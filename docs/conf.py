@@ -21,8 +21,8 @@ release = version
 extensions = [ 'breathe', 'sphinx.ext.graphviz' ]
 
 # Breathe configuration
-breathe_projects = { 'icubaby': './xml/' }
-breathe_default_project = 'icubaby'
+breathe_projects = { project: './xml/' }
+breathe_default_project = project
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
