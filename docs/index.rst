@@ -11,8 +11,6 @@ Welcome to icubaby's documentation!
 Docs
 ====
 
-.. doxygenindex::
-   
 .. doxygenstruct:: icubaby::is_unicode_char_type
    :members:
 
