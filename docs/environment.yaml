@@ -1,0 +1,12 @@
+name: RTD
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - breathe
+  - doxygen=1.10.0
+  - graphviz
+  - pip:
+    - readthedocs-sphinx-ext
+  - python=3.12
+  - sphinx
