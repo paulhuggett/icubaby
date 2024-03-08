@@ -21,19 +21,16 @@ This is longest_sequence.
 .. doxygenstruct:: icubaby::longest_sequence
    :members:
 
-.. doxygenclass:: icubaby::iterator
-   :members:
-   :protected-members:
-   :private-members:
-   :undoc-members:
-   :outline:
-   :no-link:
+.. doxygenindex::
    :allow-dot-graphs:
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   transcoder
+   iterator
+   ranges
 
 
 Indices and tables
