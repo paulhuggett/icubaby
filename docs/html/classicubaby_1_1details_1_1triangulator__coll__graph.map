@@ -1,7 +1,0 @@
-<map id="icubaby::details::triangulator&lt; FromEncoding, ToEncoding &gt;" name="icubaby::details::triangulator&lt; FromEncoding, ToEncoding &gt;">
-<area shape="rect" id="Node000001" title="A &quot;triangulator&quot; converts from the FromEncoding encoding to the ToEncoding encoding via an intermedia..." alt="" coords="307,39,512,79"/>
-<area shape="rect" id="Node000002" href="$classicubaby_1_1transcoder.html" title=" " alt="" coords="9,5,173,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,33,307,46,306,51,188,38"/>
-<area shape="rect" id="Node000003" href="$classicubaby_1_1transcoder.html" title=" " alt="" coords="5,71,177,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,78,306,67,307,72,192,84"/>
-</map>

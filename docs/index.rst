@@ -6,32 +6,32 @@
 Welcome to icubaby's documentation!
 ===================================
 
-…
+icubaby is a C++ Library to Immediately Convert Unicode. It is a portable, header-only, dependency-free library for C++ 17 or later. Fast, minimal, and easy to use for converting sequences of text between any of the Unicode UTF encodings. It does not allocate dynamic memory and neither throws or catches exceptions.
+
 
 Docs
 ====
 
-.. doxygenindex::
-   
+This is is_unicode_char_type.
+
 .. doxygenstruct:: icubaby::is_unicode_char_type
    :members:
+
+This is longest_sequence.
 
 .. doxygenstruct:: icubaby::longest_sequence
    :members:
 
-.. doxygenclass:: icubaby::iterator
-   :members:
-   :protected-members:
-   :private-members:
-   :undoc-members:
-   :outline:
-   :no-link:
+.. doxygenindex::
    :allow-dot-graphs:
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   transcoder
+   iterator
+   ranges
 
 
 Indices and tables
