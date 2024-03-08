@@ -11,8 +11,12 @@ Welcome to icubaby's documentation!
 Docs
 ====
 
+This is is_unicode_char_type.
+
 .. doxygenstruct:: icubaby::is_unicode_char_type
    :members:
+
+This is longest_sequence.
 
 .. doxygenstruct:: icubaby::longest_sequence
    :members:
