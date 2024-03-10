@@ -7,7 +7,7 @@ dependencies:
   - doxygen=1.10.0
   - graphviz=9.0.0
   - pip:
-    - readthedocs-sphinx-ext=2.2.5
+    - readthedocs-sphinx-ext==2.2.5
   - python=3.12
   - sphinx=6.2.1
   - sphinx-design=0.5.0
