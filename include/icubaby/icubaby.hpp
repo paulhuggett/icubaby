@@ -1172,18 +1172,17 @@ inline array2d<std::byte, 5, 4> const boms{{
 
 /// \brief Takes a sequence of bytes, determines their encoding and converts to a specified encoding.
 ///
-/// The "byte transcoder" is a variation on the transcoder API to be used when the input encoding is not known at
-/// compile-time. A leading byte-order-mark is interpreted if present to select the source encoding; if not present,
-/// UTF-8 encoding is assumed.
+/// The "byte transcoder" is used when the input encoding is not known at compile-time. If present, a leading
+/// byte-order-mark is interpreted to select the source encoding; if not present, UTF-8 encoding is assumed.
 ///
 /// The byte transcoder is implemented as a finite state machine. The following diagram shows the state transitions that
 /// occur as input bytes are received. Each vertex rectangle represents a state (the upper half has the state name
 /// and the lower briefly describes the meaning of that state). Each edge describes the condition for that transition to
 /// be made.
 ///
-/// - An edge with description of the for "*x=y*" (where *y* is a hexadecimal constant) is take if the input value *x*
+/// - An edge with description of the form *x=y* (where *y* is a hexadecimal constant) is taken if the input value *x*
 ///   is equal to the constant *y*.
-/// - An edge with the description "otherwise" is taken if none of the other edge conditions match.
+/// - An edge with the description "otherwise" is taken if no other edges with the same origin are matched.
 /// - An edge without a description is unconditionally taken for the next byte
 ///
 /// \dotfile byte_transcoder.dot

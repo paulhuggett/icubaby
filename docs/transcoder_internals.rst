@@ -45,4 +45,12 @@ UTF-32 to UTF-8 Transcoder
   :private-members:
   :undoc-members:
   :allow-dot-graphs:
-   
+
+UTF-32 to UTF-32 Transcoder
+--------------------------
+.. doxygenclass:: icubaby::transcoder< char32_t, char32_t >
+  :members:
+  :protected-members:
+  :private-members:
+  :undoc-members:
+  :allow-dot-graphs:
