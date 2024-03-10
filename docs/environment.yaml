@@ -5,7 +5,7 @@ channels:
 dependencies:
   - breathe=4.35.0
   - doxygen=1.10.0
-  - graphviz=10.0.1
+  - graphviz=9.0.0
   - pip:
     - readthedocs-sphinx-ext=2.2.5
   - python=3.12
