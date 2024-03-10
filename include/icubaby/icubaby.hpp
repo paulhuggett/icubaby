@@ -531,24 +531,71 @@ concept is_transcoder = requires (T tcdr) {
 
 #endif  // ICUBABY_HAVE_CONCEPTS
 
-/// \brief A transcoder takes a sequence of zero or more bytes or code-units in one Unicode
-/// encoding (one of UTF-8, UTF-16, or UTF-32) and and converts it to another.
+template <typename Transcoder, typename OutputIterator>
+ICUBABY_REQUIRES ((is_transcoder<Transcoder> && std::output_iterator<OutputIterator, typename Transcoder::output_type>))
+class iterator;
+
+/// \brief A transcoder takes a sequence of either bytes or Unicode code-units (one of UTF-8, 16 or 32) and
+///   converts it to another Unicode encoding.
 ///
-/// Each of the specializations of this template (there is one for each input/output combination) supplies
-/// the same interface. We have:
-///
-/// - operator(). This member function accepts accepts a code unit in the source encoding and
-///   writes code units in the output encoding to an output iterator as they are produced.
-/// - end_cp(). Call once the entire input sequence has been fed to operator(). This
-///   function ensures that the sequence did not end with a partial code point and flushes any remaining output.
-/// - well_formed(). Indicates whether the input was well formed.
-/// - partial(). Indicates whether a "partial" code point has been passed to operator(). If true, one or more code
-///   units are required to build the complete code point.
+/// Each of the specializations of this template (there is one for each input/output combination) supplies the same
+/// interface.
 #if ICUBABY_HAVE_CONCEPTS
-template <unicode_input From, unicode_char_type To> class transcoder;
+template <unicode_input FromEncoding, unicode_char_type ToEncoding>
 #else
-template <typename From, typename To> class transcoder;
+template <typename FromEncoding, typename ToEncoding>
 #endif  // ICUBABY_HAVE_CONCEPTS
+class transcoder {
+public:
+  /// The type of the code units consumed by this transcoder.
+  using input_type = FromEncoding;
+  /// The type of the code units produced by this transcoder.
+  using output_type = ToEncoding;
+
+  /// \anchor transcoder-call-operator
+  /// This member function is the heart of the transcoder. It accepts a single byte
+  /// or code unit in the input encoding and, once an entire code point has been consumed, produces
+  /// the equivalent code point expressed in the output encoding. Malformed input is detected and
+  /// replaced with the Unicode replacement character (U+FFFD REPLACEMENT CHARACTER).
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type transcoder::output_type can be written.
+  /// \param code_unit  A code unit in the source encoding.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept;
+
+  /// Call once the entire input sequence has been fed to \ref transcoder-call-operator "operator()". This
+  /// function ensures that the sequence did not end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type transcoder::output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  constexpr OutputIterator end_cp (OutputIterator dest) const;
+
+  /// Call once the entire input sequence has been fed to \ref transcoder-call-operator "operator()". This
+  /// function ensures that the sequence did not end with a partial code point and flushes any
+  /// remaining output.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type transcoder::output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest);
+
+  /// Indicates whether the input was well formed
+  /// \returns True if the input was well formed.
+  [[nodiscard]] constexpr bool well_formed () const noexcept;
+
+  /// \brief Indicates whether a "partial" code point has been passed to \ref transcoder-call-operator "operator()".
+  ///
+  /// If true, one or more code units are required to build the complete code point.
+  ///
+  /// \returns True if a partial code-point has been passed to \ref transcoder-call-operator "operator()" and
+  ///   false otherwise.
+  [[nodiscard]] constexpr bool partial () const noexcept;
+};
 
 /// \brief An output iterator which passes code units being output through a
 ///   transcoder.
@@ -1129,10 +1176,16 @@ inline array2d<std::byte, 5, 4> const boms{{
 /// compile-time. A leading byte-order-mark is interpreted if present to select the source encoding; if not present,
 /// UTF-8 encoding is assumed.
 ///
-/// The byte transcoder is implemented as a finite state machine. The following diagram shows the state transition that
-/// can occur as input bytes are received. Each vertex rectangle represents a state (the upper half has the state name
-/// and the lower briefly describes the meaning of that state). Each edge describe the condition for that transition to
-/// be made. An edge without a description is unconditionally taken for the next byte.
+/// The byte transcoder is implemented as a finite state machine. The following diagram shows the state transitions that
+/// occur as input bytes are received. Each vertex rectangle represents a state (the upper half has the state name
+/// and the lower briefly describes the meaning of that state). Each edge describes the condition for that transition to
+/// be made.
+///
+/// - An edge with description of the for "*x=y*" (where *y* is a hexadecimal constant) is take if the input value *x*
+///   is equal to the constant *y*.
+/// - An edge with the description "otherwise" is taken if none of the other edge conditions match.
+/// - An edge without a description is unconditionally taken for the next byte
+///
 /// \dotfile byte_transcoder.dot
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> class transcoder<std::byte, ToEncoding> {
 public:

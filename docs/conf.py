@@ -18,7 +18,7 @@ release = version
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = [ 'breathe', 'sphinx.ext.graphviz' ]
+extensions = [ 'breathe', 'sphinx.ext.graphviz', 'sphinx_design' ]
 
 # Breathe configuration
 breathe_projects = { project: './xml/' }
