@@ -108,10 +108,11 @@ Docs
    :maxdepth: 2
    :caption: Contents:
 
-   concepts
    defines
    transcoder
    iterator
+   utility
+   concepts
    ranges
    transcoder_internals
 
