@@ -61,7 +61,7 @@ There are three ways to use the icubaby library depending on your needs:
    .. code-block::
      
      auto const src = std::array{char32_t{0x1F600}};
-     auto const r = src | icubaby::ranges::transcode<char32_t, char16_t>;
+     auto const r = src | icubaby::views::transcode<char32_t, char16_t>;
      std::vector<char16_t> out;
      std::ranges::copy(r, std::back_inserter(out));
 
