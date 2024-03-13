@@ -108,12 +108,14 @@ Docs
    :maxdepth: 2
    :caption: Contents:
 
-   defines
    transcoder
    iterator
+   defines
    utility
+   explicit-conversion
    concepts
    ranges
+   examples
    transcoder_internals
 
 Indices and tables

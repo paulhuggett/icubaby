@@ -1977,15 +1977,12 @@ INCLUDE_PATH           =
 INCLUDE_FILE_PATTERNS  =
 
 # The PREDEFINED tag can be used to specify one or more macro names that are
-# defined before the preprocessor is started (similar to the -D option of e.g.
-# gcc). The argument of the tag is a list of macros of the form: name or
-# name=definition (no spaces). If the definition and the "=" are omitted, "=1"
-# is assumed. To prevent a macro definition from being undefined via #undef or
-# recursively expanded use the := operator instead of the = operator.
-# This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
+# defined before the preprocessor is started.
 
-PREDEFINED             = __cplusplus:=202002L \
-                         __cpp_concepts:=201907L \
+PREDEFINED             = __cpp_char8_t:=201811L      \
+                         __cpp_lib_char8_t:=201811L  \
+                         __cplusplus:=202002L        \
+                         __cpp_concepts:=201907L     \
                          __cpp_lib_concepts:=202002L \
                          __cpp_lib_ranges:=201811L
 
@@ -2014,52 +2011,6 @@ EXPAND_AS_DEFINED      = ICUBABY_CXX20 \
 SKIP_FUNCTION_MACROS   = YES
 
 #---------------------------------------------------------------------------
-# Configuration options related to external references
-#---------------------------------------------------------------------------
-
-# The TAGFILES tag can be used to specify one or more tag files. For each tag
-# file the location of the external documentation should be added. The format of
-# a tag file without this location is as follows:
-# TAGFILES = file1 file2 ...
-# Adding location for the tag files is done as follows:
-# TAGFILES = file1=loc1 "file2 = loc2" ...
-# where loc1 and loc2 can be relative or absolute paths or URLs. See the
-# section "Linking to external documentation" for more information about the use
-# of tag files.
-# Note: Each tag file must have a unique name (where the name does NOT include
-# the path). If a tag file is not located in the directory in which doxygen is
-# run, you must also specify the path to the tagfile here.
-
-TAGFILES               =
-
-# When a file name is specified after GENERATE_TAGFILE, doxygen will create a
-# tag file that is based on the input files it reads. See section "Linking to
-# external documentation" for more information about the usage of tag files.
-
-GENERATE_TAGFILE       =
-
-# If the ALLEXTERNALS tag is set to YES, all external class will be listed in
-# the class index. If set to NO, only the inherited external classes will be
-# listed.
-# The default value is: NO.
-
-ALLEXTERNALS           = NO
-
-# If the EXTERNAL_GROUPS tag is set to YES, all external groups will be listed
-# in the modules index. If set to NO, only the current project's groups will be
-# listed.
-# The default value is: YES.
-
-EXTERNAL_GROUPS        = YES
-
-# If the EXTERNAL_PAGES tag is set to YES, all external pages will be listed in
-# the related pages index. If set to NO, only the current project's pages will
-# be listed.
-# The default value is: YES.
-
-EXTERNAL_PAGES         = YES
-
-#---------------------------------------------------------------------------
 # Configuration options related to diagram generator tools
 #---------------------------------------------------------------------------
 
@@ -2080,24 +2031,12 @@ HAVE_DOT               = Yes
 
 # The DOT_NUM_THREADS specifies the number of dot invocations doxygen is allowed
 # to run in parallel. When set to 0 doxygen will base this on the number of
-# processors available in the system. You can set it explicitly to a value
-# larger than 0 to get control over the balance between CPU load and processing
-# speed.
-# Minimum value: 0, maximum value: 32, default value: 0.
-# This tag requires that the tag HAVE_DOT is set to YES.
+# processors available in the system.
 
 DOT_NUM_THREADS        = 0
 
 # DOT_COMMON_ATTR is common attributes for nodes, edges and labels of
-# subgraphs. When you want a differently looking font in the dot files that
-# doxygen generates you can specify fontname, fontcolor and fontsize attributes.
-# For details please see <a href=https://graphviz.org/doc/info/attrs.html>Node,
-# Edge and Graph Attributes specification</a> You need to make sure dot is able
-# to find the font, which can be done by putting it in a standard location or by
-# setting the DOTFONTPATH environment variable or by setting DOT_FONTPATH to the
-# directory containing the font. Default graphviz fontsize is 14.
-# The default value is: fontname=Helvetica,fontsize=10.
-# This tag requires that the tag HAVE_DOT is set to YES.
+# subgraphs.
 
 DOT_COMMON_ATTR        = "fontname=Helvetica,fontsize=10"
 
@@ -2342,14 +2281,7 @@ PLANTUML_CFG_FILE      =
 PLANTUML_INCLUDE_PATH  =
 
 # The DOT_GRAPH_MAX_NODES tag can be used to set the maximum number of nodes
-# that will be shown in the graph. If the number of nodes in a graph becomes
-# larger than this value, doxygen will truncate the graph, which is visualized
-# by representing a node as a red box. Note that doxygen if the number of direct
-# children of the root node in a graph is already larger than
-# DOT_GRAPH_MAX_NODES then the graph will not be shown at all. Also note that
-# the size of a graph can be further restricted by MAX_DOT_GRAPH_DEPTH.
-# Minimum value: 0, maximum value: 10000, default value: 50.
-# This tag requires that the tag HAVE_DOT is set to YES.
+# that will be shown in the graph.
 
 DOT_GRAPH_MAX_NODES    = 50
 
@@ -2375,9 +2307,7 @@ DOT_MULTI_TARGETS      = Yes
 # If the GENERATE_LEGEND tag is set to YES doxygen will generate a legend page
 # explaining the meaning of the various boxes and arrows in the dot generated
 # graphs.
-# Note: This tag requires that UML_LOOK isn't set, i.e. the doxygen internal
-# graphical representation for inheritance and collaboration diagrams is used.
-# The default value is: YES.
+# Note: This tag requires that UML_LOOK isn't set.
 
 GENERATE_LEGEND        = YES
 
@@ -2385,19 +2315,3 @@ GENERATE_LEGEND        = YES
 # files that are used to generate the various graphs.
 
 DOT_CLEANUP            = YES
-
-# You can define message sequence charts within doxygen comments using the \msc
-# command. If the MSCGEN_TOOL tag is left empty (the default), then doxygen will
-# use a built-in version of mscgen tool to produce the charts. Alternatively,
-# the MSCGEN_TOOL tag can also specify the name an external tool. For instance,
-# specifying prog as the value, doxygen will call the tool as prog -T
-# <outfile_format> -o <outputfile> <inputfile>. The external tool should support
-# output file formats "png", "eps", "svg", and "ismap".
-
-MSCGEN_TOOL            =
-
-# The MSCFILE_DIRS tag can be used to specify one or more directories that
-# contain msc files that are included in the documentation (see the \mscfile
-# command).
-
-MSCFILE_DIRS           =

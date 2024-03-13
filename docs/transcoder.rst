@@ -1,11 +1,18 @@
 Transcoder
 ==========
-transcoder
-----------
+Transcoder Interface
+--------------------
       
 .. doxygenclass:: icubaby::transcoder
    :members:
    :allow-dot-graphs:
+
+Byte Encoder Detected Encoding
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The :ref:`"byte transcoder"<Byte Transcoder>`  implements an extension to the standard transcoder API by providing a member 
+function that will return its determination of the encoding of the input stream.
+
+.. doxygenenum:: icubaby::encoding
 
 Convenience Typedefs
 --------------------
@@ -22,3 +29,4 @@ Convenience Typedefs
 .. doxygentypedef:: icubaby::t32_8
 .. doxygentypedef:: icubaby::t32_16
 .. doxygentypedef:: icubaby::t32_32
+
