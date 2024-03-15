@@ -4,8 +4,8 @@ C++ 20 introduces the ranges library for more composable and less error-prone in
 iterators and containers. In icubaby, we can transform a range of bytes to a specified encoding or
 convert a sequence of Unicode code units to a different encoding using a single range adaptor.
 
-Example
--------
+Range Adaptor Example
+----------------------
 
 .. code-block:: cpp
   :linenos:
@@ -36,8 +36,8 @@ Disecting the Example
      
      auto const in = std::vector{char32_t{0x1F600}};
 
-  We express the input as a container with our input text consisting simply of U+1F600 GRINNING FACE
-  expressed in UTF-32.
+   We express the input as a container with our input text consisting simply of U+1F600 GRINNING FACE
+   expressed in UTF-32.
 
 2. Create a range with a view of our container and pass it to the icubaby transcode range adaptor:
 
@@ -45,27 +45,27 @@ Disecting the Example
      
      auto const r = in | icubaby::views::transcode<char32_t, char16_t>;
 
-  The first template argument for ``icubaby::views::transcode<>`` is the encoding of the input text
-  (one of ``std::byte``, ``icubaby::char8``, ``char16_t``, ``char32_t``), the second argument is the
-  desired encoding of the output text (``icubaby::char8``, ``char16_t``, ``char32_t``).
+   The first template argument for :cpp:member:`icubaby::ranges::views::transcode` is the encoding of the input text
+   (one of ``std::byte``, ``icubaby::char8``, ``char16_t``, ``char32_t``), the second argument is the
+   desired encoding of the output text (``icubaby::char8``, ``char16_t``, ``char32_t``).
 
-  We now have the range ``r`` containing the UTF-16 code-units that correspond to the original input
-  text.
+   We now have the range ``r`` containing the UTF-16 code-units that correspond to the original input
+   text.
 
 3. The final step is to record the values within the range ``r``. In C++ 20, this can be achieved
    with the ``std::ranges::copy()`` algorithm:
 
-  .. code-block::
+   .. code-block::
      
-    std::vector<char16_t> out;
-    std::ranges::copy(r, std::back_inserter(out));
+     std::vector<char16_t> out;
+     std::ranges::copy(r, std::back_inserter(out));
 
-  If you are using the C++ 23 ranges library, you can simplify this even further using
-  ``std::ranges::to()``:
+   If you are using the C++ 23 ranges library, you can simplify this even further using
+   ``std::ranges::to()``:
 
-  .. code-block::
+   .. code-block::
      
-    auto const out = r | std::ranges::to<std::vector> ();
+     auto const out = r | std::ranges::to<std::vector> ();
 
 Namespace icubaby::ranges Reference
 -----------------------------------

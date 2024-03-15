@@ -1,10 +1,14 @@
 Iterator Interface
 ==================
 
-The `icubaby::iterator<>` class is an output iterator to which code units in the source encoding can be assigned. This will produce equivalent code units in the output encoding which are written to a second output iterator. This makes it straightforward to use standard library algorithms such as `std::copy() <https://en.cppreference.com/w/cpp/algorithm/copy>`_ or `std::ranges::copy() <https://en.cppreference.com/w/cpp/algorithm/ranges/copy>`_ with the library.
+The :cpp:class:`icubaby::iterator` class is an output iterator to which code units in the source encoding can be assigned. This
+will produce equivalent code units in the output encoding which are written to a second output iterator. This makes it
+straightforward to use standard library algorithms such as
+`std::copy() <https://en.cppreference.com/w/cpp/algorithm/copy>`_ or
+`std::ranges::copy() <https://en.cppreference.com/w/cpp/algorithm/ranges/copy>`_ with the library.
 
-Example
--------
+Iterator Interface Example
+--------------------------
 
 .. code-block:: cpp
   
@@ -21,9 +25,14 @@ Example
   }
   it = t.end_cp (it);
 
-This code creates an instance of `icubaby::interator<>` named `it` which holds two values: a pointer to trancoder `t` and output interator (`std::back_insert_iterator() <https://en.cppreference.com/w/cpp/iterator/back_insert_iterator>`_ in this case). Assigning a series of code units from the input to `it` result in the `out` vector being filled with equivalent code units in the output encoding.
+This code creates an instance of :cpp:class:`icubaby::iterator` named `it` which holds two values: a pointer to
+transcoder `t` and output interator
+(`std::back_insert_iterator() <https://en.cppreference.com/w/cpp/iterator/back_insert_iterator>`_ in this case).
+Assigning a series of code units from the input to `it` result in the `out` vector being filled with equivalent code
+units in the output encoding.
 
-The above code snippet loops over the contents of the `in` array one code unit at a time. We can use `std::ranges::copy() <https://en.cppreference.com/w/cpp/algorithm/ranges/copy>`_ to achieve the same effect:
+The above code snippet loops over the contents of the `in` array one code unit at a time. We can use
+`std::ranges::copy() <https://en.cppreference.com/w/cpp/algorithm/ranges/copy>`_ to achieve the same effect:
 
 .. code-block:: cpp
   

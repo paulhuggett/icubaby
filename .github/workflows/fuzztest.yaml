@@ -54,7 +54,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake --build "$BUILD_DIR" --config "$BUILD_TYPE"
+          cmake --build "$BUILD_DIR" --config "$BUILD_TYPE" --verbose
 
       - name: Fuzz
         run: |

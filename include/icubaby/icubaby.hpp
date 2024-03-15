@@ -284,11 +284,11 @@ using u8string = std::basic_string<char8>;
 /// A UTF-8 string_view.
 using u8string_view = std::basic_string_view<char8>;
 
-/// A constant for U+FFFD REPLACEMENT CHARACTER
+/// A constant for the U+FFFD REPLACEMENT CHARACTER code point
 inline constexpr auto replacement_char = char32_t{0xFFFD};
-/// A constant for U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK)
+/// A constant for the U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK) code point
 inline constexpr auto zero_width_no_break_space = char32_t{0xFEFF};
-/// A constant for U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK)
+/// A constant for the U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK) code point
 inline constexpr auto byte_order_mark = zero_width_no_break_space;
 
 /// \brief The number of bits required to represent a code point.
@@ -326,8 +326,9 @@ template <typename T> inline constexpr bool is_unicode_char_type_v = is_unicode_
 
 /// \brief Checks whether the argument is one of the unicode data source types
 ///
-/// Provides the constant `value` which is equal to true, if T is one of the types which may contain unicode data.
-/// Otherwise, value is equal to false.
+/// Provides the constant `value` which is equal to true if T is one of the types which may contain unicode data
+/// otherwise, value is equal to false. The unicode data types are the types allowed by
+/// icubaby::is_unicode_char_type_v plus ``std::byte``.
 ///
 /// \tparam T  The type to be checked.
 template <typename T>
@@ -355,6 +356,9 @@ concept unicode_input = is_unicode_input_v<T>;
 #endif  // ICUBABY_HAVE_CONCEPTS
 
 /// \brief The number of code-units in the longest legal representation of a code-point.
+///
+/// Provides the constant `value` which is of type `std::size_t`.
+///
 /// \tparam Encoding The encoding to be used.
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE Encoding> struct longest_sequence {};
 /// \brief The number of code-units in the longest legal UTF-8 representation of a code-point.
@@ -363,9 +367,9 @@ template <> struct longest_sequence<char8> : std::integral_constant<std::size_t,
 template <> struct longest_sequence<char16_t> : std::integral_constant<std::size_t, 2> {};
 /// \brief The number of code-units in the longest legal UTF-32 representation of a code-point.
 template <> struct longest_sequence<char32_t> : std::integral_constant<std::size_t, 1> {};
-/// \brief A helper variable template to simplify use of longest_sequence<>.
+/// \brief A helper variable template to simplify use of icubaby::longest_sequence<>.
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE Encoding>
-inline constexpr std::size_t longest_sequence_v = longest_sequence<Encoding>::value;
+inline constexpr auto longest_sequence_v = longest_sequence<Encoding>::value;
 
 /// \brief Returns true if the code point \p code_point represents a UTF-16 high surrogate.
 ///
@@ -389,6 +393,9 @@ constexpr bool is_surrogate (char32_t code_point) noexcept {
   return is_high_surrogate (code_point) || is_low_surrogate (code_point);
 }
 
+/// \name Code Point Start
+///@{
+
 /// \brief Returns true if \p code_unit represents the start of a multi-byte UTF-8 sequence.
 ///
 /// \param code_unit  The UTF-8 code unit to be tested.
@@ -411,6 +418,7 @@ constexpr bool is_code_point_start (char16_t code_unit) noexcept {
 constexpr bool is_code_point_start (char32_t code_unit) noexcept {
   return !is_surrogate (code_unit) && code_unit <= max_code_point;
 }
+///@}
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
@@ -895,8 +903,10 @@ public:
   [[nodiscard]] constexpr bool partial () const noexcept { return state_ != accept; }
 
 private:
-  /// The utf8d_ table consists of two parts. The first part maps bytes to character classes, the second part encodes a
-  /// deterministic finite automaton using these character classes as transitions.
+  /// The utf8d_ table consists of two parts. The first part maps bytes to character classes, the
+  /// second part encodes a deterministic finite automaton using these character classes as
+  /// transitions.
+  /// \hideinitializer
   static inline std::array<uint8_t, 364> const utf8d_ = {{
       // clang-format off
     // The first part of the table maps bytes to character classes that
@@ -1170,9 +1180,10 @@ inline array2d<std::byte, 5, 4> const boms{{
 
 }  // end namespace details
 
-/// \brief Takes a sequence of bytes, determines their encoding and converts to a specified encoding.
+/// \brief The "byte transcoder" takes a sequence of bytes, determines their encoding and converts
+///    to a specified encoding.
 ///
-/// The "byte transcoder" is used when the input encoding is not known at compile-time. If present, a leading
+/// This transcoder is used when the input encoding is not known at compile-time. If present, a leading
 /// byte-order-mark is interpreted to select the source encoding; if not present, UTF-8 encoding is assumed.
 ///
 /// The byte transcoder is implemented as a finite state machine. The following diagram shows the state transitions that

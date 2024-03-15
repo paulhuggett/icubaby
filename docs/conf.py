@@ -18,7 +18,12 @@ release = version
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = [ 'breathe', 'sphinx.ext.graphviz', 'sphinx_design' ]
+extensions = [
+     'breathe',
+     'sphinx.ext.autosectionlabel',
+     'sphinx.ext.graphviz',
+     'sphinx_design'
+]
 
 # Breathe configuration
 breathe_projects = { project: './xml/' }
@@ -30,7 +35,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'furo'
 html_static_path = ['_static']
 
 if os.environ.get('READTHEDOCS', None) == 'True':
