@@ -22,6 +22,7 @@
 # SOFTWARE.
 
 include (CheckCXXCompilerFlag)
+include (CheckLinkerFlag)
 
 function (setup_target target)
   cmake_parse_arguments (
@@ -99,6 +100,12 @@ function (setup_target target)
     $<$<CXX_COMPILER_ID:GNU>:${gcc_options}>
     $<$<CXX_COMPILER_ID:MSVC>:>
   )
+
+  # If the link step supports -Wl,-Map generate a map file from the link.
+  check_linker_flag (CXX "-Wl,-Map=map.txt" map_supported)
+  if (map_supported)
+    target_link_options (${target} PRIVATE "-Wl,-Map=$<TARGET_FILE_DIR:${target}>/map.txt")
+  endif ()
 
 endfunction (setup_target)
 

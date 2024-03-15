@@ -26,23 +26,23 @@ jobs:
           - name: Ubuntu-22.04/gcc-13/Debug
             apt_install: cmake g++-13 libstdc++-13-dev ninja-build
             build_type: Debug
-            cxx_compiler: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_C_COMPILER=gcc-13
-            options: -DICUBABY_SANITIZE=Yes
+            cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
+            options: -D ICUBABY_SANITIZE=Yes
             generator: Ninja
             os: ubuntu-22.04
 
           - name: Ubuntu-22.04/gcc-13/RelWithDebug/Sanitizers
             apt_install: cmake g++-13 libstdc++-13-dev ninja-build
             build_type: RelWithDebug
-            cxx_compiler: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_C_COMPILER=gcc-13
-            options: -DICUBABY_SANITIZE=Yes
+            cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
+            options: -D ICUBABY_SANITIZE=Yes
             generator: Ninja
             os: ubuntu-22.04
 
           - name: Ubuntu-22.04/gcc-13/Release
             apt_install: cmake g++-13 libstdc++-13-dev ninja-build
             build_type: Release
-            cxx_compiler: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_C_COMPILER=gcc-13
+            cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
             generator: Ninja
             os: ubuntu-22.04
 
@@ -50,16 +50,16 @@ jobs:
             apt_install: cmake ninja-build
             llvm_install: 16
             build_type: Debug
-            cxx_compiler: -DCMAKE_CXX_COMPILER=clang++-16 -DCMAKE_C_COMPILER=clang-16
+            cxx_compiler: -D CMAKE_CXX_COMPILER=clang++-16 -D CMAKE_C_COMPILER=clang-16
             generator: Ninja
-            options: -DICUBABY_SANITIZE=Yes
+            options: -D ICUBABY_SANITIZE=Yes
             os: ubuntu-22.04
 
           - name: Ubuntu-22.04/clang-16/Release
             apt_install: cmake ninja-build
             llvm_install: 16
             build_type: Release
-            cxx_compiler: -DCMAKE_CXX_COMPILER=clang++-16 -DCMAKE_C_COMPILER=clang-16
+            cxx_compiler: -D CMAKE_CXX_COMPILER=clang++-16 -D CMAKE_C_COMPILER=clang-16
             generator: Ninja
             options:
             os: ubuntu-22.04
@@ -67,9 +67,9 @@ jobs:
           - name: Ubuntu-22.04/clang-14/Release/C++17
             apt_install: cmake clang-14 libc++-dev libc++abi-dev ninja-build
             build_type: Release
-            cxx_compiler: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_C_COMPILER=clang-14
+            cxx_compiler: -D CMAKE_CXX_COMPILER=clang++-14 -D CMAKE_C_COMPILER=clang-14
             generator: Ninja
-            options: -DICUBABY_CXX17=Yes -DICUBABY_LIBCXX=Yes
+            options: -D ICUBABY_CXX17=Yes -D ICUBABY_LIBCXX=Yes
             os: ubuntu-22.04
 
           # Windows builds
@@ -132,4 +132,4 @@ jobs:
 
       - name: Build
         shell: bash
-        run: cmake --build "${{ github.workspace }}/build" --config ${{ matrix.build_type }}
+        run: cmake --build "${{ github.workspace }}/build" --config ${{ matrix.build_type }} --verbose
