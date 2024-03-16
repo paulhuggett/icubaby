@@ -145,16 +145,17 @@ jobs:
         run: cmake --build "${{ github.workspace }}/build" --config ${{ matrix.build_type }} --verbose
 
       - name: Package
-        id: package
+        id: create-package
         run: |
           cd "${{ github.workspace }}/build";                              \
           cpack -G "${{ matrix.package }}" -C "${{ matrix.build_type }}" | \
           tee out.txt
-          echo -n "FILE=" >> "$GITHUB_OUTPUT"
-          sed -n 's/CPack: - package: \(.*\) generated.$/\1/p' out.txt >> "$GITHUB_OUTPUT"
+          value=$(sed -n 's/CPack: - package: \(.*\) generated.$/\1/p' out.txt)
+          echo "INSTALL_FILE=$value" >> "$GITHUB_OUTPUT"
+          echo "### Created installer: $value" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: ${{ steps.package.outputs }}
-          path: ${{ github.workspace }}/build/${{ steps.package.outputs.FILE }}
+          path: ${{ github.workspace }}/build/${{ steps.create-package.outputs.INSTALL_FILE }}
