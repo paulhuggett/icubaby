@@ -15,11 +15,13 @@ jobs:
             build_type: Debug
             generator: Xcode
             os: macos-12
+            package: TGZ
 
           - name: macOS-12/Xcode/Release
             build_type: Release
             generator: Xcode
             os: macos-12
+            package: TGZ
 
           # Ubuntu builds
           # ~~~~~~~~~~~~~
@@ -30,6 +32,7 @@ jobs:
             options: -D ICUBABY_SANITIZE=Yes
             generator: Ninja
             os: ubuntu-22.04
+            package: TGZ
 
           - name: Ubuntu-22.04/gcc-13/RelWithDebug/Sanitizers
             apt_install: cmake g++-13 libstdc++-13-dev ninja-build
@@ -38,6 +41,7 @@ jobs:
             options: -D ICUBABY_SANITIZE=Yes
             generator: Ninja
             os: ubuntu-22.04
+            package: TGZ
 
           - name: Ubuntu-22.04/gcc-13/Release
             apt_install: cmake g++-13 libstdc++-13-dev ninja-build
@@ -45,6 +49,7 @@ jobs:
             cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
             generator: Ninja
             os: ubuntu-22.04
+            package: TGZ
 
           - name: Ubuntu-22.04/clang-16/Debug
             apt_install: cmake ninja-build
@@ -54,6 +59,7 @@ jobs:
             generator: Ninja
             options: -D ICUBABY_SANITIZE=Yes
             os: ubuntu-22.04
+            package: TGZ
 
           - name: Ubuntu-22.04/clang-16/Release
             apt_install: cmake ninja-build
@@ -63,6 +69,7 @@ jobs:
             generator: Ninja
             options:
             os: ubuntu-22.04
+            package: TGZ
 
           - name: Ubuntu-22.04/clang-14/Release/C++17
             apt_install: cmake clang-14 libc++-dev libc++abi-dev ninja-build
@@ -71,6 +78,7 @@ jobs:
             generator: Ninja
             options: -D ICUBABY_CXX17=Yes -D ICUBABY_LIBCXX=Yes
             os: ubuntu-22.04
+            package: TGZ
 
           # Windows builds
           # ~~~~~~~~~~~~~~
@@ -78,11 +86,13 @@ jobs:
             build_type: Debug
             generator: Visual Studio 17 2022
             os: windows-latest
+            package: ZIP
 
           - name: Windows-latest/VS2022/Release
             build_type: Release
             generator: Visual Studio 17 2022
             os: windows-latest
+            package: ZIP
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -113,12 +123,12 @@ jobs:
           sed -ie "/^add-apt-repository/ s/$/ --yes/" llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh ${{matrix.llvm_install}}
-        
+
       - name: Create Build Environment
         shell: bash
         run: cmake -E make_directory ${{ github.workspace }}/build
 
-      - name: Configure CMake
+      - name: CMake Configure
         shell: bash
         run: |
           cmake -S "${{ github.workspace }}"                 \
@@ -133,3 +143,18 @@ jobs:
       - name: Build
         shell: bash
         run: cmake --build "${{ github.workspace }}/build" --config ${{ matrix.build_type }} --verbose
+
+      - name: Package
+        id: package
+        run: |
+          cd "${{ github.workspace }}/build";                              \
+          cpack -G "${{ matrix.package }}" -C "${{ matrix.build_type }}" | \
+          tee out.txt
+          echo -n "FILE=" >> "$GITHUB_OUTPUT"
+          sed -n 's/CPack: - package: \(.*\) generated.$/\1/p' out.txt >> "$GITHUB_OUTPUT"
+
+      - name: Upload
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: ${{ steps.package.outputs }}
+          path: ${{ github.workspace }}/build/${{ steps.package.outputs }}
