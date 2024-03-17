@@ -26,7 +26,7 @@ jobs:
           # Ubuntu builds
           # ~~~~~~~~~~~~~
           - name: Ubuntu-22.04/gcc-13/Debug
-            apt_install: cmake g++-13 libstdc++-13-dev ninja-build
+            apt_install: g++-13 libstdc++-13-dev ninja-build
             build_type: Debug
             cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
             options: -D ICUBABY_SANITIZE=Yes
@@ -35,7 +35,7 @@ jobs:
             package: TGZ
 
           - name: Ubuntu-22.04/gcc-13/RelWithDebug/Sanitizers
-            apt_install: cmake g++-13 libstdc++-13-dev ninja-build
+            apt_install: g++-13 libstdc++-13-dev ninja-build
             build_type: RelWithDebug
             cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
             options: -D ICUBABY_SANITIZE=Yes
@@ -44,7 +44,7 @@ jobs:
             package: TGZ
 
           - name: Ubuntu-22.04/gcc-13/Release
-            apt_install: cmake g++-13 libstdc++-13-dev ninja-build
+            apt_install: g++-13 libstdc++-13-dev ninja-build
             build_type: Release
             cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
             generator: Unix Makefiles
