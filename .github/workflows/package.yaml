@@ -1,0 +1,77 @@
+name: Package Installers
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  package-installers:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - name: macOS
+            generator: Xcode
+            os: macos-12
+            package: TGZ
+
+          - name: Linux
+            apt_install: cmake
+            generator: Unix Makefiles
+            os: ubuntu-22.04
+            package: TGZ
+
+          - name: Windows
+            generator: Visual Studio 17 2022
+            os: windows-2022
+            package: ZIP
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install Dependencies (Linux)
+        if: matrix.apt_install != ''
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.apt_install }}
+
+      - name: Create Build Environment
+        shell: bash
+        run: cmake -E make_directory ${{ github.workspace }}/build
+
+      - name: CMake Configure
+        shell: bash
+        run: |
+          cmake -S "${{ github.workspace }}"       \
+                -B "${{ github.workspace }}/build" \
+                -G "${{ matrix.generator }}"       \
+                -D CMAKE_BUILD_TYPE=Release
+
+      - name: Package
+        id: create-package
+        shell: bash
+        run: |
+          cd "${{ github.workspace }}/build";           \
+          cpack -G "${{ matrix.package }}" -C Release | \
+          tee out.txt
+          value="$(sed -n 's/CPack: - package: \(.*\) generated.$/\1/p' out.txt)"
+          echo "INSTALL_FILE=$value" | tee -a "$GITHUB_OUTPUT"
+          echo "INSTALL_BASENAME=$(basename $value)" | tee -a "$GITHUB_OUTPUT"
+          echo "### Created installer: $value" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: ${{ steps.create-package.outputs.INSTALL_BASENAME }}
+          path: ${{ steps.create-package.outputs.INSTALL_FILE }}
