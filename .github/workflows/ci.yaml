@@ -30,7 +30,7 @@ jobs:
             build_type: Debug
             cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
             options: -D ICUBABY_SANITIZE=Yes
-            generator: Ninja
+            generator: Unix Makefiles
             os: ubuntu-22.04
             package: TGZ
 
@@ -39,7 +39,7 @@ jobs:
             build_type: RelWithDebug
             cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
             options: -D ICUBABY_SANITIZE=Yes
-            generator: Ninja
+            generator: Unix Makefiles
             os: ubuntu-22.04
             package: TGZ
 
@@ -47,7 +47,7 @@ jobs:
             apt_install: cmake g++-13 libstdc++-13-dev ninja-build
             build_type: Release
             cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
-            generator: Ninja
+            generator: Unix Makefiles
             os: ubuntu-22.04
             package: TGZ
 
