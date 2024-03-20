@@ -22,9 +22,10 @@ private:
     auto const size = backtrace (arr.data (), arr.size ());
 
     // print out all the frames to stderr
-    std::fprintf (stderr, "Error: signal %d:\n", sig);
+    static char const message [] = "Error: SIGSEGV\n";
+    write (STDERR_FILENO, message, sizeof (message) - 1);
     backtrace_symbols_fd (arr.data (), size, STDERR_FILENO);
-    std::exit (EXIT_FAILURE);
+    std::_Exit (EXIT_FAILURE);
   }
 };
 
