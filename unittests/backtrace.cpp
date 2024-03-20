@@ -25,11 +25,11 @@
 #if (__linux__ || __APPLE__) && ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 #include <execinfo.h>
-#include <signal.h>
 #include <unistd.h>
 
 #include <array>
 #include <concepts>
+#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <iterator>
@@ -37,6 +37,8 @@
 #include <ranges>
 #include <type_traits>
 #include <utility>
+
+// NOLINTBEGIN(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
 namespace {
 
@@ -71,7 +73,8 @@ private:
   base10storage buffer_;
 };
 
-template <std::size_t Size> constexpr std::size_t strlength (char const (&)[Size]) noexcept {
+template <std::size_t Size> constexpr std::size_t strlength (char const (&str)[Size]) noexcept {
+  (void)str;
   return Size - 1U;
 }
 
@@ -122,7 +125,10 @@ public:
   }
 };
 
+// NOLINTEND(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+
 extern sigsegv_backtrace gc;
+// NOLINTNEXTLINE(cert-err58-cpp)
 sigsegv_backtrace gc;
 
 #endif  // (__linux__ || __APPLE__) && ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
