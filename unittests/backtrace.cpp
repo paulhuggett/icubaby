@@ -59,7 +59,9 @@ ssize_t write_char (int fd, char c) {
 
 void say_signal_number (int fd, int sig) {
   static char const message[] = "Signal: ";
-  write (fd, message, strlength (message));
+  if (::write (fd, message, strlength (message))) {
+      /* do nothing */
+  }
 
   if (sig < 0) {
     (void)write_char (fd, '-');
@@ -67,7 +69,9 @@ void say_signal_number (int fd, int sig) {
   }
   static unsigned_to_characters<unsigned> str;
   auto const range = str (static_cast<unsigned> (sig));
-  (void)::write (fd, std::to_address (std::begin (range)), range.size ());
+  if (::write (fd, std::to_address (std::begin (range)), range.size ())) {
+      /* do nothing */
+  }
   (void)write_char (fd, '\n');
 }
 
@@ -91,7 +95,9 @@ class sigsegv_backtrace {
 public:
   sigsegv_backtrace () {
     static char const message[] = "Installing SIGSEGV handler\n";
-    (void)::write (STDERR_FILENO, message, strlength (message));
+    if (::write (STDERR_FILENO, message, strlength (message))) {
+      /* do nothing */
+    }
     signal (SIGSEGV, handler);
   }
 };
