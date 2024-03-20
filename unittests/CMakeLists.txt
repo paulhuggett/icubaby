@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 add_executable (icubaby-unittests
+  backtrace.cpp
   encoded_char.hpp
   test_byte.cpp
   test_u16.cpp
