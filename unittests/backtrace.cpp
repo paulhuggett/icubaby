@@ -62,13 +62,13 @@ void say_signal_number (int fd, int sig) {
   write (fd, message, strlength (message));
 
   if (sig < 0) {
-    write_char (fd, '-');
+    (void)write_char (fd, '-');
     sig = -sig;
   }
   static unsigned_to_characters<unsigned> str;
   auto const range = str (static_cast<unsigned> (sig));
-  write (fd, std::to_address (std::begin (range)), range.size ());
-  write_char (fd, '\n');
+  (void)::write (fd, std::to_address (std::begin (range)), range.size ());
+  (void)write_char (fd, '\n');
 }
 
 }  // end anonymous namespace
@@ -80,8 +80,8 @@ extern "C" {
 
   static std::array<void *, 20> arr;
   // get void*'s for all entries on the stack
-  auto const size = backtrace (arr.data (), arr.size ());
-  backtrace_symbols_fd (arr.data (), size, STDERR_FILENO);
+  auto const size = ::backtrace (arr.data (), arr.size ());
+  ::backtrace_symbols_fd (arr.data (), size, STDERR_FILENO);
   std::_Exit (EXIT_FAILURE);
 }
 
@@ -91,7 +91,7 @@ class sigsegv_backtrace {
 public:
   sigsegv_backtrace () {
     static char const message[] = "Installing SIGSEGV handler\n";
-    write (STDERR_FILENO, message, strlength (message));
+    (void)::write (STDERR_FILENO, message, strlength (message));
     signal (SIGSEGV, handler);
   }
 };
