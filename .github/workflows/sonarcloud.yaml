@@ -117,6 +117,7 @@ jobs:
             --define sonar.branch.name="${{ steps.branch-names.outputs.current_branch }}"    \
             --define sonar.branch.target="${{ steps.branch-names.outputs.base_ref_branch }}" \
             --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"   \
+            --define sonar.cfamily.llvm-cov.reportPath="$COVERAGE"                           \
             --define sonar.exclusions='${{ env.BUILD_DIR }}/**/*,docs/**/*'                  \
             --define sonar.host.url="${{ env.SONAR_SERVER_URL }}"                            \
             --define sonar.organization=paulhuggett-github                                   \
@@ -124,5 +125,5 @@ jobs:
             --define sonar.projectVersion="$(git rev-parse HEAD)"                            \
             --define sonar.python.version=3.7,3.8,3.9,3.10,3.11                              \
             --define sonar.sourceEncoding=UTF-8
-          # Coverage disabled.
-          #--define sonar.cfamily.llvm-cov.reportPath="$COVERAGE"
+
+
