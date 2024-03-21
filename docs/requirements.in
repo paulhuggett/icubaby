@@ -6,4 +6,4 @@ sphinx==7.2.6
 sphinx_rtd_theme==2.0.0
 readthedocs-sphinx-search==0.3.2
 breathe==4.35.0
-graphviz==0.20.1
+graphviz==0.20.2
