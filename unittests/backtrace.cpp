@@ -103,8 +103,8 @@ void say_signal_number (int const file_descriptor, int sig) {
 }  // end anonymous namespace
 
 extern "C" {
-namespace {
-[[noreturn]] void handler (int const sig) {
+
+[[noreturn]] static void handler (int const sig) {
   say_signal_number (STDERR_FILENO, sig);
 
   static std::array<void *, 20> arr;
@@ -113,7 +113,7 @@ namespace {
   ::backtrace_symbols_fd (arr.data (), size, STDERR_FILENO);
   std::_Exit (EXIT_FAILURE);
 }
-}  // end anonymous namespace
+
 }  // extern "C"
 
 class sigsegv_backtrace {
