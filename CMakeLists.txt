@@ -20,10 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required (VERSION 3.22)
 
-project (icubaby CXX)
-
+project (icubaby
+  VERSION "1.1.0"
+  DESCRIPTION "Little Library to Immediately Convert Unicode"
+  LANGUAGES C CXX
+)
 option (ICUBABY_COVERAGE "Generate LLVM Source-based Coverage")
 option (ICUBABY_CXX17 "Use C++17 (rather than the default C++20)")
 option (ICUBABY_EXAMPLES "Include example code in the generated build")
@@ -56,18 +59,57 @@ else ()
   setup_gtest ()
 endif (ICUBABY_FUZZTEST)
 
-add_library (icubaby INTERFACE
-  "${icubaby_project_root}/include/icubaby/icubaby.hpp"
+# A custom target from which the install will hang
+add_custom_target (
+  install-icubaby
+  COMMAND "${CMAKE_COMMAND}" -D CMAKE_INSTALL_COMPONENT=icubaby -P
+          "${CMAKE_BINARY_DIR}/cmake_install.cmake"
+  USES_TERMINAL
 )
-target_include_directories (icubaby INTERFACE "${icubaby_project_root}/include")
+
+# icubaby target
+
+set (icubaby_include_dir "${icubaby_project_root}/include")
+set (icubaby_headers "${icubaby_include_dir}/icubaby/icubaby.hpp")
+add_library (icubaby INTERFACE "${icubaby_headers}")
+target_include_directories (icubaby SYSTEM INTERFACE
+  "$<BUILD_INTERFACE:${icubaby_include_dir}>"
+  "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+set_target_properties (icubaby PROPERTIES PUBLIC_HEADER "${icubaby_headers}")
+include (GNUInstallDirs)
+install (
+  TARGETS icubaby
+  EXPORT icubaby
+  PUBLIC_HEADER
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/icubaby"
+    COMPONENT icubaby
+  LIBRARY COMPONENT icubaby
+  ARCHIVE COMPONENT icubaby
+  INCLUDES
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+add_dependencies (install-icubaby icubaby)
+
+# examples
 
 if (ICUBABY_EXAMPLES)
   add_subdirectory (examples)
 endif (ICUBABY_EXAMPLES)
+
+# tests
 
 add_subdirectory (tests)
 if (TARGET gtest)
   add_subdirectory (unittests)
 endif ()
 
-
+install (
+  EXPORT icubaby
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/icubaby"
+  NAMESPACE icubaby::
+)
+include (InstallRequiredSystemLibraries)
+set (CPACK_PACKAGE_VENDOR "Paul Bowen-Huggett")
+set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+include (CPack)
