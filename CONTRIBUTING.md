@@ -144,26 +144,16 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/paulhu
 
 <!-- You might want to create an issue template for enhancement suggestions that can be used as a guide and that defines the structure of the information to be included. If you do so, reference it here in the description. -->
 
-### Your First Code Contribution
-<!-- TODO
-include Setup of env, IDE and typical getting started instructions?
-
--->
-
-### Improving the Documentation
-<!-- TODO
-Updating, improving and correcting the documentation
-
--->
-
 ## Style Guide
-### Commit Messages
-<!-- TODO
 
--->
+icubaby is written in C++ and aims for the best possible implementation that is compatible with C++ 17 whilst also taking advantage of C++ 20 features.
 
-## Join The Project Team
-<!-- TODO -->
+- The coding standards section on the [isocpp website](https://isocpp.org/wiki/faq/coding-standards) has a good summary of good coding practises which we aim to follow.
+- All names are lower snake\_case except template arguments which use leading upper CamelCase and preprocessor macros which are upper SNAKE\_CASE. Member variables use a trailing underscore. 
+- Use the “east const” style: place a “const” keyword after a type name (i.e. `int const a` rather than `const int a`). Make everything as const as possible. Avoid mutable state where possible.
+- Always include braces around a block, even if it only contains a single statement.
+- Layout is defined by running clang-format with the included configuration. In summary, we use 2 spaces for indentation and trailing (rather than ANSI-style) braces. An open curly brace is always on the end of the last line of a function declaration, not the start of the next line.
+- Anything in a “details” namespace is a private implementation detail.
 
 <!-- omit in toc -->
 ## Attribution
