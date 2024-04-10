@@ -119,22 +119,22 @@ TEST (IsCodePointStart, Utf32) {
 namespace {
 
 struct AsciiUtf8 : testing::Test {
-  static std::array<icubaby::char8, 11> const code_units;
+  static std::array<icubaby::char8, 11> const code_units_;
 };
 
-std::array<icubaby::char8, 11> const AsciiUtf8::code_units{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'};
+std::array<icubaby::char8, 11> const AsciiUtf8::code_units_{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'};
 
 }  // end anonymous namespace
 
 // NOLINTNEXTLINE
 TEST_F (AsciiUtf8, Length) {
-  EXPECT_EQ (11U, icubaby::length (std::begin (code_units), std::end (code_units)));
+  EXPECT_EQ (11U, icubaby::length (std::begin (code_units_), std::end (code_units_)));
 }
 // NOLINTNEXTLINE
 TEST_F (AsciiUtf8, Index) {
   // NOLINTBEGIN(llvm-qualified-auto,readability-qualified-auto)
-  auto const begin = std::begin (code_units);
-  auto const end = std::end (code_units);
+  auto const begin = std::begin (code_units_);
+  auto const end = std::end (code_units_);
   auto pos = begin;
   // NOLINTEND(llvm-qualified-auto,readability-qualified-auto)
   EXPECT_EQ (pos, icubaby::index (begin, end, size_t{0}));
