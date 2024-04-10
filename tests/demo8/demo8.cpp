@@ -33,6 +33,7 @@
 #include <format>
 #else
 // We're lacking std::format(). Fall back to using iostreams manipulators.
+#define HAVE_CPP_LIB_FORMAT (0)
 #include <iomanip>
 #endif
 
