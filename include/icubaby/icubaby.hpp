@@ -4,7 +4,7 @@
 //* |_\__|\_,_|_.__/\__,_|_.__/\_, | *
 //*                            |__/  *
 // Home page:
-// https://paulhuggett.github.io/icubaby/
+// https://paulhuggett-icubaby.rtfd.io
 //
 // MIT License
 //
