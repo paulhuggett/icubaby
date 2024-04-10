@@ -581,6 +581,22 @@ TYPED_TEST (Utf8, RangesBadInput) {
   (void)append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ContainerEq (expected));
 }
+// NOLINTNEXTLINE
+TYPED_TEST (Utf8, RangesCompose) {
+  auto& output = this->output_;
+  (void)std::ranges::copy (std::views::iota (0, 4) | std::views::transform ([] (int value) {
+                             return static_cast<char8_t> (value) + '0';
+                           }) | icubaby::views::transcode<char8_t, TypeParam>,
+                           std::back_inserter (output));
+
+  std::vector<TypeParam> expected;
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::digit_zero, TypeParam> (expected_out);
+  expected_out = append<code_point::digit_one, TypeParam> (expected_out);
+  expected_out = append<code_point::digit_two, TypeParam> (expected_out);
+  expected_out = append<code_point::digit_three, TypeParam> (expected_out);
+  EXPECT_THAT (output, ContainerEq (expected));
+}
 
 #endif  // __cpp_lib_ranges
 
