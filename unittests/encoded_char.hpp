@@ -29,6 +29,10 @@
 
 enum class code_point : char32_t {
   cent_sign = char32_t{0x00A2},
+  digit_zero = char32_t{0x0030},
+  digit_one = char32_t{0x0031},
+  digit_two = char32_t{0x0032},
+  digit_three = char32_t{0x0033},
   cjk_unified_ideograph_2070e = char32_t{0x2070E},
   cjk_unified_ideograph_20731 = char32_t{0x20731},
   cjk_unified_ideograph_20779 = char32_t{0x20779},
@@ -128,6 +132,46 @@ template <> struct encoded_char<code_point::cent_sign, char16_t> {
 };
 template <> struct encoded_char<code_point::cent_sign, icubaby::char8> {
   static constexpr std::array value{static_cast<icubaby::char8> (0xC2), static_cast<icubaby::char8> (0xA2)};
+};
+
+template <> struct encoded_char<code_point::digit_zero, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::digit_zero)};
+};
+template <> struct encoded_char<code_point::digit_zero, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::digit_zero)};
+};
+template <> struct encoded_char<code_point::digit_zero, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (code_point::digit_zero)};
+};
+
+template <> struct encoded_char<code_point::digit_one, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::digit_one)};
+};
+template <> struct encoded_char<code_point::digit_one, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::digit_one)};
+};
+template <> struct encoded_char<code_point::digit_one, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (code_point::digit_one)};
+};
+
+template <> struct encoded_char<code_point::digit_two, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::digit_two)};
+};
+template <> struct encoded_char<code_point::digit_two, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::digit_two)};
+};
+template <> struct encoded_char<code_point::digit_two, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (code_point::digit_two)};
+};
+
+template <> struct encoded_char<code_point::digit_three, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::digit_three)};
+};
+template <> struct encoded_char<code_point::digit_three, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::digit_three)};
+};
+template <> struct encoded_char<code_point::digit_three, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (code_point::digit_three)};
 };
 
 template <> struct encoded_char<code_point::pilcrow_sign, char32_t> {
