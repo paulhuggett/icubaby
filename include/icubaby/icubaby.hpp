@@ -2085,7 +2085,7 @@ public:
   using difference_type = std::ranges::range_difference_t<View>;
 
   iterator () requires std::default_initializable<std::ranges::iterator_t<View>> = default;
-  constexpr iterator (transcode_view const& parent, std::ranges::iterator_t<View> const& current)
+  constexpr iterator (transcode_view const& parent, std::ranges::iterator_t<View const> const& current)
       : current_{current}, parent_{&parent}, state_{current} {
     assert (state_.empty ());
     // Prime the input state so that a dereference of the iterator will yield the first of the
@@ -2135,7 +2135,7 @@ private:
     /// \brief Initializes the state and primes the internal buffer with an initial code-point read from the input.
     ///
     /// \param iter  An iterator referencing the next element in the input range to be consumed.
-    constexpr explicit state (std::ranges::iterator_t<View> iter) : next_{std::move (iter)} {}
+    constexpr explicit state (std::ranges::iterator_t<View const> iter) : next_{std::move (iter)} {}
     constexpr state () = default;
 
     /// Returns true if the output buffer is empty and false otherwise.
@@ -2163,7 +2163,7 @@ private:
     ///
     /// \param parent  The view from which input values are to be consumed.
     /// \returns The updated base iterator.
-    constexpr std::ranges::iterator_t<View> fill (transcode_view const* parent);
+    constexpr std::ranges::iterator_t<View const> fill (transcode_view const* parent);
 
   private:
     /// The type of the output buffer. This is sized so that it allows for the largest nunber of bytes that the
@@ -2173,7 +2173,7 @@ private:
     using iterator = typename out_type::iterator;
 
     /// An iterator referencing the next input code-unit to be consumed.
-    std::ranges::iterator_t<View> next_{};
+    std::ranges::iterator_t<View const> next_{};
     /// The container into which the transcoder's output will be written.
     out_type out_{};
     /// The transcoder used to convert a series of code-units in the source encoding to the destination encoding.
@@ -2194,14 +2194,14 @@ private:
     /// Together with the last_ field, determines the code-units to be produced when the view is dereferenced.
     std::uint_least8_t last_ : valid_range_bits = 0;
   };
-  std::ranges::iterator_t<View> current_{};
+  std::ranges::iterator_t<View const> current_{};
   transcode_view const* parent_ = nullptr;
   mutable state state_{};
 };
 
 template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
-constexpr std::ranges::iterator_t<View> transcode_view<FromEncoding, ToEncoding, View>::iterator::state::fill (
+constexpr std::ranges::iterator_t<View const> transcode_view<FromEncoding, ToEncoding, View>::iterator::state::fill (
     transcode_view const* parent) {
   auto result = next_;
   assert (this->empty () && "out_ was not empty when fill called");
