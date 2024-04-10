@@ -35,7 +35,7 @@ Disecting the explicit conversion code
      
      icubaby::t8_16 t;
 
-   :cpp:type:`icubaby::t8_16` is an alias of a specialization :cpp:class:`icubaby::transcoder` which converts from UTF-8 to UTF-16.
+   :cpp:type:`icubaby::t8_16` is an alias to a specialization of :cpp:class:`icubaby::transcoder` which converts from UTF-8 to UTF-16.
 
 3. Pass each code unit and the output iterator to the transcoder.
 
