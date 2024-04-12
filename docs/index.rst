@@ -96,9 +96,6 @@ There are three ways to use the icubaby library depending on your needs:
 
    :doc:`Learn more <explicit-conversion>`
 
-Contents
---------
-
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
@@ -112,5 +109,4 @@ Contents
    ranges
    examples
    transcoder_internals
-
-Index: :ref:`genindex`
+   :ref:`genindex`
