@@ -111,6 +111,4 @@ There are three ways to use the icubaby library depending on your needs:
    examples
    transcoder_internals
 
-Index
------
 :ref:`genindex`
