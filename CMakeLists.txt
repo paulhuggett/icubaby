@@ -44,20 +44,20 @@ include (setup_gtest)
 if (ICUBABY_FUZZTEST)
   set (FUZZTEST_FUZZING_MODE On)
   include (FetchContent)
-  set (FUZZTEST_REPO_BRANCH "main" CACHE STRING "FuzzTest repository branch.")
-  message ("Building fuzztest at branch " ${FUZZTEST_REPO_BRANCH})
+  set (FUZZTEST_REPO_BRANCH "1635d42" CACHE STRING "FuzzTest repository branch.")
+  message ("Building fuzztest at tag " ${FUZZTEST_REPO_BRANCH})
   FetchContent_Declare (
     fuzztest
     GIT_REPOSITORY https://github.com/google/fuzztest.git
     GIT_TAG ${FUZZTEST_REPO_BRANCH}
   )
   FetchContent_MakeAvailable (fuzztest)
-  enable_testing ()
   include (GoogleTest)
   fuzztest_setup_fuzzing_flags ()
 else ()
   setup_gtest ()
 endif (ICUBABY_FUZZTEST)
+enable_testing ()
 
 # A custom target from which the install will hang
 add_custom_target (
