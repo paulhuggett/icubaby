@@ -44,6 +44,7 @@ void PrintTo (encoding enc, std::ostream* os) {
   case encoding::utf16le: str = "utf16le"; break;
   case encoding::utf32be: str = "utf32be"; break;
   case encoding::utf32le: str = "utf32le"; break;
+  default: str = "**error**"; break;
   }
   *os << str;
 }
