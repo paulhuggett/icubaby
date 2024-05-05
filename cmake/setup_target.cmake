@@ -59,11 +59,15 @@ function (setup_target target)
 
   set (gcc_warning_options
     -Wall
-    -Wbidi-chars=any
     -Wextra
     -Wtrampolines
     -pedantic
   )
+  if (CMAKE_CXX_COMPILER_ID MATCHES "GCC")
+    check_cxx_compiler_flag (-Wbidi-chars=any GCC_W_BIDI_CHARS)
+    list (APPEND gcc_warning_options $<$<BOOL:${GCC_W_BIDI_CHARS}>:-Wbidi-chars=any)
+  endif()
+
   set (msvc_warning_options
     -W4
     -wd4324 # 4324: structure was padded due to alignment specifier
