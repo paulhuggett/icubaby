@@ -70,15 +70,12 @@ function (setup_target target)
     -wd4068 # 4068: unknown pragma
   )
 
-  # TODO: On AArch64 use -mbranch-protection=standard?
   set (clang_options
     -fstack-protector-strong
-    -fcf-protection=full
   )
   set (gcc_options
     -fstack-clash-protection
     -fstack-protector-strong
-    -fcf-protection=full
     -fPIE
     -pie
     -U_FORTIFY_SOURCE
@@ -86,8 +83,9 @@ function (setup_target target)
   )
 
   if (LINUX)
-    list (APPEND clang_options -fstack-clash-protection)
-    list (APPEND gcc_options -fstack-clash-protection)
+    # TODO: On AArch64 use -mbranch-protection=standard?
+    list (APPEND clang_options -fstack-clash-protection -fcf-protection=full)
+    list (APPEND gcc_options  -fstack-clash-protection -fcf-protection=full)
   endif (LINUX)
 
   if (ICUBABY_WERROR)
