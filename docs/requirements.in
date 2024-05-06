@@ -1,9 +1,0 @@
-# Create requirements.txt by runnning the following command:
-#
-#    pip-compile --output-file=requirements.txt requirements.in
-#
-sphinx==7.3.7
-sphinx_rtd_theme==2.0.0
-readthedocs-sphinx-search==0.3.2
-breathe==4.35.0
-graphviz==0.20.3
