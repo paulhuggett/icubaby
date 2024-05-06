@@ -6,6 +6,7 @@ dependencies:
   - breathe=4.35.0
   - doxygen=1.10.0
   - graphviz=9.0.0
+  - pip=24.0
   - pip:
     - readthedocs-sphinx-ext==2.2.5
     - furo==2024.1.29
