@@ -33,6 +33,7 @@
 #include <format>
 #else
 // We're lacking std::format(). Fall back to using iostreams manipulators.
+#define HAVE_CPP_LIB_FORMAT (0)
 #include <iomanip>
 #endif
 
@@ -161,7 +162,7 @@ void c5 () {
                          static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
   std::vector<char16_t> out;
   icubaby::t8_16 transcoder;
-#if __cpp_lib_ranges
+#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L
   auto out_it = std::ranges::copy (input, icubaby::iterator{&transcoder, std::back_inserter (out)}).out;
 #else
   auto out_it =

@@ -47,9 +47,7 @@ function (setup_target target)
     -Wno-covered-switch-default
     -Wno-ctad-maybe-unsupported
     -Wno-documentation-unknown-command
-    -Wno-exit-time-destructors
     -Wno-padded
-    -Wno-undef
   )
   # Some clang warning switches are not available in all versions of the compiler.
   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang$")

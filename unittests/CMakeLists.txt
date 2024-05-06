@@ -38,6 +38,7 @@ target_compile_options (
   PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:
       -Wno-global-constructors
+      -Wno-undef
       -Wno-used-but-marked-unused>
     $<$<CXX_COMPILER_ID:GNU>:>
     # -wd4702 : unreachable code.
