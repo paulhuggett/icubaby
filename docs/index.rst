@@ -1,8 +1,3 @@
-.. icubaby documentation master file, created by
-   sphinx-quickstart on Tue Mar  5 20:47:28 2024.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to icubaby!
 ===================
 icubaby is a C++ Library to Immediately Convert Unicode. It is a portable, header-only,
@@ -101,11 +96,9 @@ There are three ways to use the icubaby library depending on your needs:
 
    :doc:`Learn more <explicit-conversion>`
 
-Docs
-====
-
 .. toctree::
-   :maxdepth: 2
+   :hidden:
+   :maxdepth: 1
    :caption: Contents:
 
    transcoder
@@ -118,9 +111,4 @@ Docs
    examples
    transcoder_internals
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+:ref:`genindex`
