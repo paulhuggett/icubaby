@@ -584,10 +584,11 @@ TYPED_TEST (Utf8, RangesBadInput) {
 // NOLINTNEXTLINE
 TYPED_TEST (Utf8, RangesCompose) {
   auto& output = this->output_;
-  (void)std::ranges::copy (std::views::iota (0, 4) | std::views::transform ([] (int value) {
-                             return static_cast<char8_t> (value) + '0';
-                           }) | icubaby::views::transcode<char8_t, TypeParam>,
-                           std::back_inserter (output));
+  (void)std::ranges::copy (
+      std::views::iota (std::uint_least8_t{0}, std::uint_least8_t{4}) |
+          std::views::transform ([] (std::uint_least8_t const value) { return static_cast<char8_t> (value) + '0'; }) |
+          icubaby::views::transcode<char8_t, TypeParam>,
+      std::back_inserter (output));
 
   std::vector<TypeParam> expected;
   auto expected_out = std::back_inserter (expected);
