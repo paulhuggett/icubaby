@@ -1798,7 +1798,6 @@ constexpr encoding transcoder<std::byte, ToEncoding>::selected_encoding () const
     return this->is_little_endian () ? encoding::utf16le : encoding::utf16be;
   case static_cast<std::uint_least8_t> (encoding_utf32):
     return this->is_little_endian () ? encoding::utf32le : encoding::utf32be;
-  case static_cast<std::uint_least8_t> (encoding_unknown):
   default: assert (false && "We must know the encoding when in run mode"); return encoding::unknown;
   }
 }
