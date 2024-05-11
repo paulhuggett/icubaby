@@ -22,6 +22,8 @@
 
 #include "icubaby/icubaby.hpp"
 
+#include <iostream>
+
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 #include <algorithm>
@@ -29,7 +31,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <exception>
-#include <iostream>
 #include <iterator>
 #include <ostream>
 #include <ranges>
