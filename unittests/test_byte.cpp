@@ -20,13 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <gmock/gmock.h>
+// icubaby itself
+#include "icubaby/icubaby.hpp"
 
+// standard library
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <iterator>
+#include <ostream>
 #include <vector>
 
-#include "icubaby/icubaby.hpp"
+// google mock/test/fuzz
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #if ICUBABY_FUZZTEST
-#include "fuzztest/fuzztest.h"
+#include <fuzztest/fuzztest.h>
 #endif
 
 using testing::ElementsAre;
@@ -34,9 +43,9 @@ using testing::ElementsAre;
 namespace icubaby {
 
 // Teach Google Test how to display values of type icubaby::encoding.
-void PrintTo (encoding enc, std::ostream* os);
-void PrintTo (encoding enc, std::ostream* os) {
-  char const* str = "**error**";
+void PrintTo (encoding enc, std::ostream* stream);
+void PrintTo (encoding const enc, std::ostream* const stream) {
+  char const* str = nullptr;
   switch (enc) {
   case encoding::unknown: str = "unknown"; break;
   case encoding::utf8: str = "utf8"; break;
@@ -46,7 +55,7 @@ void PrintTo (encoding enc, std::ostream* os) {
   case encoding::utf32le: str = "utf32le"; break;
   default: str = "**error**"; break;
   }
-  *os << str;
+  *stream << str;
 }
 
 }  // end namespace icubaby

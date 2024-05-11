@@ -20,24 +20,36 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// icubaby itself.
+#include "icubaby/icubaby.hpp"
+
+// standard library
+#include <algorithm>
 #include <array>
+#include <cstdint>
+#include <cstdlib>
 #include <iterator>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
-// icubaby itself.
-#include "icubaby/icubaby.hpp"
+#if ICUBABY_HAVE_CONCEPTS
+#include <concepts>
+#endif
+#if ICUBABY_HAVE_RANGES
+#include <ranges>
+#endif
 
 // Google Test/Mock
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #ifndef ICUBABY_FUZZTEST
 #define ICUBABY_FUZZTEST (0)
 #endif
 #if ICUBABY_FUZZTEST
-#include "fuzztest/fuzztest.h"
+#include <fuzztest/fuzztest.h>
 #endif
 
 // Local includes

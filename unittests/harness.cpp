@@ -20,9 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// standard library
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
+#include <exception>
+#include <iostream>
 #include <memory>
+#include <ostream>
+#include <string_view>
 #include <version>
 
 #if defined(__cpp_lib_span) && __cpp_lib_span >= 202002L
@@ -54,7 +60,9 @@
 #endif
 #endif
 
+// google mock/test
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 using testing::TestEventListener;
 using testing::TestInfo;

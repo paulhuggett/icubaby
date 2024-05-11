@@ -21,8 +21,12 @@
 // SOFTWARE.
 
 #include <algorithm>
+#include <array>
+#include <cstdint>
 #include <iostream>
+#include <iterator>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 #include <version>

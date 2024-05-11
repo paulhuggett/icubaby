@@ -22,11 +22,17 @@
 
 #include <iconv.h>
 
-#include <bit>
 #include <cassert>
+#include <cerrno>
+#include <cstdint>
+#include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <iostream>
+#include <iterator>
+#include <stdexcept>
 #include <system_error>
+#include <type_traits>
 #include <vector>
 
 #include "icubaby/icubaby.hpp"
@@ -114,7 +120,7 @@ private:
 template <typename FromEncoding, typename ToEncoding> iconv_converter<FromEncoding, ToEncoding>::iconv_converter () {
   if (descriptor_ == bad ()) {
     auto const erc = errno;
-    static_assert (std::is_integral_v<decltype (erc)>);
+    static_assert (std::is_integral_v<decltype (erc)>, "Expected errno to yield an integer type");
     if (erc == EINVAL) {
       throw iconv_unsupported_conversion{};
     }
@@ -152,7 +158,7 @@ std::vector<ToEncoding> iconv_converter<FromEncoding, ToEncoding>::convert (std:
       // NOLINTEND(cppcoreguidelines-pro-type-const-cast)
       // E2BIG tells us that the output buffer was too small.
       auto const erc = errno;
-      static_assert (std::is_integral_v<decltype (erc)>);
+      static_assert (std::is_integral_v<decltype (erc)>, "Expected errno to yield an integer type");
       if (erc != E2BIG) {
         throw std::system_error{std::error_code{erc, std::generic_category ()}, "iconv failed"};
       }

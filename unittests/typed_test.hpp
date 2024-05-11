@@ -26,6 +26,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <type_traits>
 
 #include "icubaby/icubaby.hpp"
 
