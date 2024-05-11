@@ -20,20 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// icubaby itself.
+#include "icubaby/icubaby.hpp"
+
+// standard library
 #include <array>
+#include <cstdint>
 #include <iterator>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
-// icubaby itself.
-#include "icubaby/icubaby.hpp"
-
 // Google Test/Mock
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#if ICUBABY_FUZZTEST
-#include "fuzztest/fuzztest.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+#if defined(ICUBABY_FUZZTEST) && ICUBABY_FUZZTEST
+#include <fuzztest/fuzztest.h>
 #endif
 
 // Local includes
@@ -257,7 +259,7 @@ TYPED_TEST (Utf16, LonelyLowSurrogate) {
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   auto pos = transcoder (static_cast<char16_t> (icubaby::first_low_surrogate), std::back_inserter (output));
-  EXPECT_FALSE (transcoder.well_formed ()) << "a low surrogate must be preceeded by a high";
+  EXPECT_FALSE (transcoder.well_formed ()) << "a low surrogate must be preceded by a high";
   EXPECT_FALSE (transcoder.partial ());
   (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());

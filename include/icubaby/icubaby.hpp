@@ -89,6 +89,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <string>
@@ -528,13 +529,13 @@ constexpr InputIterator index (InputIterator first, InputIterator last, std::siz
 #if ICUBABY_HAVE_CONCEPTS
 /// \brief Defines the requirements of a type that provides the transcoder interface.
 template <typename T>
-concept is_transcoder = requires (T tcdr) {
+concept is_transcoder = requires (T coder) {
   typename T::input_type;
   typename T::output_type;
   // we must also have operator() and end_cp() which
   // both take template arguments.
-  { tcdr.well_formed () } -> std::convertible_to<bool>;
-  { tcdr.partial () } -> std::convertible_to<bool>;
+  { coder.well_formed () } -> std::convertible_to<bool>;
+  { coder.partial () } -> std::convertible_to<bool>;
 };
 
 #endif  // ICUBABY_HAVE_CONCEPTS
@@ -753,9 +754,9 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto tcdr = dest.transcoder ();
-    assert (tcdr == this);
-    return {tcdr, tcdr->end_cp (dest.base ())};
+    auto coder = dest.transcoder ();
+    assert (coder == this);
+    return {coder, coder->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-32.
@@ -891,9 +892,9 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto tcdr = dest.transcoder ();
-    assert (tcdr == this);
-    return {tcdr, tcdr->end_cp (dest.base ())};
+    auto coder = dest.transcoder ();
+    assert (coder == this);
+    return {coder, coder->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-8.
@@ -996,9 +997,9 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto tcdr = dest.transcoder ();
-    assert (tcdr == this);
-    return {tcdr, tcdr->end_cp (dest.base ())};
+    auto coder = dest.transcoder ();
+    assert (coder == this);
+    return {coder, coder->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented valid UTF-32.
@@ -1048,7 +1049,7 @@ public:
         return dest;
       }
 
-      // A low surrogate without a preceeding high surrogate.
+      // A low-surrogate without a preceding high-surrogate.
       if (is_low_surrogate (code_unit)) {
         well_formed_ = false;
         code_unit = replacement_char;
@@ -1057,22 +1058,20 @@ public:
       return dest;
     }
 
-    // A high surrogate followed by a low surrogate.
+    // A high surrogate followed by a low-surrogate.
     if (is_low_surrogate (code_unit)) {
       *(dest++) = (static_cast<char32_t> (high_) << high_bits) + (code_unit - first_low_surrogate) + 0x10000;
       high_ = 0;
       has_high_ = false;
       return dest;
     }
-    // There was a high surrogate followed by something other than a low
-    // surrogate. A high surrogate followed by a second high surrogate yields
-    // a single REPLACEMENT CHARACTER. A high followed by something other than
-    // a low surrogate gives REPLACEMENT CHARACTER followed by the second input
-    // code point.
+    // There was a high-surrogate followed by something other than a low surrogate. A high-surrogate followed by a
+    // second high-surrogate yields a single REPLACEMENT CHARACTER. A high-surrogate followed by something other than
+    // a low-surrogate gives REPLACEMENT CHARACTER followed by the second input code point.
     *(dest++) = replacement_char;
     well_formed_ = false;
     if (is_high_surrogate (code_unit)) {
-      // There was a high surrogate followed by a second high surrogate. Remember the later of the two.
+      // There was a high surrogate followed by a second high-surrogate. Remember the later of the two.
       high_ = adjusted_high (code_unit);
       assert (has_high_);
       return dest;
@@ -1107,9 +1106,9 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto tcdr = dest.transcoder ();
-    assert (tcdr == this);
-    return {tcdr, tcdr->end_cp (dest.base ())};
+    auto coder = dest.transcoder ();
+    assert (coder == this);
+    return {coder, coder->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-16.
@@ -1136,7 +1135,7 @@ private:
   /// The high surrogate value is stored after the first_high_surrogate value has been subtracted. This reduces the
   /// number of bits that we need to remember.
   ///
-  /// \param code_unit A UYTF-16 code unit for which icubaby::is_high_surrogate() returns true.
+  /// \param code_unit A UTF-16 code unit for which icubaby::is_high_surrogate() returns true.
   /// \returns A high surrogate value that can be stored in the class's high_ field.
   static std::uint_least16_t adjusted_high (std::uint_least16_t code_unit) noexcept {
     assert (code_unit >= first_high_surrogate && "A high surrogate must be at least first_high_surrogate");
@@ -1160,7 +1159,7 @@ enum class encoding {
 namespace details {
 
 /// An alias template for a two-dimensional std::array
-template <typename T, std::size_t Row, std::size_t Col> using array2d = std::array<std::array<T, Col>, Row>;
+template <typename T, std::size_t Rows, std::size_t Columns> using array2d = std::array<std::array<T, Columns>, Rows>;
 
 /// \brief A two-dimensional array containing the bytes that make up the encoded value of U+FEFF BYTE ORDER MARK.
 ///
@@ -1168,7 +1167,7 @@ template <typename T, std::size_t Row, std::size_t Col> using array2d = std::arr
 ///       [encoding_utf32](\ref transcoder-encoding_utf32), [encoding_utf8](\ref transcoder-encoding_utf8),
 ///       [big_endian](\ref transcoder-big_endian), and [little_endian](\ref transcoder-little_endian) constants from
 ///       the transcoder<std::byte, ToEncoding> specialization. We use the encoding and endian fields together to
-///       produce the outer index into this array. UTF-8 encoding has no inherant endianness so is modelled as
+///       produce the outer index into this array. UTF-8 encoding has no inherent endianness so is modelled as
 ///       big-endian to enable it to occupy just the final entry in this array
 inline array2d<std::byte, 5, 4> const boms{{
     {std::byte{0xFE}, std::byte{0xFF}},                                    // UTF-16 BE
@@ -1217,21 +1216,23 @@ public:
     switch (state_) {
     case states::start: dest = this->start_state (value, dest); break;
     case states::utf8_bom_byte2:
-      buffer_[byte_no (state_)] = value;
-      // Start decoding as UTF-8. If we have a complete UTF-8 BOM drop it, otherwise copy the buffer to output.
-      dest = this->run8_start (value != details::boms[boms_index_from_state (state_)][byte_no (state_)], dest);
+      assert (this->get_byte_no () == 2 && "Expected this state to target byte #2");
+      buffer_[this->get_byte_no ()] = value;
+      // Start decoding as UTF-8. If we have a complete UTF-8 BOM drop it, otherwise output the code units seen so far.
+      dest = this->run8_start (value != this->bom_value (), dest);
       break;
 
     case states::utf16_be_bom_byte1:
-      buffer_[byte_no (state_)] = value;
-      // We either have a complete UTF-16 BE BOM in which case we start transcoding or we default to UTF-8 emitting the
-      // bytes consumed so far.
-      dest = (value == details::boms[boms_index_from_state (state_)][byte_no (state_)]) ? this->run16_start (dest)
-                                                                                        : this->run8_start (true, dest);
+      assert (this->get_byte_no () == 1 && "Expected this state to target byte #1");
+      buffer_[this->get_byte_no ()] = value;
+      // We either have a complete UTF-16 BE BOM, in which case we start transcoding, or we default to UTF-8 emitting
+      // the bytes consumed so far.
+      dest = value == this->bom_value () ? this->run16_start (dest) : this->run8_start (true, dest);
       break;
 
     case states::utf32_or_16_le_bom_byte2:
-      if (value != std::byte{0x00}) {
+      assert (this->get_byte_no () == 2 && "Expected this state to target byte #2");
+      if (value != transcoder::bom_value (encoding_utf32 | little_endian, this->get_byte_no ())) {
         // This isn't a UTF-32 LE BOM but the start of a UTF-16 run.
         dest = this->run16_start (dest);
         state_ = states::run_16le_byte1;
@@ -1244,9 +1245,10 @@ public:
     case states::utf32_or_16_le_bom_byte1:
     case states::utf32_or_16_be_bom_byte1:
     case states::utf32_be_bom_byte2:
-      buffer_[byte_no (state_)] = value;
-      if (value == details::boms[boms_index_from_state (state_)][byte_no (state_)]) {
-        state_ = next_byte (state_);
+      assert (this->get_byte_no () == 1 || this->get_byte_no () == 2 && "This must be byte #1 or #2");
+      buffer_[this->get_byte_no ()] = value;
+      if (value == this->bom_value ()) {
+        state_ = this->next_byte ();
       } else {
         // Default input encoding. Emit buffer.
         dest = this->run8_start (true, dest);
@@ -1255,11 +1257,12 @@ public:
 
     case states::utf32_le_bom_byte3:
     case states::utf32_be_bom_byte3:
-      assert (byte_no (state_) == 3);
-      buffer_[3] = value;
-      if (value == (is_little_endian (state_) ? std::byte{0x00} : std::byte{0xFF})) {
+      assert (this->get_byte_no () == 3 && "Expected this to be byte #3");
+      buffer_[this->get_byte_no ()] = value;
+      if (value == transcoder::bom_value (encoding_utf32 | (static_cast<std::byte> (state_) & endian_mask),
+                                          this->get_byte_no ())) {
         (void)transcoder_variant_.template emplace<t32_type> ();
-        state_ = set_run_mode (set_byte (state_, 0));
+        state_ = transcoder::set_run_mode (transcoder::set_byte (state_, 0));
       } else {
         // Default input encoding. Emit buffer.
         dest = this->run8_start (true, dest);
@@ -1274,8 +1277,9 @@ public:
     case states::run_32le_byte0:
     case states::run_32le_byte1:
     case states::run_32le_byte2:
-      buffer_[byte_no (state_)] = value;
-      state_ = next_byte (state_);
+      assert (this->get_byte_no () < 3 && "Expected byte [0..3)");
+      buffer_[this->get_byte_no ()] = value;
+      state_ = this->next_byte ();
       break;
 
     case states::run_8:
@@ -1326,9 +1330,9 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto tcdr = dest.transcoder ();
-    assert (tcdr == this);
-    return {tcdr, tcdr->end_cp (dest.base ())};
+    auto coder = dest.transcoder ();
+    assert (coder == this);
+    return {coder, coder->end_cp (dest.base ())};
   }
 
   /// \brief Returns true if the input represents well formed Unicode.
@@ -1348,7 +1352,7 @@ public:
 private:
   /// \anchor transcoder-byte_no
   /// \param index  The byte number within the BOM encoding. Must be in the range [0,3].
-  /// \returns A value which can be bitwire ORed to represent a particular byte within a BOM encoding.
+  /// \returns A value which can be bitwise ORed to represent a particular byte within a BOM encoding.
   static constexpr std::byte byte_no (std::uint_least8_t index) noexcept {
     assert (index < 4U);
     return static_cast<std::byte> (index);
@@ -1406,7 +1410,7 @@ private:
   // clang-format off
   /// Bit | Interpretation
   /// --- | --------------
-  /// 0   | 2 bits to describe the encoding being processed: UTF-16 (\link encoding_utf16 \endlink), UTF-32 (\link encoding_utf32 \endlink), UTF-8 (\link encoding_utf8 \endlink), unknown (\link encoding_unknown \endlink). Note that the values are combined with the value of biit 2 (the endianness) to produce an index to the first dimension of the \link details::boms \endlink array.
+  /// 0   | 2 bits to describe the encoding being processed: UTF-16 (\link encoding_utf16 \endlink), UTF-32 (\link encoding_utf32 \endlink), UTF-8 (\link encoding_utf8 \endlink), unknown (\link encoding_unknown \endlink). Note that the values are combined with the value of bit 2 (the endianness) to produce an index to the first dimension of the \link details::boms \endlink array.
   /// 1   | ^
   /// 2   | 1 bit to identify the input as big (\link big_endian \endlink) or little (\link little_endian \endlink) endian.
   /// 3   | 1 bit to identify when the state machine is in "Run" or "BOM" mode. In BOM mode (\link bom_mode \endlink), we are in the process of identifying the input encoding. In run mode (\link run_mode \endlink), we are consuming and emitting code-units.
@@ -1420,7 +1424,7 @@ private:
   /// states.
   ///
   /// \see encoding_utf16, encoding_utf32, encoding_utf8, encoding_unknown, bom_mode, run_mode, big_endian,
-  ///      little_endian, [byte_no(std::uintleast8_t)](\ref transcoder-byte_no).
+  ///      little_endian, [byte_no(std::uint_least8_t)](\ref transcoder-byte_no).
 
   enum class states : std::uint_least8_t {
     /// The FSM's initial state.
@@ -1485,17 +1489,15 @@ private:
 
   /// \brief Returns true if the argument represents a state where the FSM is consuming and producing code-units.
   ///
-  /// \param state  A valid state machine state.
   /// \returns True if the parameter represents a state where the FSM is consuming and producing code-units.
-  static constexpr bool is_run_mode (states const state) noexcept {
-    return (static_cast<std::byte> (state) & run_mask) == run_mode;
+  [[nodiscard]] constexpr bool is_run_mode () const noexcept {
+    return (static_cast<std::byte> (state_) & run_mask) == run_mode;
   }
   /// \brief Returns true if the argument represents a state in which the FSM is consuming little endian code units.
   ///
-  /// \param state  A valid state machine state.
   /// \returns True if the transcoder is consuming little-endian values, false otherwise.
-  static constexpr bool is_little_endian (states const state) noexcept {
-    return (static_cast<std::byte> (state) & endian_mask) == little_endian;
+  [[nodiscard]] constexpr bool is_little_endian () const noexcept {
+    return (static_cast<std::byte> (state_) & endian_mask) == little_endian;
   }
 
   /// \brief Extracts the byte number referenced by the argument.
@@ -1505,16 +1507,18 @@ private:
   ///
   /// \param state  A valid state machine state.
   /// \returns The byte number referenced by \p state.
-  static constexpr std::uint_least8_t byte_no (states const state) noexcept {
+  [[nodiscard]] static constexpr std::uint_least8_t get_byte_no (states const state) noexcept {
     return static_cast<std::uint_least8_t> (static_cast<std::byte> (state) & byte_no_mask);
   }
+  [[nodiscard]] constexpr std::uint_least8_t get_byte_no () const noexcept { return transcoder::get_byte_no (state_); }
+
   /// \brief Returns a state which references a specific byte number.
   ///
   /// \param state  A valid state machine state. The returned state will be the same as this argument but with the byte
   ///               number set to \p byte_number.
   /// \param byte_number The byte to be referenced. Must be in the range [0..4).
   /// \returns A state referencing the supplied byte number.
-  static constexpr states set_byte (states const state, std::uint_least8_t const byte_number) noexcept {
+  [[nodiscard]] static constexpr states set_byte (states const state, std::uint_least8_t const byte_number) noexcept {
     assert (byte_number < 4 && "States must not try to address a byte number > 3");
     return static_cast<states> ((static_cast<std::byte> (state) & ~byte_no_mask) |
                                 static_cast<std::byte> (byte_number));
@@ -1524,29 +1528,39 @@ private:
   /// \param state  A valid state machine state. The returned state will be the same as this argument but with the byte
   ///               number incremented.
   /// \returns A state referencing the next byte number.
-  static constexpr states next_byte (states const state) noexcept { return set_byte (state, byte_no (state) + 1); }
+  [[nodiscard]] static constexpr states next_byte (states const state) noexcept {
+    return transcoder::set_byte (state, transcoder::get_byte_no (state) + 1);
+  }
+  /// \brief Returns a state which references the next byte number.
+  /// \returns A state referencing the next byte number.
+  [[nodiscard]] constexpr states next_byte () const noexcept { return transcoder::next_byte (state_); }
 
   /// \brief Adjusts a state so that run mode is selected.
   ///
   /// \param state A valid state machine state.
   /// \returns The modified state.
-  static constexpr states set_run_mode (states const state) noexcept {
+  [[nodiscard]] static constexpr states set_run_mode (states const state) noexcept {
     assert ((static_cast<std::byte> (state) & run_mask) == bom_mode && "Expected a BOM mode state");
     return static_cast<states> ((static_cast<std::byte> (state) & ~run_mask) | run_mode);
   }
 
-  /// \brief  Returns an index into the first dimension of the details::boms array from the FSM state value.
-  ///
-  /// The index is based on the encoding and endianness bits of the state.
-  ///
-  /// \param state  The state from which the index is to be extracted.
-  /// \returns  An index into the first dimension of the details::boms array.
-  static constexpr std::size_t boms_index_from_state (states const state) noexcept {
-    auto const state_byte = static_cast<std::byte> (state);
+  [[nodiscard]] static constexpr std::byte bom_value (std::byte const state_byte,
+                                                      std::uint_least8_t const byte_number) noexcept {
     assert (((state_byte & (encoding_mask | endian_mask)) >> endian_shift) == (state_byte >> endian_shift));
-    auto const index = static_cast<std::size_t> (state_byte >> endian_shift);
-    assert (index < details::boms.size () && "The index is too large for the BOMs array");
-    return index;
+    auto const encoding_index = static_cast<std::size_t> (state_byte >> endian_shift);
+    assert (encoding_index < details::boms.size () && "The index is too large for the BOMs array");
+    if (encoding_index >= details::boms.size ()) {
+      return std::byte{0x00};
+    }
+    auto const& enc = details::boms[encoding_index];
+    assert (byte_number < enc.size () && "Byte number must lie within the BOMs array");
+    if (byte_number >= enc.size ()) {
+      return std::byte{0x00};
+    }
+    return enc[byte_number];
+  }
+  [[nodiscard]] constexpr std::byte bom_value () const noexcept {
+    return transcoder::bom_value (static_cast<std::byte> (state_), transcoder::get_byte_no (state_));
   }
 
   /// A short name for the transcoder used when UTF-8 input has been detected.
@@ -1578,7 +1592,7 @@ private:
   static_assert (is_nothrowable<t16_type>::value);
   static_assert (is_nothrowable<t32_type>::value);
 
-  /// Handles the initial state of the FSM. Checks the inital input byte against the collection of potential byte order
+  /// Handles the initial state of the FSM. Checks the initial input byte against the collection of potential byte order
   /// mark initial bytes and decides on the next action.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
@@ -1587,16 +1601,19 @@ private:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   [[nodiscard]] OutputIterator start_state (input_type const value, OutputIterator dest) noexcept {
-    buffer_[0] = value;
-    if (value == std::byte{0xEF}) {
+    static constexpr auto byte_number = 0U;
+    buffer_[byte_number] = value;
+    if (value == transcoder::bom_value (encoding_utf8 | big_endian, byte_number)) {
       state_ = states::utf8_bom_byte1;
-    } else if (value == std::byte{0xFE}) {
+    } else if (value == transcoder::bom_value (encoding_utf16 | big_endian, byte_number)) {
       state_ = states::utf16_be_bom_byte1;
-    } else if (value == std::byte{0xFF}) {
+    } else if (value == transcoder::bom_value (encoding_utf16 | little_endian, byte_number)) {
       state_ = states::utf32_or_16_le_bom_byte1;
-    } else if (value == std::byte{0x00}) {
+    } else if (value == transcoder::bom_value (encoding_utf32 | big_endian, byte_number)) {
       state_ = states::utf32_or_16_be_bom_byte1;
     } else {
+      // This code unit wasn't recognized as being the first of a BOM in any encoding. Assume UTF-8 and process it
+      // immediately.
       dest = this->run8_start (true, dest);
     }
     return dest;
@@ -1610,14 +1627,14 @@ private:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   [[nodiscard]] OutputIterator run8_start (bool const copy_buffer, OutputIterator dest) noexcept {
-    assert (!is_run_mode (state_) && "The FSM should not be in run mode when run8_start is called");
+    assert (!this->is_run_mode () && "The FSM should not be in run mode when run8_start is called");
     assert (std::holds_alternative<std::monostate> (transcoder_variant_) &&
             "The variant should hold monostate until the FSM is in run mode");
     auto& trans = transcoder_variant_.template emplace<t8_type> ();
     if (copy_buffer) {
       // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
       auto const first = std::begin (buffer_);
-      (void)std::for_each (first, first + byte_no (state_) + 1,
+      (void)std::for_each (first, first + this->get_byte_no () + 1,
                            [&trans, &dest] (std::byte value) { dest = trans (static_cast<char8> (value), dest); });
     }
     state_ = states::run_8;
@@ -1631,11 +1648,12 @@ private:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   [[nodiscard]] OutputIterator run16_start (OutputIterator dest) noexcept {
-    assert (!is_run_mode (state_) && "The FSM should not be in run mode when run16_start is called");
+    assert (!this->is_run_mode () && "The FSM should not be in run mode when run16_start is called");
     assert (std::holds_alternative<std::monostate> (transcoder_variant_) &&
             "The variant should hold monostate until the FSM is in run mode");
     (void)transcoder_variant_.template emplace<t16_type> ();
-    state_ = is_little_endian (state_) ? states::run_16le_byte0 : states::run_16be_byte0;
+    state_ = static_cast<states> (encoding_utf16 | (static_cast<std::byte> (state_) & endian_mask) | run_mode |
+                                  transcoder::byte_no (0U));
     return dest;
   }
 
@@ -1655,11 +1673,11 @@ private:
     assert (std::holds_alternative<t16_type> (transcoder_variant_));
 
     if (auto* const utf16_input = std::get_if<t16_type> (&transcoder_variant_)) {
-      dest = (*utf16_input) (state_ == states::run_16be_byte1 ? char16_from_big_endian_buffer (value)
-                                                              : char16_from_little_endian_buffer (value),
+      dest = (*utf16_input) (state_ == states::run_16be_byte1 ? this->char16_from_big_endian_buffer (value)
+                                                              : this->char16_from_little_endian_buffer (value),
                              dest);
     }
-    state_ = set_byte (state_, 0);
+    state_ = transcoder::set_byte (state_, 0);
     return dest;
   }
 
@@ -1679,11 +1697,11 @@ private:
     assert (std::holds_alternative<t32_type> (transcoder_variant_));
 
     if (auto* const utf32_input = std::get_if<t32_type> (&transcoder_variant_)) {
-      dest = (*utf32_input) (state_ == states::run_32be_byte3 ? char32_from_big_endian_buffer (value)
-                                                              : char32_from_little_endian_buffer (value),
+      dest = (*utf32_input) (state_ == states::run_32be_byte3 ? this->char32_from_big_endian_buffer (value)
+                                                              : this->char32_from_little_endian_buffer (value),
                              dest);
     }
-    state_ = set_byte (state_, 0);
+    state_ = transcoder::set_byte (state_, 0);
     return dest;
   }
 
@@ -1732,7 +1750,7 @@ private:
 // ~~~~~~~
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
 constexpr bool transcoder<std::byte, ToEncoding>::partial () const noexcept {
-  // We ensure thaat the variant cannot ever become stateless. This check is belt and braces to guarantee that
+  // We ensure that the variant cannot ever become stateless. This check is belt and braces to guarantee that
   // std::visit() cannot throw.
   if (transcoder_variant_.valueless_by_exception ()) {
     return false;
@@ -1770,23 +1788,18 @@ constexpr bool transcoder<std::byte, ToEncoding>::well_formed () const noexcept 
 // ~~~~~~~~~~~~~~~~~
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
 constexpr encoding transcoder<std::byte, ToEncoding>::selected_encoding () const noexcept {
-  encoding result = encoding::unknown;
-  if (is_run_mode (state_)) {
-    switch (static_cast<std::uint_least8_t> (static_cast<std::byte> (state_) & encoding_mask)) {
-    case static_cast<std::uint_least8_t> (encoding_unknown):
-      assert (false && "We must know the encoding when in run mode");
-      result = encoding::unknown;
-      break;
-    case static_cast<std::uint_least8_t> (encoding_utf8): result = encoding::utf8; break;
-    case static_cast<std::uint_least8_t> (encoding_utf16):
-      result = is_little_endian (state_) ? encoding::utf16le : encoding::utf16be;
-      break;
-    case static_cast<std::uint_least8_t> (encoding_utf32):
-      result = is_little_endian (state_) ? encoding::utf32le : encoding::utf32be;
-      break;
-    }
+  if (!this->is_run_mode ()) {
+    return encoding::unknown;
   }
-  return result;
+
+  switch (static_cast<std::uint_least8_t> (static_cast<std::byte> (state_) & encoding_mask)) {
+  case static_cast<std::uint_least8_t> (encoding_utf8): return encoding::utf8;
+  case static_cast<std::uint_least8_t> (encoding_utf16):
+    return this->is_little_endian () ? encoding::utf16le : encoding::utf16be;
+  case static_cast<std::uint_least8_t> (encoding_utf32):
+    return this->is_little_endian () ? encoding::utf32le : encoding::utf32be;
+  default: assert (false && "We must know the encoding when in run mode"); return encoding::unknown;
+  }
 }
 
 namespace details {
@@ -1797,7 +1810,7 @@ namespace details {
 /// The maximum number of code units produced from a single input code unit can vary (particularly if the input is
 /// malformed).
 ///
-/// \tparam FromEncoding  The soure encoding.
+/// \tparam FromEncoding  The source encoding.
 /// \tparam ToEncoding  The destination encoding.
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE FromEncoding, ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
 struct triangulator_intermediate_code_units : public std::integral_constant<std::size_t, 1> {};
@@ -1809,7 +1822,7 @@ struct triangulator_intermediate_code_units<char16_t, ToEncoding> : public std::
 /// \brief A "triangulator" converts from the \p FromEncoding encoding to the \p ToEncoding encoding via an
 ///        intermediate UTF-32 encoding.
 ///
-/// \tparam FromEncoding  The soure encoding.
+/// \tparam FromEncoding  The source encoding.
 /// \tparam ToEncoding  The destination encoding.
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE FromEncoding, ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
 class triangulator {
@@ -1820,7 +1833,7 @@ public:
   using output_type = ToEncoding;
 
   /// Accepts a code unit in the source encoding (as given by triangulator::input_type). These are first converted
-  /// to UTF-32 and then to the output encoding (double_transcover::output_type). As output code units are generated,
+  /// to UTF-32 and then to the output encoding (double_transcoder::output_type). As output code units are generated,
   /// they are written to the output iterator \p dest.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
@@ -1863,9 +1876,9 @@ public:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder<FromEncoding, ToEncoding>, OutputIterator> end_cp (
       iterator<transcoder<FromEncoding, ToEncoding>, OutputIterator> dest) {
-    auto const tcdr = dest.transcoder ();
-    assert (tcdr == this);
-    return {tcdr, tcdr->end_cp (dest.base ())};
+    auto const transcoder = dest.transcoder ();
+    assert (transcoder == this);
+    return {transcoder, transcoder->end_cp (dest.base ())};
   }
 
   /// \returns True if the input passed to operator() was valid.
@@ -1956,9 +1969,9 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
-    auto tcdr = dest.transcoder ();
-    assert (tcdr == this);
-    return {tcdr, tcdr->end_cp (dest.base ())};
+    auto coder = dest.transcoder ();
+    assert (coder == this);
+    return {coder, coder->end_cp (dest.base ())};
   }
 
   /// \returns True if the input represented well formed UTF-32.
@@ -2088,8 +2101,7 @@ public:
   constexpr iterator (transcode_view const& parent, std::ranges::iterator_t<View const> const& current)
       : current_{current}, parent_{&parent}, state_{current} {
     assert (state_.empty ());
-    // Prime the input state so that a dereference of the iterator will yield the first of the
-    // output code-units.
+    // Prime the input state so that dereferencing the iterator will yield the first of the output code-units.
     if (current != std::ranges::end (parent_->base_)) {
       current_ = state_.fill (parent_);
     }
@@ -2166,7 +2178,7 @@ private:
     constexpr std::ranges::iterator_t<View const> fill (transcode_view const* parent);
 
   private:
-    /// The type of the output buffer. This is sized so that it allows for the largest nunber of bytes that the
+    /// The type of the output buffer. This is sized so that it allows for the largest number of bytes that the
     /// transcoder can produce.
     using out_type = std::array<ToEncoding, max_output_bytes<FromEncoding, ToEncoding>>;
     /// Output buffer iterator type.
@@ -2209,8 +2221,7 @@ constexpr std::ranges::iterator_t<View const> transcode_view<FromEncoding, ToEnc
   auto const out_begin = out_.begin ();
   auto out_it = out_begin;
   auto const input_end = std::ranges::end (parent->base_);
-  // Loop until we've produced a code-point's worth of code-units in the out
-  // container or we've run out of input.
+  // Loop until we've produced a code-point's worth of code-units in the out container, or we've run out of input.
   while (out_it == out_begin && next_ != input_end) {
     out_it = transcoder_ (*next_, out_it);
     assert (out_it >= out_begin && out_it <= out_.end () && "out_ buffer overflow!");
@@ -2239,7 +2250,7 @@ public:
   constexpr explicit sentinel (transcode_view const& parent) : end_{std::ranges::end (parent.base_)} {}
   /// \returns The underlying view's end sentinel
   constexpr std::ranges::sentinel_t<View> base () const { return end_; }
-  /// \brief Compares and iterator and sentinal for equality.
+  /// \brief Compares an iterator and sentinel for equality.
   friend constexpr bool operator== (iterator const& lhs, sentinel const& rhs) { return lhs.base () == rhs.end_; }
 
 private:

@@ -20,22 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <iostream>
-
 #include "icubaby/icubaby.hpp"
+
+#include <iostream>
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <cstdint>
 #include <cstdlib>
-#include <functional>
+#include <exception>
 #include <iterator>
+#include <ostream>
 #include <ranges>
 #include <vector>
-#include <version>
 
 // Do we have library support for C++ 20 std::format()?
 #if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L

@@ -25,6 +25,7 @@
 #if (__linux__ || __APPLE__) && ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 #include <execinfo.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <array>
@@ -34,9 +35,8 @@
 #include <cstdlib>
 #include <iterator>
 #include <limits>
+#include <memory>
 #include <ranges>
-#include <type_traits>
-#include <utility>
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 

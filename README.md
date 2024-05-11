@@ -3,11 +3,12 @@
 A C++ Baby Library to Immediately Convert Unicode. The icubaby library offers a
 portable, header-only, dependency-free, library for C++ 17 or later. Fast,
 minimal, and easy to use for converting sequences of text between any of the
-Unicode UTF encodings. It does not allocate dynamic memory and neither throws or
+Unicode UTF encodings. It does not allocate dynamic memory and neither throws nor
 catches exceptions.
 
 > icubaby is in no way related to the
-> [International Components for Unicode](https://icu.unicode.org) library!
+> [International Components for Unicode](https://icu.unicode.org) library and has
+> no connection to any Intensive Care Unit!
 
 ## Status
 
@@ -15,8 +16,8 @@ catches exceptions.
 | --- | --- |
 | License | [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) |
 | Continuous Integration | [![CI Build & Test](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/ci.yaml) [![Documentation Status](https://readthedocs.org/projects/paulhuggett-icubaby/badge/?version=latest)](https://paulhuggett-icubaby.readthedocs.io/en/latest/?badge=latest) |
-| Static Analysis | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=paulhuggett_icubaby&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=paulhuggett_icubaby) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d7aafd88d8ef4be7b03b568e957f0103)](https://app.codacy.com/gh/paulhuggett/icubaby/dashboard) [![CodeQL](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml) [![Microsoft C++ Code Analysis](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml) [![Coverity](https://img.shields.io/coverity/scan/29639.svg)](https://scan.coverity.com/projects/paulhuggett-icubaby)
-| Runtime Analysis | [![Fuzz Test](https://github.com/paulhuggett/icubaby/actions/workflows/fuzztest.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/fuzztest.yaml) [![codecov](https://codecov.io/gh/paulhuggett/icubaby/graph/badge.svg?token=YFO0SOXQE9)](https://codecov.io/gh/paulhuggett/icubaby)
+| Static Analysis | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=paulhuggett_icubaby&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=paulhuggett_icubaby) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d7aafd88d8ef4be7b03b568e957f0103)](https://app.codacy.com/gh/paulhuggett/icubaby/dashboard) [![CodeQL](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/codeql.yaml) [![Microsoft C++ Code Analysis](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/msvc.yaml) [![Coverity](https://img.shields.io/coverity/scan/29639.svg)](https://scan.coverity.com/projects/paulhuggett-icubaby) |
+| Runtime Analysis | [![Fuzz Test](https://github.com/paulhuggett/icubaby/actions/workflows/fuzztest.yaml/badge.svg)](https://github.com/paulhuggett/icubaby/actions/workflows/fuzztest.yaml) [![codecov](https://codecov.io/gh/paulhuggett/icubaby/graph/badge.svg?token=YFO0SOXQE9)](https://codecov.io/gh/paulhuggett/icubaby) |
 | [OpenSSF](https://openssf.org) |  [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/paulhuggett/icubaby/badge)](https://securityscorecards.dev/viewer/?uri=github.com/paulhuggett/icubaby) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/8282/badge)](https://www.bestpractices.dev/projects/8282) |
 
 ## Introduction
@@ -45,20 +46,20 @@ Check out the project documentation: https://paulhuggett-icubaby.readthedocs.io/
 
 icubaby uses four different types to express the different Unicode encodings that it supports:
 
-Type | Meaning |
----- | ------- |
-`std::byte` | Encoding and byte-order is determined by the stream byte order mark
-`icubaby::char8` | UTF-8. `icubaby::char8` is defined as `char8_t` when the native type is available and `char` otherwise
-`char16_t` | UTF-16 host-native endian
-`char32_t` | UTF-32 host-native endian
+| Type | Meaning |
+| ---- | ------- |
+| `std::byte` | Encoding and byte-order is determined by the stream byte order mark |
+| `icubaby::char8` | UTF-8. `icubaby::char8` is defined as `char8_t` when the native type is available and `char` otherwise |
+| `char16_t` | UTF-16 host-native endian |
+| `char32_t` | UTF-32 host-native endian |
 
 There are three ways to use the icubaby library depending on your needs:
 
 1. [C++ 20 range adaptor](#c-20-range-adaptor)
-1. [Iterator interface](#the-iterator-interface)
-1. [Converting one code-unit at a time](#converting-one-code-unit-at-a-time)
+2. [Output Iterator interface](#the-output-iterator-interface)
+3. [Converting one code-unit at a time](#converting-one-code-unit-at-a-time)
 
-### C++ 20 Range Adaptor
+### 1. C++ 20 Range Adaptor
 
 C++ 20 introduced the ranges library for composable and less
 error-prone interaction with iterators and containers. In icubaby, we can
@@ -89,7 +90,7 @@ This snippet converts “Ab” (U+0041 LATIN CAPITAL LETTER A), (U+0042 LATIN SM
 See the [C++20 Range Adaptor documentation](https://paulhuggett-icubaby.readthedocs.io/en/latest/ranges.html)
 for more details.
 
-### The Iterator Interface
+### 2. The Output Iterator Interface
 
 ```cpp
 auto const in = std::vector{char8_t{0xF0}, char8_t{0x9F}, char8_t{0x98}, char8_t{0x80}};
@@ -108,7 +109,7 @@ and this writes the output encoding to a second iterator. This enables use to
 use standard algorithms such as [`std::copy`](https://en.cppreference.com/w/cpp/algorithm/copy)
 with the library.
 
-### Converting One Code-Unit at a Time
+### 3. Converting One Code-Unit at a Time
 
 Let’s try converting a single Unicode emoji character 😀 (U+1F600 GRINNING
 FACE) expressed as four UTF-8 code units (0xF0, 0x9F, 0x98, 0x80) to UTF-16

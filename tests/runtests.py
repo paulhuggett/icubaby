@@ -28,7 +28,7 @@ def find_executables(directory:pathlib.Path, excludes:list[str]) -> typing.Gener
     A generator function which yields executable files within the directory tree
     given by 'path'.
 
-    :param path: A directory to be scanned for executables.
+    :param directory: A directory to be scanned for executables.
     :param excludes: A list of file or directory names to be excluded from the search.
     """
 

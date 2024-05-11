@@ -20,13 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <gmock/gmock.h>
+// icubaby itself
+#include "icubaby/icubaby.hpp"
 
+// standard library
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <iterator>
+#include <ostream>
 #include <vector>
 
-#include "icubaby/icubaby.hpp"
-#if ICUBABY_FUZZTEST
-#include "fuzztest/fuzztest.h"
+// google mock/test/fuzz
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+#if defined(ICUBABY_FUZZTEST) && ICUBABY_FUZZTEST
+#include <fuzztest/fuzztest.h>
 #endif
 
 using testing::ElementsAre;
@@ -34,9 +43,9 @@ using testing::ElementsAre;
 namespace icubaby {
 
 // Teach Google Test how to display values of type icubaby::encoding.
-void PrintTo (encoding enc, std::ostream* os);
-void PrintTo (encoding enc, std::ostream* os) {
-  char const* str = "**error**";
+void PrintTo (encoding enc, std::ostream* stream);
+void PrintTo (encoding const enc, std::ostream* const stream) {
+  char const* str = nullptr;
   switch (enc) {
   case encoding::unknown: str = "unknown"; break;
   case encoding::utf8: str = "utf8"; break;
@@ -46,7 +55,7 @@ void PrintTo (encoding enc, std::ostream* os) {
   case encoding::utf32le: str = "utf32le"; break;
   default: str = "**error**"; break;
   }
-  *os << str;
+  *stream << str;
 }
 
 }  // end namespace icubaby
@@ -224,7 +233,7 @@ TEST (ByteTranscoder, Utf16FirstByteOfLittleEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0xFF}, dest);
   dest = transcoder (std::byte{'A'}, dest);
   (void)transcoder.end_cp (dest);
@@ -238,7 +247,7 @@ TEST (ByteTranscoder, Utf32BigEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{0xFE}, dest);
@@ -269,7 +278,7 @@ TEST (ByteTranscoder, Utf32FirstByteOfBigEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{'A'}, dest);
   dest = transcoder (std::byte{'b'}, dest);
@@ -285,7 +294,7 @@ TEST (ByteTranscoder, Utf32FirstTwoBytesOfBigEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{'A'}, dest);
@@ -302,7 +311,7 @@ TEST (ByteTranscoder, Utf32FirstThreeBytesOfBigEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{0xFE}, dest);
@@ -320,7 +329,7 @@ TEST (ByteTranscoder, Utf32LittleEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0xFF}, dest);
   dest = transcoder (std::byte{0xFE}, dest);
   dest = transcoder (std::byte{0x00}, dest);
@@ -351,7 +360,7 @@ TEST (ByteTranscoder, Utf32FirstByteOfLittleEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0xFF}, dest);
   dest = transcoder (std::byte{'A'}, dest);
   dest = transcoder (std::byte{'b'}, dest);
@@ -375,7 +384,7 @@ TEST (ByteTranscoder, RangesNoBOM) {
   EXPECT_THAT (output, ElementsAre (char32_t{'H'}, char32_t{'e'}, char32_t{'l'}, char32_t{'l'}, char32_t{'o'}));
   EXPECT_TRUE (range.well_formed ());
 }
-// NOLINENEXTLINE
+// NOLINTNEXTLINE
 TEST (ByteTranscoder, RangesUtf8BOM) {
   std::array const input{std::byte{0xEF}, std::byte{0xBB}, std::byte{0xBF}, std::byte{'H'},
                          std::byte{'e'},  std::byte{'l'},  std::byte{'l'},  std::byte{'o'}};

@@ -20,9 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <array>
-#include <bit>
-#include <iomanip>
+#include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <iterator>
 #include <vector>
@@ -135,7 +137,7 @@ void check_all_code_points () {
     std::cout << all.size () << '\n';
     std::cout << decoded.size () << '\n';
 
-    for (size_t ctr = 0, end = std::min (all.size (), decoded.size ()); ctr < end; ++ctr) {
+    for (std::size_t ctr = 0, end = std::min (all.size (), decoded.size ()); ctr < end; ++ctr) {
       if (all[ctr] != decoded[ctr]) {
         std::cout << std::hex << ctr << ": "
                   << "U+" << std::hex << static_cast<std::uint_least16_t> (all[ctr]) << ' ' << "U+" << std::hex

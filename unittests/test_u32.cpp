@@ -20,18 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <array>
+#include <algorithm>
+#include <cstdint>
 #include <iterator>
 #include <type_traits>
-#include <utility>
 #include <vector>
 
 // icubaby itself.
 #include "icubaby/icubaby.hpp"
 
 // Google Test/Mock
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #ifndef ICUBABY_FUZZTEST
 #define ICUBABY_FUZZTEST (0)
