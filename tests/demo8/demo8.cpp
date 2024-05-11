@@ -107,7 +107,7 @@ std::optional<std::u16string> convert (std::basic_string_view<icubaby::char8> co
   std::u16string out;
 
   // t8_16 is the class which converts from UTF-8 to UTF-16.
-  // This name is a shortned form of transcoder<char8_t, char16_T>.
+  // This name is a shortened form of transcoder<char8_t, char16_T>.
   icubaby::t8_16 utf_8_to_16;
   auto out_it = icubaby::iterator{&utf_8_to_16, std::back_inserter (out)};
   out_it = std::copy (std::begin (src), std::end (src), out_it);

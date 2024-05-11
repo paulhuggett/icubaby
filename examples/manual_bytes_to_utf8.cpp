@@ -37,8 +37,8 @@ int main () {
     out_it = transcode (b, out_it);
   }
 
-  // Tell the transoder that it should have received a complete code point. This
-  // always happens at the end of the input.
+  // Tell the transcoder that it should have received a complete code point.
+  // This always happens at the end of the input.
   (void)transcode.end_cp (out_it);
 
   // Write the output to the console. This example sticks to the ASCII subset of

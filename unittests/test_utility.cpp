@@ -24,7 +24,6 @@
 #include <cstddef>
 #include <iterator>
 #include <limits>
-#include <string>
 #include <vector>
 
 // icubaby itself.

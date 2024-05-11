@@ -23,7 +23,6 @@
 // standard library
 #include <algorithm>
 #include <cstdlib>
-#include <cstring>
 #include <exception>
 #include <iostream>
 #include <memory>
@@ -140,12 +139,12 @@ private:
 int main (int argc, char **argv) {
   try {
     // Since Google Mock depends on Google Test, InitGoogleMock() is
-    // also responsible for initializing Google Test. Therefore there's
-    // no need for calling InitGoogleTest() separately.
+    // also responsible for initializing Google Test. There's
+    // no need to call InitGoogleTest() separately.
     testing::InitGoogleMock (&argc, argv);
 
     // Unless the user enables "loud mode" by passing the appropriate switch, we
-    // silence much of google test/mock's output so that we only see detailed
+    // silence much of Google Test/Mock's output so that we only see detailed
     // information about tests that fail.
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     if (!loud_mode_enabled (argv, argv + argc)) {
@@ -153,7 +152,7 @@ int main (int argc, char **argv) {
       auto &listeners = UnitTest::GetInstance ()->listeners ();
       auto *const default_printer = listeners.Release (listeners.default_result_printer ());
 
-      // Add our listener. By default everything is on (as when using the
+      // Add our listener. By default, everything is on (as when using the
       // default listener) but here we turn everything off so we only see the 3
       // lines for the result (plus any failures at the end), like:
       //

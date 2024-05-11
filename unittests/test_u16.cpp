@@ -34,7 +34,7 @@
 // Google Test/Mock
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#if ICUBABY_FUZZTEST
+#if defined(ICUBABY_FUZZTEST) && ICUBABY_FUZZTEST
 #include <fuzztest/fuzztest.h>
 #endif
 
@@ -259,7 +259,7 @@ TYPED_TEST (Utf16, LonelyLowSurrogate) {
   EXPECT_TRUE (transcoder.well_formed ());
   EXPECT_FALSE (transcoder.partial ());
   auto pos = transcoder (static_cast<char16_t> (icubaby::first_low_surrogate), std::back_inserter (output));
-  EXPECT_FALSE (transcoder.well_formed ()) << "a low surrogate must be preceeded by a high";
+  EXPECT_FALSE (transcoder.well_formed ()) << "a low surrogate must be preceded by a high";
   EXPECT_FALSE (transcoder.partial ());
   (void)transcoder.end_cp (pos);
   EXPECT_FALSE (transcoder.well_formed ());

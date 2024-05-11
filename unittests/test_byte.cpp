@@ -34,7 +34,7 @@
 // google mock/test/fuzz
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#if ICUBABY_FUZZTEST
+#if defined(ICUBABY_FUZZTEST) && ICUBABY_FUZZTEST
 #include <fuzztest/fuzztest.h>
 #endif
 
@@ -233,7 +233,7 @@ TEST (ByteTranscoder, Utf16FirstByteOfLittleEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0xFF}, dest);
   dest = transcoder (std::byte{'A'}, dest);
   (void)transcoder.end_cp (dest);
@@ -247,7 +247,7 @@ TEST (ByteTranscoder, Utf32BigEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{0xFE}, dest);
@@ -278,7 +278,7 @@ TEST (ByteTranscoder, Utf32FirstByteOfBigEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{'A'}, dest);
   dest = transcoder (std::byte{'b'}, dest);
@@ -294,7 +294,7 @@ TEST (ByteTranscoder, Utf32FirstTwoBytesOfBigEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{'A'}, dest);
@@ -311,7 +311,7 @@ TEST (ByteTranscoder, Utf32FirstThreeBytesOfBigEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{0x00}, dest);
   dest = transcoder (std::byte{0xFE}, dest);
@@ -329,7 +329,7 @@ TEST (ByteTranscoder, Utf32LittleEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0xFF}, dest);
   dest = transcoder (std::byte{0xFE}, dest);
   dest = transcoder (std::byte{0x00}, dest);
@@ -360,7 +360,7 @@ TEST (ByteTranscoder, Utf32FirstByteOfLittleEndianBOM) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<decltype (transcoder)::output_type> output;
   auto dest = std::back_inserter (output);
-  // No legal UTF-8 sequence starts with 0xFF so we'll end up with someting ill-formed.
+  // No legal UTF-8 sequence starts with 0xFF so we'll end up with something ill-formed.
   dest = transcoder (std::byte{0xFF}, dest);
   dest = transcoder (std::byte{'A'}, dest);
   dest = transcoder (std::byte{'b'}, dest);
@@ -384,7 +384,7 @@ TEST (ByteTranscoder, RangesNoBOM) {
   EXPECT_THAT (output, ElementsAre (char32_t{'H'}, char32_t{'e'}, char32_t{'l'}, char32_t{'l'}, char32_t{'o'}));
   EXPECT_TRUE (range.well_formed ());
 }
-// NOLINENEXTLINE
+// NOLINTNEXTLINE
 TEST (ByteTranscoder, RangesUtf8BOM) {
   std::array const input{std::byte{0xEF}, std::byte{0xBB}, std::byte{0xBF}, std::byte{'H'},
                          std::byte{'e'},  std::byte{'l'},  std::byte{'l'},  std::byte{'o'}};
