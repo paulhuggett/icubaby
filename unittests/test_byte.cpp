@@ -422,13 +422,23 @@ TEST (ByteTranscoder, Utf16BEAndIterMove) {
 }
 #endif  // ICUBABY_HAVE_RANGES
 
-#if ICUBABY_FUZZTEST
 static void ByteTranscoderNeverCrashes (std::vector<std::byte> const& input) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<char32_t> output;
-  (void)transcoder.end_cp (
-      std::copy (std::begin (input), std::end (input), icubaby::iterator{&transcoder, std::back_inserter (output)}));
+  auto output_iterator = icubaby::iterator{&transcoder, std::back_inserter (output)};
+#if ICUBABY_HAVE_RANGES
+  output_iterator = std::ranges::copy (input, output_iterator).out;
+#else
+  output_iterator = std::copy (std::begin (input), std::end (input), output_iterator);
+#endif  // ICUBABY_HAVE_RANGES
+  (void)transcoder.end_cp (output_iterator);
 }
+#if ICUBABY_FUZZTEST
 // NOLINTNEXTLINE
 FUZZ_TEST (ByteTranscoder, ByteTranscoderNeverCrashes);
 #endif  // ICUBABY_FUZZTEST
+
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, ByteTranscoderNeverCrashesWithEmptyInput) {
+  ByteTranscoderNeverCrashes (std::vector<std::byte>{});
+}
