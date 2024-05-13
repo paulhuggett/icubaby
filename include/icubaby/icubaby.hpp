@@ -763,7 +763,7 @@ public:
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   /// \returns True if a partial code-point has been passed to operator() and
   /// false otherwise.
-  [[nodiscard]] static constexpr bool partial () noexcept { return false; }
+  [[nodiscard]] constexpr bool partial () const noexcept { return false; }
 
 private:
   /// True if the input consumed is well formed, false otherwise.
@@ -1006,7 +1006,7 @@ public:
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   /// \returns True if a partial code-point has been passed to operator() and
   /// false otherwise.
-  [[nodiscard]] static constexpr bool partial () noexcept { return false; }
+  [[nodiscard]] constexpr bool partial () const noexcept { return false; }
 
 private:
   /// True if the input consumed is well formed, false otherwise.
@@ -1978,7 +1978,7 @@ public:
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   /// \returns True if a partial code-point has been passed to operator() and
   /// false otherwise.
-  [[nodiscard]] static constexpr bool partial () noexcept { return false; }
+  [[nodiscard]] constexpr bool partial () const noexcept { return false; }
 
 private:
   /// True if the input consumed is well formed, false otherwise.
