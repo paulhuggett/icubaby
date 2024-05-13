@@ -527,7 +527,11 @@ template <code_point C, typename To> inline constexpr auto encoded_char_v = enco
 
 template <code_point C, typename To, typename OutputIterator> OutputIterator append (OutputIterator out) {
   constexpr auto& code_units = encoded_char_v<C, To>;
+#if ICUBABY_HAVE_RANGES
+  return std::ranges::copy (code_units, out).out;
+#else
   return std::copy (std::begin (code_units), std::end (code_units), out);
+#endif  // ICUBABY_HAVE_RANGES
 }
 
 #endif  // ICUBABY_UNITTESTS_ENCODED_CHAR_HPP

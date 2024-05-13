@@ -212,8 +212,12 @@ std::vector<ToEncoding> convert_using_icubaby (std::vector<char32_t> const &inpu
   std::vector<ToEncoding> out;
   out.reserve (input.size () * icubaby::longest_sequence_v<ToEncoding>);
   icubaby::transcoder<char32_t, ToEncoding> convert_32_x;
-  auto pos =
-      std::copy (std::begin (input), std::end (input), icubaby::iterator{&convert_32_x, std::back_inserter (out)});
+  auto output_iterator = icubaby::iterator{&convert_32_x, std::back_inserter (out)};
+#if ICUBABY_HAVE_RANGES
+  auto pos = std::copy (input, output_iterator).out;
+#else
+  auto pos = std::copy (std::begin (input), std::end (input), output_iterator);
+#endif  // ICUBABY_HAVE_RANGES
   (void)convert_32_x.end_cp (pos);
   assert (convert_32_x.well_formed ());
   return out;

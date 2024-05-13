@@ -110,7 +110,11 @@ std::optional<std::u16string> convert (std::basic_string_view<icubaby::char8> co
   // This name is a shortened form of transcoder<char8_t, char16_T>.
   icubaby::t8_16 utf_8_to_16;
   auto out_it = icubaby::iterator{&utf_8_to_16, std::back_inserter (out)};
+#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L
+  out_it = std::ranges::copy (src, out_it).out;
+#else
   out_it = std::copy (std::begin (src), std::end (src), out_it);
+#endif
   (void)utf_8_to_16.end_cp (out_it);
   if (!utf_8_to_16.well_formed ()) {
     // The input was malformed or ended with a partial character.
@@ -166,13 +170,13 @@ void c5 () {
                          static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)};
   std::vector<char16_t> out;
   icubaby::t8_16 transcoder;
+  auto output_iterator = icubaby::iterator{&transcoder, std::back_inserter (out)};
 #if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201811L
-  auto out_it = std::ranges::copy (input, icubaby::iterator{&transcoder, std::back_inserter (out)}).out;
+  output_iterator = std::ranges::copy (input, output_iterator).out;
 #else
-  auto out_it =
-      std::copy (std::begin (input), std::end (input), icubaby::iterator{&transcoder, std::back_inserter (out)});
+  output_iterator = std::copy (std::begin (input), std::end (input), output_iterator);
 #endif
-  (void)transcoder.end_cp (out_it);
+  (void)transcoder.end_cp (output_iterator);
 }
 
 }  // namespace
