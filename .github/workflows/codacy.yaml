@@ -1,11 +1,10 @@
 name: Codacy Clang-Tidy
+
 on:
   push:
-    branches:
-      - main
-      - v2
   pull_request:
     types: [opened, synchronize, reopened]
+
 permissions:
   contents: read
 
