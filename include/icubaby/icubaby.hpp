@@ -762,7 +762,8 @@ public:
   /// \returns True if the input represented well formed UTF-32.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   /// \returns True if a partial code-point has been passed to operator() and
-  /// false otherwise.
+  ///   false otherwise.
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
   [[nodiscard]] constexpr bool partial () const noexcept { return false; }
 
 private:
@@ -1005,7 +1006,8 @@ public:
   /// \returns True if the input represented valid UTF-32.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   /// \returns True if a partial code-point has been passed to operator() and
-  /// false otherwise.
+  ///   false otherwise.
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
   [[nodiscard]] constexpr bool partial () const noexcept { return false; }
 
 private:
