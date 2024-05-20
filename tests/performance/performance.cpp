@@ -1,10 +1,10 @@
-//===- tests/utf32_to_8_perf/utf32_to_8_perf.cpp --------------------------===//
-//*        _    __ _________    _           ___                     __  *
-//*  _   _| |_ / _|___ /___ \  | |_ ___    ( _ )   _ __   ___ _ __ / _| *
-//* | | | | __| |_  |_ \ __) | | __/ _ \   / _ \  | '_ \ / _ \ '__| |_  *
-//* | |_| | |_|  _|___) / __/  | || (_) | | (_) | | |_) |  __/ |  |  _| *
-//*  \__,_|\__|_| |____/_____|  \__\___/   \___/  | .__/ \___|_|  |_|   *
-//*                                               |_|                   *
+//===- tests/performance/performance.cpp ----------------------------------===//
+//*                   __                                            *
+//*  _ __   ___ _ __ / _| ___  _ __ _ __ ___   __ _ _ __   ___ ___  *
+//* | '_ \ / _ \ '__| |_ / _ \| '__| '_ ` _ \ / _` | '_ \ / __/ _ \ *
+//* | |_) |  __/ |  |  _| (_) | |  | | | | | | (_| | | | | (_|  __/ *
+//* | .__/ \___|_|  |_|  \___/|_|  |_| |_| |_|\__,_|_| |_|\___\___| *
+//* |_|                                                             *
 //===----------------------------------------------------------------------===//
 // MIT License
 //
@@ -36,6 +36,8 @@
 #include <vector>
 
 #include "icubaby/icubaby.hpp"
+
+using icubaby::char8;
 
 namespace {
 
@@ -120,7 +122,7 @@ template <typename Encoding> std::vector<single_code_point<Encoding>> all_code_p
 }
 
 template <typename Encoding> struct name {};
-template <> struct name<char8_t> {
+template <> struct name<char8> {
   static constexpr auto value = "UTF-8";
 };
 template <> struct name<char16_t> {
@@ -131,6 +133,8 @@ template <> struct name<char32_t> {
 };
 
 template <typename FromEncoding, typename ToEncoding> void go (unsigned long const iterations) {
+  std::cout << name<FromEncoding>::value << " -> " << name<ToEncoding>::value << ": " << std::flush;
+
   std::chrono::steady_clock timer;
   std::vector<ToEncoding> output;
   output.resize (icubaby::longest_sequence<ToEncoding> () * total_code_points);
@@ -148,10 +152,9 @@ template <typename FromEncoding, typename ToEncoding> void go (unsigned long con
   }
 
   auto const elapsed = timer.now () - start_time;
-  std::cout << name<FromEncoding>::value << " -> " << name<ToEncoding>::value << ": "
-            << std::chrono::duration_cast<std::chrono::milliseconds> (elapsed).count () /
+  std::cout << std::chrono::duration_cast<std::chrono::milliseconds> (elapsed).count () /
                    static_cast<double> (iterations)
-            << " milliseconds" << std::endl;
+            << " ms" << std::endl;
 }
 
 }  // end anonymous namespace
@@ -174,13 +177,13 @@ int main (int argc, const char *argv[]) {
     }
 
     std::cout << "Time to transcode all code points:" << std::endl;
-    go<char8_t, char8_t> (iterations);
-    go<char8_t, char16_t> (iterations);
-    go<char8_t, char32_t> (iterations);
-    go<char16_t, char8_t> (iterations);
+    go<char8, char8> (iterations);
+    go<char8, char16_t> (iterations);
+    go<char8, char32_t> (iterations);
+    go<char16_t, char8> (iterations);
     go<char16_t, char16_t> (iterations);
     go<char16_t, char32_t> (iterations);
-    go<char32_t, char8_t> (iterations);
+    go<char32_t, char8> (iterations);
     go<char32_t, char16_t> (iterations);
     go<char32_t, char32_t> (iterations);
   } catch (std::exception const &ex) {
