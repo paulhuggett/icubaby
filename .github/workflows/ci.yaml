@@ -53,30 +53,30 @@ jobs:
             os: ubuntu-22.04
             package: TGZ
 
-          - name: Ubuntu-22.04/gcc-12/Debug
+          - name: Ubuntu-22.04/gcc-13/Debug
             apt_install: ninja-build
             build_type: Debug
-            cxx_compiler: -D CMAKE_CXX_COMPILER=g++-12 -D CMAKE_C_COMPILER=gcc-12
+            cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
             gcc_install: 13
             options: -D ICUBABY_SANITIZE=Yes
             generator: Unix Makefiles
             os: ubuntu-22.04
             package: TGZ
 
-          - name: Ubuntu-22.04/gcc-12/RelWithDebug/Sanitizers
+          - name: Ubuntu-22.04/gcc-13/RelWithDebug/Sanitizers
             apt_install: ninja-build
             build_type: RelWithDebug
-            cxx_compiler: -D CMAKE_CXX_COMPILER=g++-12 -D CMAKE_C_COMPILER=gcc-12
+            cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
             gcc_install: 13
             options: -D ICUBABY_SANITIZE=Yes
             generator: Unix Makefiles
             os: ubuntu-22.04
             package: TGZ
 
-          - name: Ubuntu-22.04/gcc-12/Release
+          - name: Ubuntu-22.04/gcc-13/Release
             apt_install: ninja-build
             build_type: Release
-            cxx_compiler: -D CMAKE_CXX_COMPILER=g++-12 -D CMAKE_C_COMPILER=gcc-12
+            cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
             gcc_install: 13
             generator: Unix Makefiles
             os: ubuntu-22.04
