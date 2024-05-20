@@ -88,7 +88,7 @@ public:
 private:
   static constexpr auto max_size_ = icubaby::longest_sequence<CharType> ();
   std::size_t size_ = 0;
-  std::array<CharType, max_size_> cus_;
+  std::array<CharType, max_size_> cus_{};
 };
 
 template <typename CharType>
