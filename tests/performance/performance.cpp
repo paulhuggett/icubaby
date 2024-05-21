@@ -150,7 +150,7 @@ std::uint_least16_t iteration_count (std::string_view const str) {
 
 }  // end anonymous namespace
 
-int main (int argc, const char *argv[]) {
+int main (int const argc, char const *argv[]) {
   auto exit_code = EXIT_SUCCESS;
   try {
     if (argc > 2) {
