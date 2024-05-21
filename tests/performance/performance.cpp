@@ -93,7 +93,7 @@ private:
 
 template <typename CharType>
 constexpr single_code_point<CharType>::output_iterator back_inserter (single_code_point<CharType> &container) {
-  using iterator = single_code_point<CharType>::output_iterator;
+  using iterator = typename single_code_point<CharType>::output_iterator;
   return iterator{&container};
 }
 
