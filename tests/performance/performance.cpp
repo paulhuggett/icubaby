@@ -41,85 +41,45 @@ using icubaby::char8;
 
 namespace {
 
-template <typename CharType> class single_code_point {
-public:
-  constexpr std::size_t size () const noexcept { return size_; }
-  constexpr std::size_t max_size () const noexcept { return max_size_; }
-
-  constexpr auto begin () noexcept { return cus_.begin (); }
-  constexpr auto begin () const noexcept { return cus_.begin (); }
-  constexpr auto end () noexcept { return cus_.begin () + size_; }
-  constexpr auto end () const noexcept { return cus_.begin () + size_; }
-
-  constexpr void push_back (CharType const &value) {
-    assert (this->size () < this->max_size ());
-    cus_[size_++] = value;
-  }
-  constexpr void push_back (CharType &&value) {
-    assert (this->size () < this->max_size ());
-    cus_[size_++] = std::move (value);
-  }
-
-  class output_iterator {
-  public:
-    using iterator_category = std::output_iterator_tag;
-    using value_type = void;
-    using difference_type = std::ptrdiff_t;
-    using pointer = void;
-    using reference = void;
-
-    constexpr explicit output_iterator (single_code_point *const scp) noexcept : container_{scp} {}
-    constexpr output_iterator &operator= (CharType const &value) {
-      container_->push_back (value);
-      return *this;
-    }
-    constexpr output_iterator &operator= (CharType &&value) {
-      container_->push_back (std::move (value));
-      return *this;
-    }
-    constexpr output_iterator &operator* () noexcept { return *this; }
-    constexpr output_iterator &operator++ () noexcept { return *this; }
-    constexpr output_iterator operator++ (int) noexcept { return *this; }
-
-  private:
-    single_code_point *container_;
-  };
-
-private:
-  static constexpr auto max_size_ = icubaby::longest_sequence<CharType> ();
-  std::size_t size_ = 0;
-  std::array<CharType, max_size_> cus_{};
-};
-
-template <typename CharType>
-constexpr single_code_point<CharType>::output_iterator back_inserter (single_code_point<CharType> &container) {
-  using iterator = typename single_code_point<CharType>::output_iterator;
-  return iterator{&container};
-}
-
+constexpr auto num_code_points = static_cast<std::uint_least32_t> (icubaby::max_code_point) + 1U;
 constexpr auto num_high_surrogates = static_cast<std::uint_least32_t> (icubaby::last_high_surrogate) -
-                                     static_cast<std::uint_least32_t> (icubaby::first_high_surrogate) + 1;
+                                     static_cast<std::uint_least32_t> (icubaby::first_high_surrogate) + 1U;
 constexpr auto num_low_surrogates = static_cast<std::uint_least32_t> (icubaby::last_low_surrogate) -
-                                    static_cast<std::uint_least32_t> (icubaby::first_low_surrogate) + 1;
-constexpr auto total_code_points =
-    static_cast<std::uint_least32_t> (icubaby::max_code_point) + 1U - 1U - num_high_surrogates - num_low_surrogates;
+                                    static_cast<std::uint_least32_t> (icubaby::first_low_surrogate) + 1U;
+constexpr auto total_code_points = num_code_points - 1U - num_high_surrogates - num_low_surrogates;
 
-template <typename Encoding> std::vector<single_code_point<Encoding>> all_code_points () {
-  std::vector<single_code_point<Encoding>> result;
-  result.reserve (total_code_points);
-
-  for (auto code_point = char32_t{0}; code_point <= icubaby::max_code_point; ++code_point) {
-    if (!icubaby::is_surrogate (code_point) && code_point != icubaby::byte_order_mark) {
-      icubaby::transcoder<char32_t, Encoding> transcoder;
-      single_code_point<Encoding> scp;
-      (void)transcoder.end_cp (transcoder (code_point, back_inserter (scp)));
-      result.push_back (std::move (scp));
-    }
-  }
-  assert (result.size () == total_code_points);
-  result.shrink_to_fit ();
+template <typename Encoding, typename OutputIterator>
+constexpr OutputIterator convert_code_point (char32_t const code_point, OutputIterator const inserter) {
+  icubaby::transcoder<char32_t, Encoding> transcoder;
+  auto const result = transcoder.end_cp (transcoder (code_point, inserter));
+  assert (transcoder.well_formed ());
   return result;
 }
+
+template <typename Encoding> struct all_code_points {
+  all_code_points () {
+    sizes.reserve (total_code_points);
+
+    auto old_size = std::size_t{0};
+    auto inserter = std::back_inserter (code_units);
+
+    for (auto code_point = char32_t{0}; code_point <= icubaby::max_code_point; ++code_point) {
+      if (!icubaby::is_surrogate (code_point) && code_point != icubaby::byte_order_mark) {
+        inserter = convert_code_point<Encoding> (code_point, inserter);
+
+        auto const new_size = code_units.size ();
+        assert (new_size - old_size <= icubaby::longest_sequence_v<Encoding>);
+        assert (new_size - old_size > 0);
+        sizes.push_back (static_cast<std::uint_least8_t> (new_size - old_size));
+        old_size = new_size;
+      }
+    }
+    assert (sizes.size () == total_code_points);
+  }
+
+  std::vector<Encoding> code_units;
+  std::vector<std::uint_least8_t> sizes;
+};
 
 template <typename Encoding> struct name {};
 template <> struct name<char8> {
@@ -132,27 +92,40 @@ template <> struct name<char32_t> {
   static constexpr auto value = "UTF-32";
 };
 
-template <typename FromEncoding, typename ToEncoding> void go (unsigned long const iterations) {
+#if defined(_MSC_VER)
+#define ICUBABY_NOINLINE [[msvc::noinline]]
+#elif defined(__clang__)
+#define ICUBABY_NOINLINE [[clang::noinline]]
+#elif defined(__GNUC__)
+#define ICUBABY_NOINLINE [[gnu::noinline]]
+#else
+#define ICUBABY_NOINLINE
+#endif
+
+template <typename FromEncoding, typename ToEncoding> ICUBABY_NOINLINE void go (std::uint_least16_t const iterations) {
   std::cout << name<FromEncoding>::value << " -> " << name<ToEncoding>::value << ": " << std::flush;
 
-  std::chrono::steady_clock timer;
   std::vector<ToEncoding> output;
   output.resize (icubaby::longest_sequence<ToEncoding> () * total_code_points);
   icubaby::transcoder<FromEncoding, ToEncoding> transcoder;
-  auto const all = all_code_points<FromEncoding> ();
-  auto const start_time = timer.now ();
-  for (auto ctr = 0UL; ctr < iterations; ++ctr) {
+  all_code_points<FromEncoding> const all;
+  auto const start_time = std::chrono::steady_clock::now ();
+
+  for (auto iteration = std::uint_least16_t{0}; iteration < iterations; ++iteration) {
     auto output_iterator = output.begin ();
-    for (auto const &cus : all) {
-      for (auto cu : cus) {
-        output_iterator = transcoder (cu, output_iterator);
+    auto cu_pos = all.code_units.begin ();
+    for (auto const cu_count : all.sizes) {
+      for (auto cu_ctr = 0U; cu_ctr < cu_count; ++cu_ctr) {
+        output_iterator = transcoder (*cu_pos, output_iterator);
+        ++cu_pos;
       }
+      (void)transcoder.end_cp (output_iterator);
+      assert (transcoder.well_formed ());
     }
-    (void)transcoder.end_cp (output_iterator);
   }
 
-  auto const elapsed = timer.now () - start_time;
-  std::cout << std::chrono::duration_cast<std::chrono::milliseconds> (elapsed).count () /
+  auto const elapsed = std::chrono::steady_clock::now () - start_time;
+  std::cout << static_cast<double> (std::chrono::duration_cast<std::chrono::milliseconds> (elapsed).count ()) /
                    static_cast<double> (iterations)
             << " ms" << std::endl;
 }
@@ -160,9 +133,9 @@ template <typename FromEncoding, typename ToEncoding> void go (unsigned long con
 }  // end anonymous namespace
 
 int main (int argc, const char *argv[]) {
-  int exit_code = EXIT_SUCCESS;
+  auto exit_code = EXIT_SUCCESS;
   try {
-    auto iterations = 16UL;
+    auto iterations = std::uint_least16_t{16};
     if (argc > 2) {
       std::cout << argv[0] << ": [iterations]\n";
       return EXIT_FAILURE;
@@ -170,10 +143,17 @@ int main (int argc, const char *argv[]) {
     if (argc > 1) {
       auto pos = std::size_t{0};
       auto const arg = std::string{argv[1]};
-      iterations = std::stoul (arg, &pos);
+      auto const user_iterations = std::stoul (arg, &pos);
       if (pos != arg.length ()) {
         throw std::invalid_argument ("invalid iteration count");
       }
+      if constexpr (std::numeric_limits<decltype (user_iterations)>::max () >
+                    std::numeric_limits<decltype (iterations)>::max ()) {
+        if (user_iterations > std::numeric_limits<decltype (iterations)>::max ()) {
+          throw std::invalid_argument ("iteration count too large");
+        }
+      }
+      iterations = static_cast<std::uint_least16_t> (user_iterations);
     }
 
     std::cout << "Time to transcode all code points (" << iterations << " iterations):" << std::endl;
