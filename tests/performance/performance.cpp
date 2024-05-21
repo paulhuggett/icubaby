@@ -95,7 +95,11 @@ template <> struct name<char32_t> {
 #if defined(_MSC_VER)
 #define ICUBABY_NOINLINE [[msvc::noinline]]
 #elif defined(__clang__)
+#if defined(__clang_major__) && __clang_major >= 15
 #define ICUBABY_NOINLINE [[clang::noinline]]
+#else
+#define ICUBABY_NOINLINE __attribute__((noinline))
+#endif  // __clang_major__
 #elif defined(__GNUC__)
 #define ICUBABY_NOINLINE [[gnu::noinline]]
 #else
