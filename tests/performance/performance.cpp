@@ -134,32 +134,30 @@ template <typename FromEncoding, typename ToEncoding> ICUBABY_NOINLINE void go (
             << " ms" << std::endl;
 }
 
+std::uint_least16_t iteration_count (std::string_view const str) {
+  auto pos = std::size_t{0};
+  auto const iterations = std::stoul (std::string{str}, &pos);
+  if (pos != str.length ()) {
+    throw std::invalid_argument ("invalid iteration count");
+  }
+  if constexpr (std::numeric_limits<decltype (iterations)>::max () > std::numeric_limits<std::uint_least16_t>::max ()) {
+    if (iterations > std::numeric_limits<std::uint_least16_t>::max ()) {
+      throw std::invalid_argument ("iteration count too large");
+    }
+  }
+  return static_cast<std::uint_least16_t> (iterations);
+}
+
 }  // end anonymous namespace
 
 int main (int argc, const char *argv[]) {
   auto exit_code = EXIT_SUCCESS;
   try {
-    auto iterations = std::uint_least16_t{16};
     if (argc > 2) {
       std::cout << argv[0] << ": [iterations]\n";
       return EXIT_FAILURE;
     }
-    if (argc > 1) {
-      auto pos = std::size_t{0};
-      auto const arg = std::string{argv[1]};
-      auto const user_iterations = std::stoul (arg, &pos);
-      if (pos != arg.length ()) {
-        throw std::invalid_argument ("invalid iteration count");
-      }
-      if constexpr (std::numeric_limits<decltype (user_iterations)>::max () >
-                    std::numeric_limits<decltype (iterations)>::max ()) {
-        if (user_iterations > std::numeric_limits<decltype (iterations)>::max ()) {
-          throw std::invalid_argument ("iteration count too large");
-        }
-      }
-      iterations = static_cast<std::uint_least16_t> (user_iterations);
-    }
-
+    auto const iterations = iteration_count (argc > 1 ? argv[1] : "16");
     std::cout << "Time to transcode all code points (" << iterations << " iterations):" << std::endl;
     go<char8, char8> (iterations);
     go<char8, char16_t> (iterations);
