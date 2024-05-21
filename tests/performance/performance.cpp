@@ -162,7 +162,7 @@ template <typename FromEncoding, typename ToEncoding> void go (unsigned long con
 int main (int argc, const char *argv[]) {
   int exit_code = EXIT_SUCCESS;
   try {
-    auto iterations = 1024UL;
+    auto iterations = 16UL;
     if (argc > 2) {
       std::cout << argv[0] << ": [iterations]\n";
       return EXIT_FAILURE;
@@ -176,7 +176,7 @@ int main (int argc, const char *argv[]) {
       }
     }
 
-    std::cout << "Time to transcode all code points:" << std::endl;
+    std::cout << "Time to transcode all code points (" << iterations << " iterations):" << std::endl;
     go<char8, char8> (iterations);
     go<char8, char16_t> (iterations);
     go<char8, char32_t> (iterations);
