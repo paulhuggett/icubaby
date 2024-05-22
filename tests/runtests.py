@@ -37,13 +37,14 @@ def find_executables(directory:pathlib.Path, excludes:list[str]) -> typing.Gener
             if entry.name not in excludes:
                 path = entry.path
                 if entry.is_dir(follow_symlinks=False):
-                    yield from find_executables(path, excludes)
+                    yield from find_executables(pathlib.Path(path), excludes)
                 elif is_executable(entry):
                     yield path
 
-def run_executables(directory:pathlib.Path, excludes:list[str]) -> None:
+def run_executables(directory:pathlib.Path, timeout:int, excludes:list[str]) -> None:
     """
     :param directory: The directory to be scanned for executables.
+    :param timeout: The timeout for executable in seconds.
     :param excludes: A list of file or directory names to be excluded from the search.
     :returns: None
     """
@@ -51,15 +52,16 @@ def run_executables(directory:pathlib.Path, excludes:list[str]) -> None:
     for path in find_executables(directory, excludes):
         path = os.path.abspath(path)
         print(f'---\nRunning {path}', flush=True)
-        subprocess.run([path], check=True, timeout=60)
+        subprocess.run([path], check=True, timeout=timeout)
 
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog='runtests',
         description='Finds and runs executables within a directory tree')
-    parser.add_argument('path', type=pathlib.Path)
+    parser.add_argument('path', type=pathlib.Path, help='The path to be searched for executables')
+    parser.add_argument('-t', '--timeout', type=int, default=60, help='The timeout for each executable in seconds')
     args = parser.parse_args()
-    run_executables(args.path, [ 'CMakeFiles', os.path.split(__file__)[1]])
+    run_executables(args.path, args.timeout, [ 'CMakeFiles', os.path.split(__file__)[1]])
     return 0
 
 if __name__ == '__main__':
