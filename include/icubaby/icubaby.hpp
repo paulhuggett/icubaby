@@ -309,7 +309,7 @@ inline constexpr auto last_low_surrogate = char32_t{0xDFFF};
 
 /// The number of the last code point.
 inline constexpr auto max_code_point = char32_t{0x10FFFF};
-static_assert (uint_least32_t{1} << code_point_bits > max_code_point);
+static_assert (std::uint_least32_t{1} << code_point_bits > max_code_point);
 
 /// A list of the character types used for UTF-8 UTF-16, and UTF-32 encoded
 /// text.
@@ -692,6 +692,14 @@ private:
 template <typename Transcoder, typename OutputIterator>
 iterator (Transcoder& transcoder, OutputIterator out) -> iterator<Transcoder, OutputIterator>;
 
+namespace details {
+
+/// Each UTF-8 continuation byte has space for 6 bits of payload.
+inline constexpr auto utf8_shift = 6U;
+inline constexpr auto utf8_mask = static_cast<std::uint_least8_t> ((1U << utf8_shift) - 1U);
+
+}  // end namespace details
+
 /// Takes a sequence of UTF-32 code units and converts them to UTF-8.
 template <> class transcoder<char32_t, char8> {
 public:
@@ -770,44 +778,86 @@ private:
   /// True if the input consumed is well formed, false otherwise.
   bool well_formed_ = true;
 
-  /// Writes a two CU value to the output.
+  // The following table shows how each range of code points is converted
+  // to a series of UTF-8 bytes.
+  //
+  // | First CP | Last CP  | Byte 1   | Byte 2   | Byte 3   | Byte 4   |
+  // | -------- | -------- | -------- | -------- | -------- | -------- |
+  // | U+0000   | U+007F   | 0xxxxxxx |          |          |          |
+  // | U+0080   | U+07FF   | 110xxxxx | 10xxxxxx |          |          |
+  // | U+0800   | U+FFFF   | 1110xxxx | 10xxxxxx | 10xxxxxx |          |
+  // | U+010000 | U+10FFFF | 11110xxx | 10xxxxxx | 10xxxxxx | 10xxxxxx |
+
+  static constexpr auto byte_1_of_2 = std::uint_least8_t{0b1100'0000};
+  static constexpr auto byte_1_of_3 = std::uint_least8_t{0b1110'0000};
+  static constexpr auto byte_1_of_4 = std::uint_least8_t{0b1111'0000};
+  static constexpr auto continuation = std::uint_least8_t{0b1000'0000};
+
+  /// Writes a series of "continuation" bytes to the output.
   ///
+  /// Continuation bytes are all but the first byte of a two, three, or four byte encoding and each follows the same
+  /// format of having the two most significant bits set to 0b10 and six bits of the input code unit filling the rest of
+  /// the byte.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param number  The number of continuation bytes to be written.
   /// \param code_unit  The code unit to be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <typename OutputIterator> static OutputIterator write2 (input_type code_unit, OutputIterator dest) {
-    *(dest++) = static_cast<output_type> ((code_unit >> 6U) | 0xc0U);
-    *(dest++) = static_cast<output_type> ((code_unit & 0x3fU) | 0x80U);
-    return dest;
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  static constexpr OutputIterator write_continuation (unsigned const number, input_type const code_unit,
+                                                      OutputIterator dest) {
+    if (number == 0U) {
+      return dest;
+    }
+    *(dest++) = static_cast<output_type> (((code_unit >> (details::utf8_shift * (number - 1U))) & details::utf8_mask) |
+                                          continuation);
+    return transcoder::write_continuation (number - 1U, code_unit, dest);
+  }
+
+  /// Writes a two CU value to the output.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param code_unit  The code unit to be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  static OutputIterator write2 (input_type code_unit, OutputIterator dest) {
+    assert (code_unit >= 0x80U && code_unit <= 0x7FFU && "Code point is out-of-range for 2 byte UTF-8");
+    *(dest++) = static_cast<output_type> ((code_unit >> details::utf8_shift) | byte_1_of_2);
+    return transcoder::write_continuation (1U, code_unit, dest);
   }
   /// Writes a three CU value to the output.
   ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param code_unit  The code unit to be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <typename OutputIterator> static OutputIterator write3 (input_type code_unit, OutputIterator dest) {
-    *(dest++) = static_cast<output_type> ((code_unit >> 12U) | 0xe0U);
-    *(dest++) = static_cast<output_type> (((code_unit >> 6U) & 0x3fU) | 0x80U);
-    *(dest++) = static_cast<output_type> ((code_unit & 0x3fU) | 0x80U);
-    return dest;
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  static OutputIterator write3 (input_type code_unit, OutputIterator dest) {
+    assert (code_unit >= 0x800U && code_unit <= 0xFFFFU && "Code point is out-of-range for 3 byte UTF-8");
+    *(dest++) = static_cast<output_type> ((code_unit >> (details::utf8_shift * 2U)) | byte_1_of_3);
+    return transcoder::write_continuation (2U, code_unit, dest);
   }
   /// Writes a four CU value to the output.
   ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param code_unit  The code unit to be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <typename OutputIterator> static OutputIterator write4 (input_type code_unit, OutputIterator dest) {
-    *(dest++) = static_cast<output_type> ((code_unit >> 18U) | 0xf0U);
-    *(dest++) = static_cast<output_type> (((code_unit >> 12U) & 0x3fU) | 0x80U);
-    *(dest++) = static_cast<output_type> (((code_unit >> 6U) & 0x3fU) | 0x80U);
-    *(dest++) = static_cast<output_type> ((code_unit & 0x3fU) | 0x80U);
-    return dest;
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  static OutputIterator write4 (input_type code_unit, OutputIterator dest) {
+    assert (code_unit >= 0x10000U && code_unit <= 0x10FFFFU && "Code point is out-of-range for 4 byte UTF-8");
+    *(dest++) = static_cast<output_type> ((code_unit >> (details::utf8_shift * 3U)) | byte_1_of_4);
+    return transcoder::write_continuation (3U, code_unit, dest);
   }
   /// Writes U+FFFD REPLACEMENT CHAR to the output and records the input as not well formed.
   ///
   /// \param dest  An output iterator to which the output sequence is written.
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \returns  Iterator one past the last element assigned.
-  template <typename OutputIterator> OutputIterator not_well_formed (OutputIterator dest) {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator not_well_formed (OutputIterator dest) {
     well_formed_ = false;
     static_assert (!is_surrogate (replacement_char));
     return (*this) (replacement_char, dest);
@@ -828,7 +878,7 @@ public:
   ///
   /// \param well_formed The initial value for the transcoder's "well formed" state.
   explicit constexpr transcoder (bool well_formed) noexcept
-      : code_point_{0}, well_formed_{static_cast<uint_least32_t> (well_formed)}, pad_{0}, state_{accept} {
+      : code_point_{0}, well_formed_{static_cast<std::uint_least32_t> (well_formed)}, pad_{0}, state_{accept} {
     // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
     pad_ = 0;  // Suppress warning about pad_ being unused.
   }
@@ -844,15 +894,20 @@ public:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit, OutputIterator dest) {
     // Prior to C++20, char8 might be signed.
-    static_assert (sizeof (input_type) == sizeof (std::uint8_t));
-    auto const ucu = static_cast<std::uint8_t> (code_unit);
-    static_assert (std::is_unsigned_v<decltype (ucu)> && std::numeric_limits<decltype (ucu)>::max () <= utf8d_.size ());
+    static_assert (sizeof (input_type) <= sizeof (std::uint_least8_t));
+    auto ucu = static_cast<std::uint_least8_t> (code_unit);
+    // Clamp ucu in the event that it has more than 8 bits.
+    if constexpr (std::numeric_limits<std::uint_least8_t>::max () > 0xFFU) {
+      ucu = std::max (ucu, std::uint_least8_t{0xFF});
+    }
+    static_assert (utf8d_.size () > 255);
+    assert (ucu < utf8d_.size ());
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     auto const type = utf8d_[ucu];
-    code_point_ = (state_ != accept)
-                      ? static_cast<std::uint_least32_t> (static_cast<std::byte> (code_unit) & std::byte{0x3FU}) |
-                            static_cast<uint_least32_t> (code_point_ << 6U)
-                      : (0xFFU >> type) & ucu;
+
+    code_point_ = (state_ != accept) ? static_cast<std::uint_least32_t> (ucu & details::utf8_mask) |
+                                           (code_point_ << details::utf8_shift)
+                                     : (0xFFU >> type) & ucu;
     auto const idx = 256U + state_ + type;
     assert (idx < utf8d_.size ());
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
@@ -900,8 +955,7 @@ public:
 
   /// \returns True if the input represented well formed UTF-8.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
-  /// \returns True if a partial code-point has been passed to operator() and
-  /// false otherwise.
+  /// \returns True if a partial code-point has been passed to operator() and false otherwise.
   [[nodiscard]] constexpr bool partial () const noexcept { return state_ != accept; }
 
 private:
@@ -909,10 +963,10 @@ private:
   /// second part encodes a deterministic finite automaton using these character classes as
   /// transitions.
   /// \hideinitializer
-  static inline std::array<uint8_t, 364> const utf8d_ = {{
+  static inline std::array<std::uint_least8_t, 364> const utf8d_ = {{
       // clang-format off
     // The first part of the table maps bytes to character classes that
-    // to reduce the size of the transition table and create bitmasks.
+    // reduce the size of the transition table and create bitmasks.
      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -932,14 +986,14 @@ private:
       // clang-format on
   }};
   /// The code point value being assembled from input code units.
-  uint_least32_t code_point_ : code_point_bits;
+  std::uint_least32_t code_point_ : code_point_bits;
   /// True if the input consumed is well formed, false otherwise.
-  uint_least32_t well_formed_ : 1;
+  std::uint_least32_t well_formed_ : 1;
   /// Pad bits intended to put the next value to a byte boundary.
-  uint_least32_t pad_ : 2;
-  enum : std::uint8_t { accept, reject = 12 };
+  std::uint_least32_t pad_ : 2;
+  enum : std::uint_least8_t { accept = 0, reject = 12 };
   /// The state of the converter.
-  uint_least32_t state_ : 8;
+  std::uint_least32_t state_ : 8;
 };
 
 /// Takes a sequence of UTF-32 code units and converts them to UTF-16.
@@ -1980,6 +2034,7 @@ public:
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   /// \returns True if a partial code-point has been passed to operator() and
   /// false otherwise.
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
   [[nodiscard]] constexpr bool partial () const noexcept { return false; }
 
 private:
