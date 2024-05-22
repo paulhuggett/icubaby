@@ -904,9 +904,8 @@ public:
     assert (ucu < utf8d_.size ());
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     auto const type = utf8d_[ucu];
-
     code_point_ = (state_ != accept) ? static_cast<std::uint_least32_t> (ucu & details::utf8_mask) |
-                                           (code_point_ << details::utf8_shift)
+                                       static_cast<std::uint_least32_t> (code_point_ << details::utf8_shift)
                                      : (0xFFU >> type) & ucu;
     auto const idx = 256U + state_ + type;
     assert (idx < utf8d_.size ());
