@@ -27,11 +27,16 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //===----------------------------------------------------------------------===//
-#include <array>
+#include <cassert>
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <iterator>
+#include <limits>
+#include <stdexcept>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -57,29 +62,31 @@ constexpr OutputIterator convert_code_point (char32_t const code_point, OutputIt
 }
 
 template <typename Encoding> struct all_code_points {
-  all_code_points () {
-    sizes.reserve (total_code_points);
-
-    auto old_size = std::size_t{0};
-    auto inserter = std::back_inserter (code_units);
-
-    for (auto code_point = char32_t{0}; code_point <= icubaby::max_code_point; ++code_point) {
-      if (!icubaby::is_surrogate (code_point) && code_point != icubaby::byte_order_mark) {
-        inserter = convert_code_point<Encoding> (code_point, inserter);
-
-        auto const new_size = code_units.size ();
-        assert (new_size - old_size <= icubaby::longest_sequence_v<Encoding>);
-        assert (new_size - old_size > 0);
-        sizes.push_back (static_cast<std::uint_least8_t> (new_size - old_size));
-        old_size = new_size;
-      }
-    }
-    assert (sizes.size () == total_code_points);
-  }
-
   std::vector<Encoding> code_units;
   std::vector<std::uint_least8_t> sizes;
 };
+
+template <typename Encoding> all_code_points<Encoding> make_all_code_points () {
+  all_code_points<Encoding> result;
+  result.sizes.reserve (total_code_points);
+
+  auto old_size = std::size_t{0};
+  auto inserter = std::back_inserter (result.code_units);
+
+  for (auto code_point = char32_t{0}; code_point <= icubaby::max_code_point; ++code_point) {
+    if (!icubaby::is_surrogate (code_point) && code_point != icubaby::byte_order_mark) {
+      inserter = convert_code_point<Encoding> (code_point, inserter);
+
+      auto const new_size = result.code_units.size ();
+      assert (new_size - old_size <= icubaby::longest_sequence_v<Encoding>);
+      assert (new_size - old_size > 0);
+      result.sizes.push_back (static_cast<std::uint_least8_t> (new_size - old_size));
+      old_size = new_size;
+    }
+  }
+  assert (result.sizes.size () == total_code_points);
+  return result;
+}
 
 template <typename Encoding> struct name {};
 template <> struct name<char8> {
@@ -112,7 +119,7 @@ template <typename FromEncoding, typename ToEncoding> ICUBABY_NOINLINE void go (
   std::vector<ToEncoding> output;
   output.resize (icubaby::longest_sequence<ToEncoding> () * total_code_points);
   icubaby::transcoder<FromEncoding, ToEncoding> transcoder;
-  all_code_points<FromEncoding> const all;
+  auto const all = make_all_code_points<FromEncoding> ();
   auto const start_time = std::chrono::steady_clock::now ();
 
   for (auto iteration = std::uint_least16_t{0}; iteration < iterations; ++iteration) {
@@ -154,9 +161,11 @@ int main (int const argc, char const *argv[]) {
   auto exit_code = EXIT_SUCCESS;
   try {
     if (argc > 2) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       std::cout << argv[0] << ": [iterations]\n";
       return EXIT_FAILURE;
     }
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     auto const iterations = iteration_count (argc > 1 ? argv[1] : "16");
     std::cout << "Time to transcode all code points (" << iterations << " iterations):" << std::endl;
     go<char8, char8> (iterations);
