@@ -793,9 +793,14 @@ private:
   // | U+0800   | U+FFFF   | 1110xxxx | 10xxxxxx | 10xxxxxx |          |
   // | U+010000 | U+10FFFF | 11110xxx | 10xxxxxx | 10xxxxxx | 10xxxxxx |
 
+  /// The a mask to indicate the first byte of a two byte sequence.
   static constexpr auto byte_1_of_2 = std::uint_least8_t{0b1100'0000};
+  /// The a mask to indicate the first byte of a three byte sequence.
   static constexpr auto byte_1_of_3 = std::uint_least8_t{0b1110'0000};
+  /// The a mask to indicate the first byte of a four byte sequence.
   static constexpr auto byte_1_of_4 = std::uint_least8_t{0b1111'0000};
+  /// The a mask to indicate a continuation byte (that is byte two of a two byte sequence, bytes two and three of a
+  /// three byte sequence, and so on.
   static constexpr auto continuation = std::uint_least8_t{0b1000'0000};
 
   /// Writes a series of "continuation" bytes to the output.
@@ -1573,6 +1578,12 @@ private:
   [[nodiscard]] static constexpr std::uint_least8_t get_byte_no (states const state) noexcept {
     return static_cast<std::uint_least8_t> (static_cast<std::byte> (state) & byte_no_mask);
   }
+  /// \brief Extracts the byte number referenced the current state.
+  ///
+  /// Each of the valid FSM states has an embedded byte number in the range [0..4). This is the current byte of the
+  /// current code unit as it is being assembled by the FSM.
+  ///
+  /// \returns The byte number referenced by the current state.
   [[nodiscard]] constexpr std::uint_least8_t get_byte_no () const noexcept { return transcoder::get_byte_no (state_); }
 
   /// \brief Returns a state which references a specific byte number.
@@ -1607,6 +1618,12 @@ private:
     return static_cast<states> ((static_cast<std::byte> (state) & ~run_mask) | run_mode);
   }
 
+  /// \brief Returns a byte from the byte order marker table which corresponds to a specific state as denoted by
+  ///   \p state_byte and byte count \p byte_number.the
+  ///
+  /// \param state  A valid state machine state.
+  /// \param byte_number  The index of the byte within the byte order marker.
+  /// \returns  A byte from the byte order marker table.
   [[nodiscard]] static constexpr std::byte bom_value (std::byte const state_byte,
                                                       std::uint_least8_t const byte_number) noexcept {
     assert (((state_byte & (encoding_mask | endian_mask)) >> endian_shift) == (state_byte >> endian_shift));
@@ -1622,6 +1639,11 @@ private:
     }
     return enc[byte_number];
   }
+  /// \brief Returns a byte from the byte order marker table which corresponds to a specific state as denoted by
+  ///   the current state and byte count \p byte_number.the
+  ///
+  /// \param byte_number  The index of the byte within the byte order marker.
+  /// \returns  A byte from the byte order marker table.
   [[nodiscard]] constexpr std::byte bom_value () const noexcept {
     return transcoder::bom_value (static_cast<std::byte> (state_), transcoder::get_byte_no (state_));
   }
