@@ -403,7 +403,7 @@ constexpr bool is_surrogate (char32_t code_point) noexcept {
 /// \returns true if \p code_unit represents the start of a multi-byte UTF-8 sequence.
 constexpr bool is_code_point_start (char8 code_unit) noexcept {
   static_assert (sizeof (code_unit) == sizeof (std::byte));
-  return (static_cast<std::byte> (code_unit) & std::byte{0xC0}) != std::byte{0x80};
+  return (static_cast<std::byte> (code_unit) & std::byte{0b1100'0000}) != std::byte{0b1000'0000};
 }
 /// \brief Returns true if \p code_unit represents the start of a UTF-16 high/low surrogate pair.
 ///
@@ -697,6 +697,11 @@ namespace details {
 /// Each UTF-8 continuation byte has space for 6 bits of payload.
 inline constexpr auto utf8_shift = 6U;
 inline constexpr auto utf8_mask = static_cast<std::uint_least8_t> ((1U << utf8_shift) - 1U);
+
+inline constexpr auto utf16_first_surrogate_pair = 0x10000U;
+/// The number of payload bits in a high or low surrogate value.
+inline constexpr auto utf16_shift = 10U;
+inline constexpr auto utf16_mask = static_cast<std::uint_least16_t> ((1U << utf16_shift) - 1U);
 
 }  // end namespace details
 
@@ -1026,8 +1031,16 @@ public:
     } else if (code_unit <= 0xFFFF) {
       *(dest++) = static_cast<output_type> (code_unit);
     } else {
-      *(dest++) = static_cast<output_type> (0xD7C0U + (code_unit >> 10U));
-      *(dest++) = static_cast<output_type> (first_low_surrogate + (code_unit & 0x3FFU));
+      // Code points from beyond plane 0 are encoded as a two 16-bit code unit surrogate pair. The first code
+      // unit is the high surrogate and the second is the low surrogate.
+      // - 0x10000 is subtracted from the code point, leaving a 20-bit number (0x00000–0xFFFFF).
+      // - The high ten bits (0x0000–0x03FF) are added to 0xD800 to give the high surrogate (0xD800–0xDBFF).
+      // - The low ten bits (0x000–0x3FF) are added to 0xDC00 to give the low surrogate (0xDC00–0xDFFF).
+      *(dest++) = static_cast<output_type> (static_cast<std::uint_least32_t> (first_high_surrogate) -
+                                            (details::utf16_first_surrogate_pair >> details::utf16_shift) +
+                                            (code_unit >> details::utf16_shift));
+      *(dest++) = static_cast<output_type> (static_cast<std::uint_least32_t> (first_low_surrogate) +
+                                            (code_unit & details::utf16_mask));
     }
     return dest;
   }
@@ -1115,7 +1128,8 @@ public:
 
     // A high surrogate followed by a low-surrogate.
     if (is_low_surrogate (code_unit)) {
-      *(dest++) = (static_cast<char32_t> (high_) << high_bits) + (code_unit - first_low_surrogate) + 0x10000;
+      *(dest++) = (static_cast<char32_t> (high_) << details::utf16_shift) + (code_unit - first_low_surrogate) +
+                  details::utf16_first_surrogate_pair;
       high_ = 0;
       has_high_ = false;
       return dest;
@@ -1173,11 +1187,9 @@ public:
   [[nodiscard]] constexpr bool partial () const noexcept { return has_high_; }
 
 private:
-  /// The number of bits required to represent a high surrogate value.
-  static constexpr auto high_bits = 10U;
   /// The previous high surrogate that was passed to operator(). Valid if
   /// has_high_ is true.
-  uint_least16_t high_ : high_bits;
+  uint_least16_t high_ : details::utf16_shift;
   /// true if the previous code unit passed to operator() was a high surrogate,
   /// false otherwise.
   uint_least16_t has_high_ : 1;
@@ -1195,7 +1207,7 @@ private:
   static std::uint_least16_t adjusted_high (std::uint_least16_t code_unit) noexcept {
     assert (code_unit >= first_high_surrogate && "A high surrogate must be at least first_high_surrogate");
     auto const high_cu = code_unit - first_high_surrogate;
-    assert (high_cu < std::numeric_limits<decltype (high_)>::max () && high_cu < (1U << high_bits) &&
+    assert (high_cu < std::numeric_limits<decltype (high_)>::max () && high_cu < (1U << details::utf16_shift) &&
             "high_cu won't fit in the high_ field!");
     return static_cast<uint_least16_t> (high_cu);
   }
