@@ -562,10 +562,10 @@ public:
   using output_type = ToEncoding;
 
   /// \anchor transcoder-call-operator
-  /// This member function is the heart of the transcoder. It accepts a single byte
-  /// or code unit in the input encoding and, once an entire code point has been consumed, produces
-  /// the equivalent code point expressed in the output encoding. Malformed input is detected and
-  /// replaced with the Unicode replacement character (U+FFFD REPLACEMENT CHARACTER).
+  /// This member function is the heart of the transcoder. It accepts a single byte or code unit in the input encoding
+  /// and, once an entire code point has been consumed, produces the equivalent code point expressed in the output
+  /// encoding. Malformed input is detected and replaced with the Unicode replacement character (U+FFFD REPLACEMENT
+  /// CHARACTER).
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type transcoder::output_type can be written.
   /// \param code_unit  A code unit in the source encoding.
@@ -574,8 +574,8 @@ public:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept;
 
-  /// Call once the entire input sequence has been fed to \ref transcoder-call-operator "operator()". This
-  /// function ensures that the sequence did not end with a partial code point.
+  /// Call once the entire input sequence has been fed to \ref transcoder-call-operator "operator()". This function
+  /// ensures that the sequence did not end with a partial code point.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type transcoder::output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -583,9 +583,8 @@ public:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr OutputIterator end_cp (OutputIterator dest) const;
 
-  /// Call once the entire input sequence has been fed to \ref transcoder-call-operator "operator()". This
-  /// function ensures that the sequence did not end with a partial code point and flushes any
-  /// remaining output.
+  /// Call once the entire input sequence has been fed to \ref transcoder-call-operator "operator()". This function
+  /// ensures that the sequence did not end with a partial code point and flushes any remaining output.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type transcoder::output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -606,13 +605,11 @@ public:
   [[nodiscard]] constexpr bool partial () const noexcept;
 };
 
-/// \brief An output iterator which passes code units being output through a
-///   transcoder.
+/// \brief An output iterator which passes code units being output through a transcoder.
 ///
-/// This iterator simplifies the job of converting unicode representation and
-/// storing the results of that conversion. Each time that a code point is
-/// recovered from the sequence written to this class, the equivalent
-/// sequence is written to the iterator with which the object was constructed.
+/// This iterator simplifies the job of converting unicode representation and storing the results of that conversion.
+/// Each time that a code point is recovered from the sequence written to this class, the equivalent sequence is written
+/// to the iterator with which the object was constructed.
 ///
 /// For example, a function to convert a UTF-16 string to UTF-8 becomes very
 /// simple:
@@ -696,11 +693,14 @@ namespace details {
 
 /// Each UTF-8 continuation byte has space for 6 bits of payload.
 inline constexpr auto utf8_shift = 6U;
+/// A value with the least significant 6 bits set. Used to create or extract the payload from a UTF-8 continuation byte.
 inline constexpr auto utf8_mask = static_cast<std::uint_least8_t> ((1U << utf8_shift) - 1U);
 
+/// A constant representing the first code point which must be represented as a UTF-16 surrogate pair.
 inline constexpr auto utf16_first_surrogate_pair = 0x10000U;
 /// The number of payload bits in a high or low surrogate value.
 inline constexpr auto utf16_shift = 10U;
+/// A value with the least significant 10 bits set. Used to create a UTF-16 low surrogate value.
 inline constexpr auto utf16_mask = static_cast<std::uint_least16_t> ((1U << utf16_shift) - 1U);
 
 }  // end namespace details
@@ -928,8 +928,8 @@ public:
     return dest;
   }
 
-  /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial code point.
+  /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
+  /// end with a partial code point.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -944,8 +944,8 @@ public:
     return dest;
   }
 
-  /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial code point.
+  /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
+  /// end with a partial code point.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -1018,8 +1018,7 @@ public:
   /// Accepts a code unit in the UTF-32 source encoding. As UTF-16 output code units are generated, they are written to
   /// the output iterator \p dest.
   ///
-  /// \tparam OutputIterator  An output iterator type to which values of
-  ///   output_type can be written.
+  /// \tparam OutputIterator  An output iterator type to which values of output_type can be written.
   /// \param code_unit  A UTF-32 code unit,
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
@@ -1045,8 +1044,8 @@ public:
     return dest;
   }
 
-  /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial code point.
+  /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
+  /// end with a partial code point.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -1056,8 +1055,8 @@ public:
     return dest;
   }
 
-  /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial code point.
+  /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
+  /// end with a partial code point.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -1128,8 +1127,9 @@ public:
 
     // A high surrogate followed by a low-surrogate.
     if (is_low_surrogate (code_unit)) {
-      *(dest++) = (static_cast<char32_t> (high_) << details::utf16_shift) + (code_unit - first_low_surrogate) +
-                  details::utf16_first_surrogate_pair;
+      *(dest++) = static_cast<char32_t> (((static_cast<std::uint_least32_t> (high_) << details::utf16_shift) |
+                                          (static_cast<std::uint_least32_t> (code_unit) - first_low_surrogate)) +
+                                         details::utf16_first_surrogate_pair);
       high_ = 0;
       has_high_ = false;
       return dest;
@@ -1140,7 +1140,7 @@ public:
     *(dest++) = replacement_char;
     well_formed_ = false;
     if (is_high_surrogate (code_unit)) {
-      // There was a high surrogate followed by a second high-surrogate. Remember the later of the two.
+      // There was a high surrogate followed by a second high-surrogate: remember the latter.
       high_ = adjusted_high (code_unit);
       assert (has_high_);
       return dest;
@@ -1152,8 +1152,8 @@ public:
     return dest;
   }
 
-  /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial code point.
+  /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
+  /// end with a partial code point.
   ///
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
@@ -1167,8 +1167,8 @@ public:
     return dest;
   }
 
-  /// Call once the entire input sequence has been fed to operator(). This
-  /// function ensures that the sequence did not end with a partial code point.
+  /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
+  /// end with a partial code point.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -1182,19 +1182,15 @@ public:
 
   /// \returns True if the input represented well formed UTF-16.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
-  /// \returns True if a partial code-point has been passed to operator() and
-  /// false otherwise.
+  /// \returns True if a partial code-point has been passed to operator() and false otherwise.
   [[nodiscard]] constexpr bool partial () const noexcept { return has_high_; }
 
 private:
-  /// The previous high surrogate that was passed to operator(). Valid if
-  /// has_high_ is true.
+  /// The previous high surrogate that was passed to operator(). Valid if has_high_ is true.
   uint_least16_t high_ : details::utf16_shift;
-  /// true if the previous code unit passed to operator() was a high surrogate,
-  /// false otherwise.
+  /// true if the previous code unit passed to operator() was a high surrogate, false otherwise.
   uint_least16_t has_high_ : 1;
-  /// true if the code units passed to operator() represent well formed UTF-16
-  /// input, false otherwise.
+  /// true if the code units passed to operator() represent well formed UTF-16 input, false otherwise.
   uint_least16_t well_formed_ : 1;
 
   /// \brief This function returns a high surrogate value that can be stored in the high_ field.
