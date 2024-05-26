@@ -30,9 +30,9 @@
 
 #include "icubaby/icubaby.hpp"
 
-// TODO(paul): Remove this code!
 // A specialization of the gtest GetTypeName<char8_t>() function. This is required for compiling with (at least)
-// Xcode 14.1/15.2 where we have a link error due to missing typeinfo for char8_t.
+// Xcode 14.1/15.2 where we have a link error due to missing typeinfo for char8_t. This code should be removed once it
+// is no longer needed for any of our targets.
 #if defined(__cpp_char8_t) && defined(__cpp_lib_char8_t)
 namespace testing::internal {
 

@@ -815,7 +815,7 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  static constexpr OutputIterator write_continuation (unsigned const number, input_type const code_unit,
+  static constexpr OutputIterator write_continuation (std::uint_least8_t const number, input_type const code_unit,
                                                       OutputIterator dest) {
     if (number == 0U) {
       return dest;
@@ -827,6 +827,8 @@ private:
 
   /// Writes a two CU value to the output.
   ///
+  /// Code points in the range [U+80, U+800) are represented as two UTF-8 code units.
+  ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param code_unit  The code unit to be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -835,9 +837,11 @@ private:
   static OutputIterator write2 (input_type code_unit, OutputIterator dest) {
     assert (code_unit >= 0x80U && code_unit <= 0x7FFU && "Code point is out-of-range for 2 byte UTF-8");
     *(dest++) = static_cast<output_type> ((code_unit >> details::utf8_shift) | byte_1_of_2);
-    return transcoder::write_continuation (1U, code_unit, dest);
+    return transcoder::write_continuation (std::uint_least8_t{1}, code_unit, dest);
   }
   /// Writes a three CU value to the output.
+  ///
+  /// Code points in the range [U+800, U+10000) are represented as three UTF-8 code units.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param code_unit  The code unit to be written.
@@ -847,9 +851,11 @@ private:
   static OutputIterator write3 (input_type code_unit, OutputIterator dest) {
     assert (code_unit >= 0x800U && code_unit <= 0xFFFFU && "Code point is out-of-range for 3 byte UTF-8");
     *(dest++) = static_cast<output_type> ((code_unit >> (details::utf8_shift * 2U)) | byte_1_of_3);
-    return transcoder::write_continuation (2U, code_unit, dest);
+    return transcoder::write_continuation (std::uint_least8_t{2}, code_unit, dest);
   }
   /// Writes a four CU value to the output.
+  ///
+  /// Code points in the range [U+10000, U+10FFFF] are represented as four UTF-8 code units.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param code_unit  The code unit to be written.
@@ -859,7 +865,7 @@ private:
   static OutputIterator write4 (input_type code_unit, OutputIterator dest) {
     assert (code_unit >= 0x10000U && code_unit <= 0x10FFFFU && "Code point is out-of-range for 4 byte UTF-8");
     *(dest++) = static_cast<output_type> ((code_unit >> (details::utf8_shift * 3U)) | byte_1_of_4);
-    return transcoder::write_continuation (3U, code_unit, dest);
+    return transcoder::write_continuation (std::uint_least8_t{3}, code_unit, dest);
   }
   /// Writes U+FFFD REPLACEMENT CHAR to the output and records the input as not well formed.
   ///
@@ -1793,8 +1799,9 @@ private:
   /// \param value An input byte
   /// \returns A native-endian 16 bit value.
   [[nodiscard]] constexpr char16_t char16_from_big_endian_buffer (input_type const value) const noexcept {
-    return static_cast<char16_t> ((static_cast<std::uint_least16_t> (buffer_[0]) << 8U) |
-                                  static_cast<std::uint_least16_t> (value));
+    return static_cast<char16_t> (
+        static_cast<std::uint_least16_t> (static_cast<std::uint_least16_t> (buffer_[0]) << 8U) |
+        static_cast<std::uint_least16_t> (value));
   }
   /// \brief Produces a native-endian 16-bit value from little endian encoded input by combining the first entry in the
   ///        buffer_ array with \p value.
@@ -1802,7 +1809,7 @@ private:
   /// \param value An input byte
   /// \returns A native-endian 16 bit value.
   [[nodiscard]] constexpr char16_t char16_from_little_endian_buffer (input_type const value) const noexcept {
-    return static_cast<char16_t> ((static_cast<std::uint_least16_t> (value) << 8U) |
+    return static_cast<char16_t> (static_cast<std::uint_least16_t> (static_cast<std::uint_least16_t> (value) << 8U) |
                                   static_cast<std::uint_least16_t> (buffer_[0]));
   }
   /// \brief Produces a native-endian 32-bit value from big endian encoded input by combining the entries in the
@@ -1811,10 +1818,11 @@ private:
   /// \param value An input byte
   /// \returns A native-endian 32 bit value.
   [[nodiscard]] constexpr char32_t char32_from_big_endian_buffer (input_type const value) const noexcept {
-    return static_cast<char32_t> ((static_cast<std::uint_least32_t> (buffer_[0]) << 24U) |
-                                  (static_cast<std::uint_least32_t> (buffer_[1]) << 16U) |
-                                  (static_cast<std::uint_least32_t> (buffer_[2]) << 8U) |
-                                  static_cast<std::uint_least32_t> (value));
+    return static_cast<char32_t> (
+        static_cast<std::uint_least32_t> (static_cast<std::uint_least32_t> (buffer_[0]) << 24U) |
+        static_cast<std::uint_least32_t> (static_cast<std::uint_least32_t> (buffer_[1]) << 16U) |
+        static_cast<std::uint_least32_t> (static_cast<std::uint_least32_t> (buffer_[2]) << 8U) |
+        static_cast<std::uint_least32_t> (value));
   }
   /// \brief Produces a native-endian 32-bit value from little endian encoded input by combining the entries in the
   ///        buffer_ array with \p value.
