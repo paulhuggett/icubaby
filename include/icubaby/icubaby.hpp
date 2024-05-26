@@ -888,10 +888,7 @@ public:
   ///
   /// \param well_formed The initial value for the transcoder's "well formed" state.
   explicit constexpr transcoder (bool well_formed) noexcept
-      : code_point_{0}, well_formed_{static_cast<std::uint_least32_t> (well_formed)}, pad_{0}, state_{accept} {
-    // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
-    pad_ = 0;  // Suppress warning about pad_ being unused.
-  }
+      : code_point_{0}, well_formed_{static_cast<std::uint_least32_t> (well_formed)}, pad_{0}, state_{accept} {}
 
   /// Accepts a code unit in the UTF-8 source encoding. As UTF-32 output code units are generated, they are written to
   /// the output iterator \p dest.
@@ -999,7 +996,7 @@ private:
   /// True if the input consumed is well formed, false otherwise.
   std::uint_least32_t well_formed_ : 1;
   /// Pad bits intended to put the next value to a byte boundary.
-  std::uint_least32_t pad_ : 2;
+  [[maybe_unused]] std::uint_least32_t pad_ : 2;
   enum : std::uint_least8_t { accept = 0, reject = 12 };
   /// The state of the converter.
   std::uint_least32_t state_ : 8;
