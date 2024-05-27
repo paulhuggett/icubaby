@@ -1218,7 +1218,7 @@ private:
 };
 
 /// \brief An enumeration representing the encoding detected by transcoder<std::byte, X>.
-enum class encoding {
+enum class encoding : std::uint_least8_t {
   unknown,  ///< No encoding has yet been determined.
   utf8,     ///< The detected encoding is UTF-8.
   utf16be,  ///< The detected encoding is big-endian UTF-16.
@@ -1622,9 +1622,9 @@ private:
   }
 
   /// \brief Returns a byte from the byte order marker table which corresponds to a specific state as denoted by
-  ///   \p state_byte and byte count \p byte_number.the
+  ///   \p state_byte and byte count \p byte_number.
   ///
-  /// \param state  A valid state machine state.
+  /// \param state_byte  A valid state machine state.
   /// \param byte_number  The index of the byte within the byte order marker.
   /// \returns  A byte from the byte order marker table.
   [[nodiscard]] static constexpr std::byte bom_value (std::byte const state_byte,
@@ -1643,9 +1643,8 @@ private:
     return enc[byte_number];
   }
   /// \brief Returns a byte from the byte order marker table which corresponds to a specific state as denoted by
-  ///   the current state and byte count \p byte_number.the
+  ///   the current state and byte count
   ///
-  /// \param byte_number  The index of the byte within the byte order marker.
   /// \returns  A byte from the byte order marker table.
   [[nodiscard]] constexpr std::byte bom_value () const noexcept {
     return transcoder::bom_value (static_cast<std::byte> (state_), transcoder::get_byte_no (state_));

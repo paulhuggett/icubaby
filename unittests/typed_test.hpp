@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef ICUBABY_UNITTESTS_TYPED_TEST_HPP
-#define ICUBABY_UNITTESTS_TYPED_TEST_HPP
+#ifndef ICUBABY_TYPED_TEST_HPP
+#define ICUBABY_TYPED_TEST_HPP (1)
 
 #include <gtest/gtest.h>
 
@@ -76,4 +76,4 @@ public:
 
 using OutputTypes = testing::Types<icubaby::char8, char16_t, char32_t>;
 
-#endif  // ICUBABY_UNITTESTS_TYPED_TEST_HPP
+#endif  // ICUBABY_TYPED_TEST_HPP

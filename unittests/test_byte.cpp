@@ -31,6 +31,10 @@
 #include <ostream>
 #include <vector>
 
+#if ICUBABY_HAVE_RANGES
+#include <ranges>
+#endif  // ICUBABY_HAVE_RANGES
+
 // google mock/test/fuzz
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -422,7 +426,9 @@ TEST (ByteTranscoder, Utf16BEAndIterMove) {
 }
 #endif  // ICUBABY_HAVE_RANGES
 
-static void ByteTranscoderNeverCrashes (std::vector<std::byte> const& input) {
+namespace {
+
+void ByteTranscoderNeverCrashes (std::vector<std::byte> const& input) {
   icubaby::transcoder<std::byte, char32_t> transcoder;
   std::vector<char32_t> output;
   auto output_iterator = icubaby::iterator{&transcoder, std::back_inserter (output)};
@@ -433,6 +439,9 @@ static void ByteTranscoderNeverCrashes (std::vector<std::byte> const& input) {
 #endif  // ICUBABY_HAVE_RANGES
   (void)transcoder.end_cp (output_iterator);
 }
+
+}  // end anonymous namespace
+
 #if ICUBABY_FUZZTEST
 // NOLINTNEXTLINE
 FUZZ_TEST (ByteTranscoder, ByteTranscoderNeverCrashes);

@@ -20,9 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef ICUBABY_UNITTESTS_ENCODED_CHAR_HPP
-#define ICUBABY_UNITTESTS_ENCODED_CHAR_HPP
+#ifndef ICUBABY_ENCODED_CHAR_HPP
+#define ICUBABY_ENCODED_CHAR_HPP (1)
 
+#include <algorithm>
 #include <array>
 
 #include "icubaby/icubaby.hpp"
@@ -534,4 +535,4 @@ template <code_point C, typename To, typename OutputIterator> OutputIterator app
 #endif  // ICUBABY_HAVE_RANGES
 }
 
-#endif  // ICUBABY_UNITTESTS_ENCODED_CHAR_HPP
+#endif  // ICUBABY_ENCODED_CHAR_HPP
