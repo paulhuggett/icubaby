@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef ICUBABY_UNITTESTS_TYPED_TEST_HPP
-#define ICUBABY_UNITTESTS_TYPED_TEST_HPP
+#ifndef ICUBABY_TYPED_TEST_HPP
+#define ICUBABY_TYPED_TEST_HPP (1)
 
 #include <gtest/gtest.h>
 
@@ -30,9 +30,9 @@
 
 #include "icubaby/icubaby.hpp"
 
-// TODO(paul): Remove this code!
 // A specialization of the gtest GetTypeName<char8_t>() function. This is required for compiling with (at least)
-// Xcode 14.1/15.2 where we have a link error due to missing typeinfo for char8_t.
+// Xcode 14.1/15.2 where we have a link error due to missing typeinfo for char8_t. This code should be removed once it
+// is no longer needed for any of our targets.
 #if defined(__cpp_char8_t) && defined(__cpp_lib_char8_t)
 namespace testing::internal {
 
@@ -76,4 +76,4 @@ public:
 
 using OutputTypes = testing::Types<icubaby::char8, char16_t, char32_t>;
 
-#endif  // ICUBABY_UNITTESTS_TYPED_TEST_HPP
+#endif  // ICUBABY_TYPED_TEST_HPP

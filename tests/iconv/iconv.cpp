@@ -42,9 +42,10 @@ namespace {
 #if defined(__cpp_lib_endian) && __cpp_lib_endian >= 201907L
 using std::endian;
 #elif defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__) && defined(__BYTE_ORDER__)
+// NOLINTNEXTLINE(performance-enum-size)
 enum class endian { little = __ORDER_LITTLE_ENDIAN__, big = __ORDER_BIG_ENDIAN__, native = __BYTE_ORDER__ };
 #elif defined(_WIN32) || defined(__i386__) || defined(__x86_64__)
-enum class endian { little = 0, big = 1, native = little };
+enum class endian : std::uint_least8_t { little = 0, big = 1, native = little };
 #else
 #error "Can't determine endianness of the target system"
 #endif
@@ -82,6 +83,7 @@ constexpr ResultType pointer_cast (ArgType *const ptr) noexcept {
 #else
   ResultType result = nullptr;
   static_assert (sizeof (ptr) == sizeof (result));
+  // NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
   (void)std::memcpy (&result, &ptr, sizeof (result));
   return result;
 #endif

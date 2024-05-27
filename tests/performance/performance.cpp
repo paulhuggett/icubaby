@@ -138,7 +138,8 @@ template <typename FromEncoding, typename ToEncoding> ICUBABY_NOINLINE void go (
   auto const elapsed = std::chrono::steady_clock::now () - start_time;
   std::cout << static_cast<double> (std::chrono::duration_cast<std::chrono::milliseconds> (elapsed).count ()) /
                    static_cast<double> (iterations)
-            << " ms" << std::endl;
+            << " ms\n"
+            << std::flush;
 }
 
 std::uint_least16_t iteration_count (std::string_view const str) {
@@ -167,7 +168,7 @@ int main (int const argc, char const *argv[]) {
     }
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     auto const iterations = iteration_count (argc > 1 ? argv[1] : "16");
-    std::cout << "Time to transcode all code points (" << iterations << " iterations):" << std::endl;
+    std::cout << "Time to transcode all code points (" << iterations << " iterations):\n" << std::flush;
     go<char8, char8> (iterations);
     go<char8, char16_t> (iterations);
     go<char8, char32_t> (iterations);
