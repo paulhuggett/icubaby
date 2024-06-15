@@ -30,3 +30,4 @@
 add_executable (performance performance.cpp)
 setup_target (performance)
 target_link_libraries (performance PUBLIC icubaby)
+add_test (NAME performance COMMAND performance)
