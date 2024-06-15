@@ -23,6 +23,7 @@
 add_executable (icubaby-exhaust-test exhaust.cpp)
 target_link_libraries (icubaby-exhaust-test PUBLIC icubaby)
 setup_target (icubaby-exhaust-test)
+add_test (NAME icubaby-exhaust-test COMMAND icubaby-exhaust-test)
 
 if (TARGET gtest)
   set (ICUBABY_TEST_TARGET icubaby-unittests)

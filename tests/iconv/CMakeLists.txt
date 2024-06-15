@@ -28,4 +28,5 @@ if (Iconv_FOUND)
 
   set (ICUBABY_CXX17 Yes)  # Force this project to C++17.
   setup_target (iconv-test)
+  add_test (NAME iconv-test COMMAND iconv-test)
 endif (Iconv_FOUND)
