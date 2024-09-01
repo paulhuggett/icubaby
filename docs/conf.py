@@ -12,7 +12,7 @@ import subprocess
 project = 'icubaby'
 copyright = '2024, Paul Bowen-Huggett'
 author = 'Paul Bowen-Huggett'
-version = '1.1.0'
+version = '1.2.2'
 release = version
 
 # -- General configuration ---------------------------------------------------
