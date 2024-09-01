@@ -216,7 +216,7 @@ std::vector<ToEncoding> convert_using_icubaby (std::vector<char32_t> const &inpu
   icubaby::transcoder<char32_t, ToEncoding> convert_32_x;
   auto output_iterator = icubaby::iterator{&convert_32_x, std::back_inserter (out)};
 #if ICUBABY_HAVE_RANGES
-  auto pos = std::copy (input, output_iterator).out;
+  auto pos = std::ranges::copy (input, output_iterator).out;
 #else
   auto pos = std::copy (std::begin (input), std::end (input), output_iterator);
 #endif  // ICUBABY_HAVE_RANGES
