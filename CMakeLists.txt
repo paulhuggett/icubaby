@@ -23,7 +23,7 @@
 cmake_minimum_required (VERSION 3.22)
 
 project (icubaby
-  VERSION "1.1.0"
+  VERSION "1.2.3"
   DESCRIPTION "Little Library to Immediately Convert Unicode"
   LANGUAGES C CXX
 )
