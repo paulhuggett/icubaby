@@ -33,6 +33,7 @@ option (ICUBABY_EXAMPLES "Include example code in the generated build")
 option (ICUBABY_FUZZTEST "Enable FuzzTest")
 option (ICUBABY_LIBCXX "Use libc++ rather than libstdc++ (clang only)")
 option (ICUBABY_SANITIZE "Enable undefined behavior- and address-sanitizers where supported")
+option (ICUBABY_STANDALONE "A standalone build includes test executables")
 option (ICUBABY_WERROR "Compiler warnings are errors")
 
 set (icubaby_project_root "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -99,7 +100,10 @@ endif (ICUBABY_EXAMPLES)
 
 # tests
 
-add_subdirectory (tests)
+if (ICUBABY_STANDALONE)
+    add_subdirectory (tests)
+endif (ICUBABY_STANDALONE)
+
 if (TARGET gtest)
   add_subdirectory (unittests)
 endif ()

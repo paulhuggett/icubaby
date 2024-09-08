@@ -49,7 +49,8 @@ jobs:
             -D CMAKE_BUILD_TYPE="$BUILD_TYPE"              \
             -D CMAKE_CXX_COMPILER="clang++-$CLANG_VERSION" \
             -D CMAKE_C_COMPILER="clang-$CLANG_VERSION"     \
-            -D ICUBABY_FUZZTEST=Yes
+            -D ICUBABY_FUZZTEST=Yes                        \
+            -D ICUBABY_STANDALONE=Yes
 
       - name: Build
         run: |
