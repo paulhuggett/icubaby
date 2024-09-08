@@ -61,6 +61,7 @@ jobs:
                 -S .                                       \
                 -B "$BUILD_DIR"                            \
                 -D ICUBABY_COVERAGE=Yes                    \
+                -D ICUBABY_STANDALONE=Yes                  \
                 -D "CMAKE_C_COMPILER=clang-$CLANG_VERSION" \
                 -D "CMAKE_CXX_COMPILER=clang++-$CLANG_VERSION"
 

@@ -190,6 +190,7 @@ jobs:
                 -G "${{ matrix.generator }}"                 \
                 -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} \
                 -D ICUBABY_EXAMPLES=Yes                      \
+                -D ICUBABY_STANDALONE=Yes                    \
                 -D ICUBABY_WERROR=Yes                        \
                 ${{ matrix.cxx_compiler }}                   \
                 ${{ matrix.options }}
