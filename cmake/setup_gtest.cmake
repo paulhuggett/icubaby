@@ -32,7 +32,7 @@ function (setup_gtest)
     add_subdirectory ("${icubaby_project_root}/googletest")
 
     foreach (target gtest gmock gmock_main gtest_main)
-      set (gclang_options -Wno-implicit-int-float-conversion)
+      set (gclang_options -Wno-implicit-int-float-conversion  -Wno-covered-switch-default)
       if (ICUBABY_LIBCXX)
         list (APPEND gclang_options -stdlib=libc++)
       endif ()

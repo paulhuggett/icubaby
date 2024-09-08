@@ -549,11 +549,7 @@ class iterator;
 ///
 /// Each of the specializations of this template (there is one for each input/output combination) supplies the same
 /// interface.
-#if ICUBABY_HAVE_CONCEPTS
-template <unicode_input FromEncoding, unicode_char_type ToEncoding>
-#else
 template <typename FromEncoding, typename ToEncoding>
-#endif  // ICUBABY_HAVE_CONCEPTS
 class transcoder {
 public:
   /// The type of the code units consumed by this transcoder.
@@ -2118,7 +2114,7 @@ namespace ranges {
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced by this range adaptor.
 /// \tparam View  The type of the underlying view.
-template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+template <typename FromEncoding, typename ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 class transcode_view : public std::ranges::view_interface<transcode_view<FromEncoding, ToEncoding, View>> {
 public:
@@ -2137,6 +2133,7 @@ public:
 
   /// \brief Obtains the beginning iterator of a transcode_view.
   constexpr auto begin () const { return iterator{*this, std::ranges::begin (base_)}; }
+
   /// \brief Obtains the sentinel denoting the end of transcode_view.
   constexpr auto end () const {
     if constexpr (std::ranges::common_range<View>) {
@@ -2172,7 +2169,7 @@ template <> inline constexpr auto max_output_bytes<char16_t, icubaby::char8> = s
 template <> inline constexpr auto max_output_bytes<char16_t, char32_t> = std::size_t{2};
 
 /// \brief The iterator type of transcode_view.
-template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+template <typename FromEncoding, typename ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 class transcode_view<FromEncoding, ToEncoding, View>::iterator {
 public:
@@ -2301,7 +2298,7 @@ private:
   mutable state state_{};
 };
 
-template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+template <typename FromEncoding, typename ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 constexpr std::ranges::iterator_t<View const> transcode_view<FromEncoding, ToEncoding, View>::iterator::state::fill (
     transcode_view const* parent) {
@@ -2331,7 +2328,7 @@ constexpr std::ranges::iterator_t<View const> transcode_view<FromEncoding, ToEnc
 }
 
 /// \brief The sentinel type of transcode_view when the underlying view is not a common_range.
-template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::input_range View>
+template <typename FromEncoding, typename ToEncoding, std::ranges::input_range View>
   requires std::ranges::view<View>
 class transcode_view<FromEncoding, ToEncoding, View>::sentinel {
 public:
@@ -2351,7 +2348,7 @@ namespace views {
 
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced by this adaptor.
-template <unicode_input FromEncoding, unicode_char_type ToEncoding> class transcode_range_adaptor {
+template <typename FromEncoding, typename ToEncoding> class transcode_range_adaptor {
 public:
   template <std::ranges::viewable_range Range> constexpr auto operator() (Range&& range) const {
     return transcode_view<FromEncoding, ToEncoding, std::ranges::views::all_t<Range>>{std::forward<Range> (range)};
@@ -2361,15 +2358,15 @@ public:
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced.
 /// \tparam Range  The type of the range that will be consumed.
-template <unicode_input FromEncoding, unicode_char_type ToEncoding, std::ranges::viewable_range Range>
+template <typename FromEncoding, typename ToEncoding, std::ranges::viewable_range Range>
 constexpr auto operator| (Range&& range, transcode_range_adaptor<FromEncoding, ToEncoding> const& adaptor) {
   return adaptor (std::forward<Range> (range));
 }
 
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced.
-template <unicode_input FromEncoding, unicode_char_type ToEncoding>
-inline constexpr auto transcode = views::transcode_range_adaptor<FromEncoding, ToEncoding>{};
+template <typename FromEncoding, typename ToEncoding>
+inline constexpr auto transcode = transcode_range_adaptor<FromEncoding, ToEncoding>{};
 
 }  // end namespace views
 
