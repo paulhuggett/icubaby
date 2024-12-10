@@ -17,7 +17,7 @@ jobs:
         include:
           - name: macOS
             generator: Xcode
-            os: macos-12
+            os: macos-15
             package: TGZ
 
           - name: Linux
