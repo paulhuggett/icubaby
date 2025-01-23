@@ -376,21 +376,21 @@ inline constexpr auto longest_sequence_v = longest_sequence<Encoding>::value;
 ///
 /// \param code_point  The code point to be tested.
 /// \returns true if the code point \p code_point represents a UTF-16 high surrogate.
-constexpr bool is_high_surrogate (char32_t code_point) noexcept {
+[[nodiscard]] constexpr bool is_high_surrogate (char32_t const code_point) noexcept {
   return code_point >= first_high_surrogate && code_point <= last_high_surrogate;
 }
 /// \brief Returns true if the code point \p code_point represents a UTF-16 low surrogate.
 ///
 /// \param code_point  The code point to be tested.
 /// \returns true if the code point \p code_point represents a UTF-16 low surrogate.
-constexpr bool is_low_surrogate (char32_t code_point) noexcept {
+[[nodiscard]] constexpr bool is_low_surrogate (char32_t const code_point) noexcept {
   return code_point >= first_low_surrogate && code_point <= last_low_surrogate;
 }
 /// \brief Returns true if the code point \p code_point represents a UTF-16 low or high surrogate.
 ///
 /// \param code_point  The code point to be tested.
 /// \returns true if the code point \p c represents a UTF-16 high or low surrogate.
-constexpr bool is_surrogate (char32_t code_point) noexcept {
+[[nodiscard]] constexpr bool is_surrogate (char32_t const code_point) noexcept {
   return is_high_surrogate (code_point) || is_low_surrogate (code_point);
 }
 
@@ -401,7 +401,7 @@ constexpr bool is_surrogate (char32_t code_point) noexcept {
 ///
 /// \param code_unit  The UTF-8 code unit to be tested.
 /// \returns true if \p code_unit represents the start of a multi-byte UTF-8 sequence.
-constexpr bool is_code_point_start (char8 code_unit) noexcept {
+[[nodiscard]] constexpr bool is_code_point_start (char8 const code_unit) noexcept {
   static_assert (sizeof (code_unit) == sizeof (std::byte));
   return (static_cast<std::byte> (code_unit) & std::byte{0b1100'0000}) != std::byte{0b1000'0000};
 }
@@ -409,14 +409,14 @@ constexpr bool is_code_point_start (char8 code_unit) noexcept {
 ///
 /// \param code_unit  The UTF-16 code unit to be tested.
 /// \returns  true if \p code_unit represents the start of a UTF-16 high/low surrogate pair.
-constexpr bool is_code_point_start (char16_t code_unit) noexcept {
+[[nodiscard]] constexpr bool is_code_point_start (char16_t const code_unit) noexcept {
   return !is_low_surrogate (code_unit);
 }
 /// \brief Returns true if \p code_unit represents a valid UTF-32 code point.
 ///
 /// \param code_unit  The UTF-32 code unit to be tested.
 /// \returns  true if \p code_unit represents a valid UTF-32 code point.
-constexpr bool is_code_point_start (char32_t code_unit) noexcept {
+[[nodiscard]] constexpr bool is_code_point_start (char32_t const code_unit) noexcept {
   return !is_surrogate (code_unit) && code_unit <= max_code_point;
 }
 ///@}
@@ -433,7 +433,7 @@ constexpr bool is_code_point_start (char32_t code_unit) noexcept {
 /// \returns  The number of code points.
 template <std::ranges::input_range Range, typename Proj = std::identity>
   requires unicode_char_type<std::ranges::range_value_t<Range>>
-constexpr std::ranges::range_difference_t<Range> length (Range&& range, Proj proj = {}) {
+[[nodiscard]] constexpr std::ranges::range_difference_t<Range> length (Range&& range, Proj proj = {}) {
   return std::ranges::count_if (
       std::forward<Range> (range),
       [] (unicode_char_type auto const code_unit) { return is_code_point_start (code_unit); }, proj);
@@ -448,7 +448,7 @@ constexpr std::ranges::range_difference_t<Range> length (Range&& range, Proj pro
 /// \returns  The number of code points.
 template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
   requires unicode_char_type<typename std::iterator_traits<I>::value_type>
-constexpr std::iter_difference_t<I> length (I first, S last, Proj proj = {}) {
+[[nodiscard]] constexpr std::iter_difference_t<I> length (I first, S last, Proj proj = {}) {
   return length (std::ranges::subrange{first, last}, proj);
 }
 
@@ -462,8 +462,8 @@ constexpr std::iter_difference_t<I> length (I first, S last, Proj proj = {}) {
 /// \returns  The number of code points.
 template <typename InputIterator,
           typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
-constexpr typename std::iterator_traits<InputIterator>::difference_type length (InputIterator first,
-                                                                                InputIterator last) {
+[[nodiscard]] constexpr typename std::iterator_traits<InputIterator>::difference_type length (InputIterator first,
+                                                                                              InputIterator last) {
   return std::count_if (first, last, [] (auto c) { return is_code_point_start (c); });
 }
 
@@ -480,7 +480,7 @@ constexpr typename std::iterator_traits<InputIterator>::difference_type length (
 /// \param proj  Projection to apply to the elements.
 /// \returns  Iterator to the start of the selected code point or iterator equal to last if no such element is found.
 template <std::ranges::input_range Range, typename Proj = std::identity>
-constexpr std::ranges::borrowed_iterator_t<Range> index (Range&& range, std::size_t pos, Proj proj = {}) {
+[[nodiscard]] constexpr std::ranges::borrowed_iterator_t<Range> index (Range&& range, std::size_t pos, Proj proj = {}) {
   auto count = std::size_t{0};
   return std::ranges::find_if (
       std::forward<Range> (range),
@@ -500,7 +500,7 @@ constexpr std::ranges::borrowed_iterator_t<Range> index (Range&& range, std::siz
 /// \returns  An iterator that is 'pos' code points after the start of the range or
 ///           'last' if the end of the range was encountered.
 template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
-constexpr I index (I first, S last, std::size_t pos, Proj proj = {}) {
+[[nodiscard]] constexpr I index (I first, S last, std::size_t pos, Proj proj = {}) {
   return index (std::ranges::subrange{first, last}, pos, proj);
 }
 
@@ -516,7 +516,7 @@ constexpr I index (I first, S last, std::size_t pos, Proj proj = {}) {
 ///           'last' if the end of the range was encountered.
 template <typename InputIterator,
           typename = std::enable_if_t<is_unicode_char_type_v<typename std::iterator_traits<InputIterator>::value_type>>>
-constexpr InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
+[[nodiscard]] constexpr InputIterator index (InputIterator first, InputIterator last, std::size_t pos) {
   auto count = std::size_t{0};
   return std::find_if (first, last, [&count, pos] (auto c) {
     static_assert (is_unicode_char_type_v<std::decay_t<decltype (c)>>);
