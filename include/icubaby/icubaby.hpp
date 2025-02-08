@@ -203,7 +203,7 @@ namespace details {
 /// \param e  The enumeration value to convert
 /// \returns The integer value of the underlying type of Enum, converted from \p e.
 template <typename Enum>
-  requires std::is_enum_v<Enum>
+ICUBABY_REQUIRES (std::is_enum_v<Enum>)
 [[nodiscard]] constexpr std::underlying_type_t<Enum> to_underlying (Enum const e) noexcept {
 #if defined(__cpp_lib_to_underlying) && __cpp_lib_to_underlying > 202102L
   return std::to_underlying (e);
