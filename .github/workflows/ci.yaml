@@ -18,18 +18,6 @@ jobs:
         include:
           # macOS builds
           # ~~~~~~~~~~~~
-          - name: macOS-13/Xcode/Debug
-            build_type: Debug
-            generator: Xcode
-            os: macos-13
-            package: TGZ
-
-          - name: macOS-13/Xcode/Release
-            build_type: Release
-            generator: Xcode
-            os: macos-13
-            package: TGZ
-
           - name: macOS-14/Xcode/Debug
             build_type: Debug
             generator: Xcode
@@ -40,6 +28,18 @@ jobs:
             build_type: Release
             generator: Xcode
             os: macos-14
+            package: TGZ
+
+          - name: macOS-latest/Xcode/Debug
+            build_type: Debug
+            generator: Xcode
+            os: macos-latest
+            package: TGZ
+
+          - name: macOS-latest/Xcode/Release
+            build_type: Release
+            generator: Xcode
+            os: macos-latest
             package: TGZ
 
           # Ubuntu builds
