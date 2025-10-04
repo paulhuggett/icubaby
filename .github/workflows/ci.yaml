@@ -93,15 +93,6 @@ jobs:
             os: ubuntu-24.04
             package: TGZ
 
-          - name: Ubuntu-24.04/clang-14/Release/C++17
-            apt_install: cmake clang-14 libc++-dev libc++abi-dev ninja-build
-            build_type: Release
-            cxx_compiler: -D CMAKE_CXX_COMPILER=clang++-14 -D CMAKE_C_COMPILER=clang-14
-            generator: Ninja
-            options: -D ICUBABY_CXX17=Yes -D ICUBABY_LIBCXX=Yes
-            os: ubuntu-24.04
-            package: TGZ
-
           # Windows builds
           # ~~~~~~~~~~~~~~
           - name: Windows-latest/VS2022/Debug
