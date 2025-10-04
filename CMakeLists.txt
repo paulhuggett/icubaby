@@ -27,6 +27,8 @@ project (icubaby
   DESCRIPTION "Little Library to Immediately Convert Unicode"
   LANGUAGES C CXX
 )
+cmake_policy(SET CMP0140 NEW)
+
 option (ICUBABY_COVERAGE "Generate LLVM Source-based Coverage" No)
 option (ICUBABY_CXX17 "Use C++17 (rather than the default C++20)" No)
 option (ICUBABY_EXAMPLES "Include example code in the generated build" No)
