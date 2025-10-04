@@ -109,11 +109,9 @@ jobs:
         run: |
           echo "Running on branch: ${{ steps.branch-names.outputs.current_branch }}"
           echo "Base branch: ${{ steps.branch-names.outputs.base_ref_branch }}"
-
           sonar-scanner                                                                      \
             -X                                                                               \
             --define sonar.branch.name="${{ steps.branch-names.outputs.current_branch }}"    \
-            --define sonar.branch.target="${{ steps.branch-names.outputs.base_ref_branch }}" \
             --define sonar.cfamily.compile-commands="$WRAPPER_OUT/compile_commands.json"     \
             --define sonar.exclusions="$BUILD_DIR/**/*,docs/**/*"                            \
             --define sonar.host.url="$SONAR_SERVER_URL"                                      \
