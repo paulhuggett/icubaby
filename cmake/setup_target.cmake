@@ -30,7 +30,7 @@ include (CheckLinkerFlag)
 # 'flag' parameter, 'result' is set to flag otherwise to an
 # empty string.
 function(flag_if_available flag result)
-  string(MAKE_C_IDENTIFIER "MIDI2_HAS_${flag}" flag_var)
+  string(MAKE_C_IDENTIFIER "ICUBABY_HAS_${flag}" flag_var)
   check_cxx_compiler_flag(${flag} ${flag_var})
   if (${flag_var})
     set(${result} ${flag})
