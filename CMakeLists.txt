@@ -42,12 +42,19 @@ option (ICUBABY_WERROR "Compiler warnings are errors" No)
 set (icubaby_project_root "${CMAKE_CURRENT_SOURCE_DIR}")
 list (APPEND CMAKE_MODULE_PATH "${icubaby_project_root}/cmake")
 
+include (FetchContent)
+
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG HEAD
+)
+
 include (setup_target)
 include (setup_gtest)
 
 if (ICUBABY_FUZZTEST)
   set (FUZZTEST_FUZZING_MODE On)
-  include (FetchContent)
   set (FUZZTEST_REPO_BRANCH "1635d42" CACHE STRING "FuzzTest repository branch.")
   message ("Building fuzztest at tag " ${FUZZTEST_REPO_BRANCH})
   FetchContent_Declare (

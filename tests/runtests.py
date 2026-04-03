@@ -37,7 +37,10 @@ def find_executables(directory:pathlib.Path, excludes:list[str]) -> typing.Gener
             if entry.name not in excludes:
                 path = entry.path
                 if entry.is_dir(follow_symlinks=False):
-                    yield from find_executables(pathlib.Path(path), excludes)
+                    # cmake FetchContent places dependencies in a directory named
+                    # '_deps' which we should skip.
+                    if entry.name != '_deps':
+                        yield from find_executables(pathlib.Path(path), excludes)
                 elif is_executable(entry):
                     yield path
 
