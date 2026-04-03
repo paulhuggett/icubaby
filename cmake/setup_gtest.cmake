@@ -22,15 +22,13 @@
 include (CheckCXXCompilerFlag)
 
 function (setup_gtest)
-  if(NOT googletest_POPULATED)
-    # Tell gtest to link against the "Multi-threaded Debug DLL runtime library"
-    # on Windows.
-    set(gtest_force_shared_crt On CACHE BOOL "Always use msvcrt.dll")
-    # We don't want to install either gtest or gmock.
-    set(INSTALL_GTEST Off CACHE BOOL "Disable gtest install")
-    set(INSTALL_GMOCK Off CACHE BOOL "Disable gmock install")
-    FetchContent_MakeAvailable(googletest)
-  endif()
+  # Tell gtest to link against the "Multi-threaded Debug DLL runtime library"
+  # on Windows.
+  set(gtest_force_shared_crt On CACHE BOOL "Always use msvcrt.dll")
+  # We don't want to install either gtest or gmock.
+  set(INSTALL_GTEST Off CACHE BOOL "Disable gtest install")
+  set(INSTALL_GMOCK Off CACHE BOOL "Disable gmock install")
+  FetchContent_MakeAvailable(googletest)
 
   foreach (target gtest gmock gmock_main gtest_main)
     set (gclang_options -Wno-implicit-int-float-conversion  -Wno-covered-switch-default)
