@@ -27,7 +27,12 @@ project (icubaby
   DESCRIPTION "Little Library to Immediately Convert Unicode"
   LANGUAGES C CXX
 )
-cmake_policy(SET CMP0140 NEW)
+
+if (CMAKE_MAJOR_VERSION GREATER_EQUAL 3 AND
+    CMAKE_MINOR_VERSION GREATER_EQUAL 25 OR
+    CMAKE_MAJOR_VERSION GREATER 3)
+  cmake_policy(SET CMP0140 NEW)
+endif()
 
 option (ICUBABY_COVERAGE "Generate LLVM Source-based Coverage" No)
 option (ICUBABY_CXX17 "Use C++17 (rather than the default C++20)" No)
