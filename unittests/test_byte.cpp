@@ -42,6 +42,18 @@
 #include <fuzztest/fuzztest.h>
 #endif
 
+#ifdef __cpp_lib_char8_t
+namespace testing::internal {
+
+inline void PrintTo(char8_t c, ::std::ostream* os) {
+  // TODO(b/418738869): Incorrect for values not representing valid codepoints.
+  // Also see https://github.com/google/googletest/issues/4762.
+  PrintTo(static_cast<char32_t>(c), os);
+}
+
+} // end namespace testing::internal
+#endif // __cpp_lib_char8_t
+
 using testing::ElementsAre;
 
 namespace icubaby {
