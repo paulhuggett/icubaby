@@ -40,7 +40,6 @@
 #include <gtest/gtest.h>
 #if defined(ICUBABY_FUZZTEST) && ICUBABY_FUZZTEST
 #include <fuzztest/fuzztest.h>
-#endif
 
 #ifdef __cpp_lib_char8_t
 namespace testing::internal {
@@ -53,6 +52,7 @@ inline void PrintTo(char8_t c, ::std::ostream* os) {
 
 } // end namespace testing::internal
 #endif // __cpp_lib_char8_t
+#endif // ICUBABY_FUZZTEST
 
 using testing::ElementsAre;
 
