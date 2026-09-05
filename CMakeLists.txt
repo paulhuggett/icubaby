@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2022-2024 Paul Bowen-Huggett
+# Copyright (c) 2022-2026 Paul Bowen-Huggett
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
 cmake_minimum_required (VERSION 3.22)
 
 project (icubaby
-  VERSION "1.2.4"
+  VERSION "1.2.5"
   DESCRIPTION "Little Library to Immediately Convert Unicode"
   LANGUAGES C CXX
 )
