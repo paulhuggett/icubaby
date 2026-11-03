@@ -14,7 +14,7 @@ permissions:
 jobs:
   fuzztest:
     name: Fuzz Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       BUILD_DIR: build_fuzztest
       BUILD_TYPE: RelWithDebug
