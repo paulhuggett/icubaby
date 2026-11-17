@@ -22,6 +22,7 @@
 
 add_executable (icubaby-unittests
   backtrace.cpp
+  direct_vs_triangulator.hpp
   encoded_char.hpp
   test_byte.cpp
   test_u16.cpp

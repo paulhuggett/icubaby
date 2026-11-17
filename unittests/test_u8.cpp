@@ -53,6 +53,7 @@
 #endif
 
 // Local includes
+#include "direct_vs_triangulator.hpp"
 #include "encoded_char.hpp"
 #include "typed_test.hpp"
 
@@ -628,6 +629,78 @@ TEST (Utf8To32, RangesBadInput) {
   EXPECT_FALSE (range.well_formed ());
 }
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
+// The UTF-8 to UTF-16 transcoder converts directly between the two encodings. The following tests check that its
+// behavior is identical to converting via an intermediate UTF-32 encoding.
+
+// NOLINTNEXTLINE
+TEST (Utf8To16Direct, MatchesTriangulatorForEveryOneAndTwoByteSequence) {
+  direct_vs_triangulator<icubaby::char8, char16_t> check;
+  for (auto byte1 = 0U; byte1 <= 0xFFU; ++byte1) {
+    ASSERT_TRUE (check ({static_cast<icubaby::char8> (byte1)}));
+    for (auto byte2 = 0U; byte2 <= 0xFFU; ++byte2) {
+      ASSERT_TRUE (check ({static_cast<icubaby::char8> (byte1), static_cast<icubaby::char8> (byte2)}));
+    }
+  }
+}
+namespace {
+
+// Bytes at the boundaries of the different UTF-8 byte classes.
+constexpr auto interesting_utf8_bytes = std::array<std::uint_least8_t, 20>{
+    0x00, 0x41, 0x7F, 0x80, 0x8F, 0x90, 0x9F, 0xA0, 0xBF, 0xC0,
+    0xC1, 0xC2, 0xDF, 0xE0, 0xED, 0xEF, 0xF0, 0xF4, 0xF5, 0xFF,
+};
+
+}  // end anonymous namespace
+
+// NOLINTNEXTLINE
+TEST (Utf8To16Direct, MatchesTriangulatorForThreeByteSequencesWithLeadAndContinuation) {
+  direct_vs_triangulator<icubaby::char8, char16_t> check;
+  for (auto byte1 = 0xC0U; byte1 <= 0xFFU; ++byte1) {
+    for (auto byte2 = 0x80U; byte2 <= 0xBFU; ++byte2) {
+      for (auto const byte3 : interesting_utf8_bytes) {
+        ASSERT_TRUE (check ({static_cast<icubaby::char8> (byte1), static_cast<icubaby::char8> (byte2),
+                             static_cast<icubaby::char8> (byte3)}));
+      }
+    }
+  }
+}
+// NOLINTNEXTLINE
+TEST (Utf8To16Direct, MatchesTriangulatorForCodePoints) {
+  direct_vs_triangulator<icubaby::char8, char16_t> check;
+  std::vector<icubaby::char8> encoded;
+  // Check every code point in the Basic Multilingual Plane then sample those beyond it. The step is chosen so that
+  // all of the bits of the code point vary.
+  for (auto code_point = char32_t{0}; code_point <= icubaby::max_code_point;
+       code_point += (code_point < 0x10000) ? 1U : 61U) {
+    if (icubaby::is_surrogate (code_point)) {
+      continue;
+    }
+    encoded.clear ();
+    icubaby::t32_8 encoder;
+    (void)encoder.end_cp (encoder (code_point, std::back_inserter (encoded)));
+    ASSERT_TRUE (encoder.well_formed ());
+    ASSERT_TRUE (check (encoded)) << "code point U+" << std::hex << static_cast<std::uint_least32_t> (code_point);
+    // Check the same sequence again with the final code unit missing.
+    encoded.pop_back ();
+    ASSERT_TRUE (check (encoded)) << "truncated code point U+" << std::hex
+                                  << static_cast<std::uint_least32_t> (code_point);
+  }
+}
+// NOLINTNEXTLINE
+TEST (Utf8To16Direct, MatchesTriangulatorForSequencesOfFour) {
+  direct_vs_triangulator<icubaby::char8, char16_t> check;
+  for (auto const byte1 : interesting_utf8_bytes) {
+    for (auto const byte2 : interesting_utf8_bytes) {
+      for (auto const byte3 : interesting_utf8_bytes) {
+        for (auto const byte4 : interesting_utf8_bytes) {
+          ASSERT_TRUE (check ({static_cast<icubaby::char8> (byte1), static_cast<icubaby::char8> (byte2),
+                               static_cast<icubaby::char8> (byte3), static_cast<icubaby::char8> (byte4)}));
+        }
+      }
+    }
+  }
+}
 
 #if ICUBABY_FUZZTEST
 
