@@ -929,6 +929,8 @@ public:
     accept = 0,  ///< A complete code point has been decoded.
     reject = 12  ///< The input was malformed.
   };
+  /// The number of bits required to represent any of the automaton's states. The largest state value is 96.
+  static constexpr auto state_bits = 7U;
 
   /// The result of advancing the automaton by a single code unit.
   struct result {
@@ -1574,6 +1576,152 @@ private:
     *(dest++) =
         static_cast<output_type> (details::utf8_continuation | ((high & 0b11U) << 4U) | (low >> details::utf8_shift));
     *(dest++) = static_cast<output_type> (details::utf8_continuation | (low & details::utf8_mask));
+    return dest;
+  }
+
+  /// Writes U+FFFD REPLACEMENT CHARACTER to the output and records the input as not well formed.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator not_well_formed (OutputIterator dest) noexcept {
+    well_formed_ = false;
+    static_assert (!is_surrogate (replacement_char) && replacement_char >= 0x800 && replacement_char <= 0xFFFF,
+                   "U+FFFD should be encoded as three UTF-8 code units");
+    return details::utf8_write3 (replacement_char, dest);
+  }
+};
+
+/// \brief Takes a sequence of UTF-8 code units, validates them, and produces UTF-8.
+///
+/// The input is validated using the same finite state machine as the other transcoders which consume UTF-8
+/// (details::utf8_dfa) but the code units are not decoded. Instead, the code units of a multi-byte sequence are held
+/// back until the sequence is known to be complete and well formed at which point they are copied unchanged to the
+/// output. A malformed sequence is replaced by U+FFFD REPLACEMENT CHARACTER.
+template <> class transcoder<char8, char8> {
+public:
+  /// The type of the code units consumed by this transcoder.
+  using input_type = char8;
+  /// The type of the code units produced by this transcoder.
+  using output_type = char8;
+
+  constexpr transcoder () noexcept : transcoder (true) {}
+  /// Initializes a transcoder instance with an initial value for its "well formed" state. This can be useful if
+  /// converting a stream of data which may be using different encodings.
+  ///
+  /// \param well_formed The initial value for the transcoder's "well formed" state.
+  explicit constexpr transcoder (bool well_formed) noexcept
+      : pending_{0}, well_formed_{static_cast<std::uint_least32_t> (well_formed)}, state_{accept} {}
+
+  /// Accepts a code unit in the UTF-8 source encoding. As UTF-8 output code units are generated, they are written to
+  /// the output iterator \p dest.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param code_unit  A UTF-8 code unit,
+  /// \param dest  Iterator to which the output should be written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
+    auto const ucu = static_cast<std::uint_least8_t> (code_unit);
+    if (state_ == accept && ucu < 0x80U) {
+      // Fast path for ASCII: a single byte code point which can be copied directly to the output.
+      assert (pending_ == 0U);
+      *(dest++) = code_unit;
+      return dest;
+    }
+    // We only need the automaton's state: the code point value that it assembles is not used.
+    auto const next_state = details::utf8_dfa::step (static_cast<std::uint_least8_t> (state_), 0U, code_unit).state;
+    switch (next_state) {
+    case accept:
+      // The sequence is complete and well formed: copy it to the output.
+      dest = this->flush_pending (dest);
+      *(dest++) = code_unit;
+      state_ = accept;
+      break;
+    case reject:
+      // The sequence was malformed. Discard it and write U+FFFD REPLACEMENT CHARACTER in its place.
+      pending_ = 0;
+      state_ = accept;
+      dest = this->not_well_formed (dest);
+      break;
+    default:
+      // Part way through a multi-byte sequence: remember this code unit until we know whether the sequence is well
+      // formed.
+      assert (pending_ <= 0xFFFFU && "A maximum of three code units may be pending");
+      pending_ = static_cast<std::uint_least32_t> (pending_ << 8U) | ucu;
+      state_ = next_state;
+      break;
+    }
+    return dest;
+  }
+
+  /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
+  /// end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator> OutputIterator end_cp (OutputIterator dest) {
+    if (state_ != accept) {
+      pending_ = 0;
+      state_ = reject;
+      dest = this->not_well_formed (dest);
+    }
+    return dest;
+  }
+
+  /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
+  /// end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
+    auto coder = dest.transcoder ();
+    assert (coder == this);
+    return {coder, coder->end_cp (dest.base ())};
+  }
+
+  /// \returns True if the input represented well formed UTF-8.
+  [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
+  /// \returns True if a partial code-point has been passed to operator() and false otherwise.
+  [[nodiscard]] constexpr bool partial () const noexcept { return state_ != accept; }
+
+private:
+  /// \brief The code units of an incomplete multi-byte sequence.
+  ///
+  /// Up to three code units are held, with the most recent in the least significant byte. Every code unit of a
+  /// multi-byte sequence is non-zero (lead bytes are at least 0xC2 and continuation bytes are at least 0x80) so the
+  /// number of code units held can be determined from the value.
+  std::uint_least32_t pending_ : 24;
+  /// True if the input consumed is well formed, false otherwise.
+  std::uint_least32_t well_formed_ : 1;
+  /// The states of the UTF-8 decoder that are of interest to the transcoder.
+  enum : std::uint_least8_t { accept = details::utf8_dfa::accept, reject = details::utf8_dfa::reject };
+  /// The state of the UTF-8 decoder.
+  std::uint_least32_t state_ : details::utf8_dfa::state_bits;
+
+  /// Writes the code units held in pending_ to the output and empties pending_.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator flush_pending (OutputIterator dest) noexcept {
+    constexpr auto byte_mask = std::uint_least32_t{0xFF};
+    auto const pending = static_cast<std::uint_least32_t> (pending_);
+    if (pending > 0xFFFFU) {
+      *(dest++) = static_cast<output_type> ((pending >> 16U) & byte_mask);
+    }
+    if (pending > 0xFFU) {
+      *(dest++) = static_cast<output_type> ((pending >> 8U) & byte_mask);
+    }
+    if (pending > 0U) {
+      *(dest++) = static_cast<output_type> (pending & byte_mask);
+    }
+    pending_ = 0;
     return dest;
   }
 
@@ -2379,8 +2527,6 @@ private:
 
 }  // end namespace details
 
-/// Takes a sequence of UTF-8 code units and converts them to UTF-8.
-template <> class transcoder<char8, char8> : public details::triangulator<char8, char8> {};
 /// Takes a sequence of UTF-16 code units and converts them to UTF-16.
 template <> class transcoder<char16_t, char16_t> : public details::triangulator<char16_t, char16_t> {};
 /// Takes a sequence of UTF-32 code units and converts them to UTF-32.

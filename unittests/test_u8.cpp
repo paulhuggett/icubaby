@@ -630,12 +630,21 @@ TEST (Utf8To32, RangesBadInput) {
 }
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
-// The UTF-8 to UTF-16 transcoder converts directly between the two encodings. The following tests check that its
-// behavior is identical to converting via an intermediate UTF-32 encoding.
+// The UTF-8 to UTF-8 and UTF-8 to UTF-16 transcoders convert directly between the two encodings. The following tests
+// check that their behavior is identical to converting via an intermediate UTF-32 encoding.
+
+namespace {
+
+template <typename T> class Utf8Direct : public testing::Test {};
+using Utf8DirectOutputTypes = testing::Types<icubaby::char8, char16_t>;
+
+}  // end anonymous namespace
+
+TYPED_TEST_SUITE (Utf8Direct, Utf8DirectOutputTypes, OutputTypeNames);
 
 // NOLINTNEXTLINE
-TEST (Utf8To16Direct, MatchesTriangulatorForEveryOneAndTwoByteSequence) {
-  direct_vs_triangulator<icubaby::char8, char16_t> check;
+TYPED_TEST (Utf8Direct, MatchesTriangulatorForEveryOneAndTwoByteSequence) {
+  direct_vs_triangulator<icubaby::char8, TypeParam> check;
   for (auto byte1 = 0U; byte1 <= 0xFFU; ++byte1) {
     ASSERT_TRUE (check ({static_cast<icubaby::char8> (byte1)}));
     for (auto byte2 = 0U; byte2 <= 0xFFU; ++byte2) {
@@ -654,8 +663,8 @@ constexpr auto interesting_utf8_bytes = std::array<std::uint_least8_t, 20>{
 }  // end anonymous namespace
 
 // NOLINTNEXTLINE
-TEST (Utf8To16Direct, MatchesTriangulatorForThreeByteSequencesWithLeadAndContinuation) {
-  direct_vs_triangulator<icubaby::char8, char16_t> check;
+TYPED_TEST (Utf8Direct, MatchesTriangulatorForThreeByteSequencesWithLeadAndContinuation) {
+  direct_vs_triangulator<icubaby::char8, TypeParam> check;
   for (auto byte1 = 0xC0U; byte1 <= 0xFFU; ++byte1) {
     for (auto byte2 = 0x80U; byte2 <= 0xBFU; ++byte2) {
       for (auto const byte3 : interesting_utf8_bytes) {
@@ -666,8 +675,8 @@ TEST (Utf8To16Direct, MatchesTriangulatorForThreeByteSequencesWithLeadAndContinu
   }
 }
 // NOLINTNEXTLINE
-TEST (Utf8To16Direct, MatchesTriangulatorForCodePoints) {
-  direct_vs_triangulator<icubaby::char8, char16_t> check;
+TYPED_TEST (Utf8Direct, MatchesTriangulatorForCodePoints) {
+  direct_vs_triangulator<icubaby::char8, TypeParam> check;
   std::vector<icubaby::char8> encoded;
   // Check every code point in the Basic Multilingual Plane then sample those beyond it. The step is chosen so that
   // all of the bits of the code point vary.
@@ -688,8 +697,34 @@ TEST (Utf8To16Direct, MatchesTriangulatorForCodePoints) {
   }
 }
 // NOLINTNEXTLINE
-TEST (Utf8To16Direct, MatchesTriangulatorForSequencesOfFour) {
-  direct_vs_triangulator<icubaby::char8, char16_t> check;
+TEST (Utf8To8Direct, WellFormedInputIsUnchanged) {
+  // Build a string containing a sample of code points of every encoded length.
+  std::vector<icubaby::char8> input;
+  icubaby::t32_8 encoder;
+  auto encoder_out = std::back_inserter (input);
+  for (auto code_point = char32_t{0}; code_point <= icubaby::max_code_point; code_point += 251U) {
+    if (!icubaby::is_surrogate (code_point)) {
+      encoder_out = encoder (code_point, encoder_out);
+    }
+  }
+  (void)encoder.end_cp (encoder_out);
+  ASSERT_TRUE (encoder.well_formed ());
+
+  std::vector<icubaby::char8> output;
+  icubaby::t8_8 transcoder;
+  auto out = std::back_inserter (output);
+  for (auto const code_unit : input) {
+    out = transcoder (code_unit, out);
+    EXPECT_TRUE (transcoder.well_formed ());
+  }
+  (void)transcoder.end_cp (out);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  EXPECT_THAT (output, ContainerEq (input));
+}
+// NOLINTNEXTLINE
+TYPED_TEST (Utf8Direct, MatchesTriangulatorForSequencesOfFour) {
+  direct_vs_triangulator<icubaby::char8, TypeParam> check;
   for (auto const byte1 : interesting_utf8_bytes) {
     for (auto const byte2 : interesting_utf8_bytes) {
       for (auto const byte3 : interesting_utf8_bytes) {
