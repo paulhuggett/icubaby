@@ -951,9 +951,11 @@ public:
     // Prior to C++20, char8 might be signed.
     static_assert (sizeof (code_unit) <= sizeof (std::uint_least8_t));
     auto ucu = static_cast<std::uint_least8_t> (code_unit);
-    // Clamp ucu in the event that it has more than 8 bits.
+    // Clamp ucu in the event that it has more than 8 bits. A value greater than 0xFF cannot be part of a UTF-8 sequence:
+    // clamping it to 0xFF (which is also never valid in UTF-8) ensures that it is rejected and keeps the table index in
+    // bounds.
     if constexpr (CHAR_BIT > 8 || sizeof (std::uint_least8_t) > 1) {
-      ucu = std::max (ucu, std::uint_least8_t{0xFF});
+      ucu = std::min (ucu, std::uint_least8_t{0xFF});
     }
     static_assert (utf8d_.size () > 255);
     assert (ucu < utf8d_.size ());
