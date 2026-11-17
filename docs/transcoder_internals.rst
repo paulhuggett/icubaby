@@ -19,9 +19,27 @@ UTF-8 to UTF-32 Transcoder
   :undoc-members:
   :allow-dot-graphs:
 
+UTF-8 to UTF-16 Transcoder
+--------------------------
+.. doxygenclass:: icubaby::transcoder< char8, char16_t >
+  :members:
+  :protected-members:
+  :private-members:
+  :undoc-members:
+  :allow-dot-graphs:
+
 UTF-16 to UTF-32 Transcoder
 ---------------------------
 .. doxygenclass:: icubaby::transcoder< char16_t, char32_t >
+  :members:
+  :protected-members:
+  :private-members:
+  :undoc-members:
+  :allow-dot-graphs:
+
+UTF-16 to UTF-8 Transcoder
+--------------------------
+.. doxygenclass:: icubaby::transcoder< char16_t, char8 >
   :members:
   :protected-members:
   :private-members:
@@ -55,27 +73,24 @@ UTF-32 to UTF-32 Transcoder
   :undoc-members:
   :allow-dot-graphs:
 
+UTF-8 Decoder
+-------------
+The finite state machine used to decode UTF-8 input. It is shared by the UTF-8 to UTF-32 and UTF-8 to UTF-16
+transcoders.
+
+.. doxygenclass:: icubaby::details::utf8_dfa
+  :members:
+  :protected-members:
+  :private-members:
+  :undoc-members:
+  :allow-dot-graphs:
+
 Triangulator
 ------------
+A triangulator converts between two encodings via an intermediate UTF-32 encoding. It is used to implement
+the UTF-8 to UTF-8 and UTF-16 to UTF-16 transcoders.
+
 .. doxygenclass:: icubaby::details::triangulator
-  :members:
-  :protected-members:
-  :private-members:
-  :undoc-members:
-  :allow-dot-graphs:
-
-UTF-8 to UTF-16 Transcoder
---------------------------
-.. doxygenclass:: icubaby::transcoder< char8, char16_t >
-  :members:
-  :protected-members:
-  :private-members:
-  :undoc-members:
-  :allow-dot-graphs:
-
-UTF-16 to UTF-8 Transcoder
---------------------------
-.. doxygenclass:: icubaby::transcoder< char16_t, char8 >
   :members:
   :protected-members:
   :private-members:
