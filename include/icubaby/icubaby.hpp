@@ -1209,9 +1209,7 @@ public:
   ///
   /// \param well_formed The initial value for the transcoder's "well formed" state.
   explicit constexpr transcoder (bool well_formed) noexcept
-      : high_{0},
-        has_high_{static_cast<uint_least16_t> (false)},
-        well_formed_{static_cast<uint_least16_t> (well_formed)} {}
+      : high_{no_high}, well_formed_{static_cast<uint_least16_t> (well_formed)} {}
 
   /// Accepts a code unit in the UTF-16 source encoding. As UTF-32 output code units are generated, they are written to
   /// the output iterator \p dest.
@@ -1222,12 +1220,11 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
-    if (!has_high_) {
+    if (high_ == no_high) {
       if (is_high_surrogate (code_unit)) {
         // A high surrogate code unit indicates that this is the first of a
         // high/low surrogate pair.
-        high_ = adjusted_high (code_unit);
-        has_high_ = true;
+        high_ = store_high (code_unit);
         return dest;
       }
 
@@ -1242,11 +1239,8 @@ public:
 
     // A high surrogate followed by a low-surrogate.
     if (is_low_surrogate (code_unit)) {
-      *(dest++) = static_cast<char32_t> (((static_cast<std::uint_least32_t> (high_) << details::utf16_shift) |
-                                          (static_cast<std::uint_least32_t> (code_unit) - first_low_surrogate)) +
-                                         details::utf16_first_surrogate_pair);
-      high_ = 0;
-      has_high_ = false;
+      *(dest++) = static_cast<char32_t> (combine (high_, code_unit));
+      high_ = no_high;
       return dest;
     }
     // There was a high-surrogate followed by something other than a low surrogate. A high-surrogate followed by a
@@ -1256,14 +1250,12 @@ public:
     well_formed_ = false;
     if (is_high_surrogate (code_unit)) {
       // There was a high surrogate followed by a second high-surrogate: remember the latter.
-      high_ = adjusted_high (code_unit);
-      assert (has_high_);
+      high_ = store_high (code_unit);
       return dest;
     }
 
     *(dest++) = code_unit;
-    high_ = 0;
-    has_high_ = false;
+    high_ = no_high;
     return dest;
   }
 
@@ -1273,10 +1265,9 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator> OutputIterator end_cp (OutputIterator dest) {
-    if (has_high_) {
+    if (high_ != no_high) {
       *(dest++) = replacement_char;
-      high_ = 0;
-      has_high_ = false;
+      high_ = no_high;
       well_formed_ = false;
     }
     return dest;
@@ -1298,29 +1289,49 @@ public:
   /// \returns True if the input represented well formed UTF-16.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
   /// \returns True if a partial code-point has been passed to operator() and false otherwise.
-  [[nodiscard]] constexpr bool partial () const noexcept { return has_high_; }
+  [[nodiscard]] constexpr bool partial () const noexcept { return high_ != no_high; }
 
 private:
-  /// The previous high surrogate that was passed to operator(). Valid if has_high_ is true.
-  uint_least16_t high_ : details::utf16_shift;
-  /// true if the previous code unit passed to operator() was a high surrogate, false otherwise.
-  uint_least16_t has_high_ : 1;
+  // Rather than storing the high surrogate's 10-bit payload together with a separate "have a high surrogate" flag,
+  // the transcoder keeps the least significant high_bits bits of the code unit itself. Every high surrogate
+  // (0xD800-0xDBFF) has bit 11 set, so the stored value lies in the range 0x800-0xBFF and is never zero. Zero (no_high)
+  // is therefore free to mean "no high surrogate".
+
+  /// The number of bits needed to record a high surrogate using store_high().
+  static constexpr auto high_bits = 12U;
+  /// The value of high_ which indicates that the previous code unit was not a high surrogate.
+  static constexpr auto no_high = std::uint_least16_t{0};
+
+  /// The previous high surrogate that was passed to operator() as recorded by store_high(), or no_high if the previous
+  /// code unit was not a high surrogate.
+  uint_least16_t high_ : high_bits;
   /// true if the code units passed to operator() represent well formed UTF-16 input, false otherwise.
   uint_least16_t well_formed_ : 1;
 
-  /// \brief This function returns a high surrogate value that can be stored in the high_ field.
-  ///
-  /// The high surrogate value is stored after the first_high_surrogate value has been subtracted. This reduces the
-  /// number of bits that we need to remember.
+  /// \brief Returns a value that records the high surrogate \p code_unit and which is never equal to no_high.
   ///
   /// \param code_unit A UTF-16 code unit for which icubaby::is_high_surrogate() returns true.
-  /// \returns A high surrogate value that can be stored in the class's high_ field.
-  static std::uint_least16_t adjusted_high (std::uint_least16_t code_unit) noexcept {
-    assert (code_unit >= first_high_surrogate && "A high surrogate must be at least first_high_surrogate");
-    auto const high_cu = code_unit - first_high_surrogate;
-    assert (high_cu < std::numeric_limits<decltype (high_)>::max () && high_cu < (1U << details::utf16_shift) &&
-            "high_cu won't fit in the high_ field!");
-    return static_cast<uint_least16_t> (high_cu);
+  /// \returns  A value in the range [0x800, 0xBFF] which can be stored in the high_ field.
+  [[nodiscard]] static constexpr std::uint_least16_t store_high (std::uint_least16_t const code_unit) noexcept {
+    constexpr auto mask = (1U << high_bits) - 1U;
+    static_assert (
+        (first_high_surrogate & ~mask) == (last_high_surrogate & ~mask) && (first_high_surrogate & mask) != no_high,
+        "Every high surrogate must have a non-zero stored value");
+    assert (is_high_surrogate (code_unit) && "code_unit must be a high surrogate");
+    return static_cast<std::uint_least16_t> (code_unit & mask);
+  }
+
+  /// \brief Combines a high surrogate recorded by store_high() with a low surrogate to give a code point from beyond
+  /// plane 0.
+  ///
+  /// \param high  A value returned by store_high().
+  /// \param low  A UTF-16 code unit for which icubaby::is_low_surrogate() returns true.
+  /// \returns  The code point (in the range [U+10000, U+10FFFF]) represented by the surrogate pair.
+  [[nodiscard]] static constexpr std::uint_least32_t combine (std::uint_least32_t const high,
+                                                              std::uint_least32_t const low) noexcept {
+    assert (high != no_high && is_low_surrogate (low));
+    return (((high & details::utf16_mask) << details::utf16_shift) | (low & details::utf16_mask)) +
+           details::utf16_first_surrogate_pair;
   }
 };
 
