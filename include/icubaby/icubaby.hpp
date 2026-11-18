@@ -798,6 +798,40 @@ OutputIterator utf8_write4 (std::uint_least32_t const code_point, OutputIterator
   return details::utf8_write_continuation (std::uint_least8_t{3}, code_point, dest);
 }
 
+/// \brief Writes a code point to the output as between one and four UTF-8 code units.
+///
+/// Unlike utf8_write2(), utf8_write3(), and utf8_write4(), this function handles code points of any encoded length.
+/// Rather than having a separate path for each length, all of the continuation bytes are written by a single loop.
+/// A caller that does not know the encoded length in advance therefore needs only one copy of the encoding logic.
+///
+/// \tparam OutputIterator  An output iterator type to which values of type icubaby::char8 can be written.
+/// \param code_point  The code point to be written. Must be a Unicode scalar value (that is, not a surrogate and no
+///   greater than icubaby::max_code_point).
+/// \param dest  An output iterator to which the output sequence is written.
+/// \returns  Iterator one past the last element assigned.
+template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (char8) OutputIterator>
+OutputIterator utf8_write (std::uint_least32_t const code_point, OutputIterator dest) {
+  assert (!is_surrogate (code_point) && code_point <= max_code_point && "Code point is not a Unicode scalar value");
+  if (code_point < 0x80U) {
+    *(dest++) = static_cast<char8> (code_point);
+    return dest;
+  }
+  // The number of continuation bytes that follow the first byte.
+  auto continuations = code_point < 0x800U ? 1U : (code_point < 0x10000U ? 2U : 3U);
+  // The first byte of an n byte sequence starts with n one bits followed by a zero bit.
+  constexpr auto first_byte_prefix = [] (unsigned const length) constexpr { return (0xFF00U >> length) & 0xFFU; };
+  static_assert (first_byte_prefix (2U) == utf8_byte_1_of_2);
+  static_assert (first_byte_prefix (3U) == utf8_byte_1_of_3);
+  static_assert (first_byte_prefix (4U) == utf8_byte_1_of_4);
+  *(dest++) =
+      static_cast<char8> (first_byte_prefix (continuations + 1U) | (code_point >> (utf8_shift * continuations)));
+  do {
+    --continuations;
+    *(dest++) = static_cast<char8> (utf8_continuation | ((code_point >> (utf8_shift * continuations)) & utf8_mask));
+  } while (continuations > 0U);
+  return dest;
+}
+
 /// Writes a code point from beyond plane 0 to the output as a UTF-16 high/low surrogate pair.
 ///
 /// Code points from beyond plane 0 are encoded as a two 16-bit code unit surrogate pair. The first code unit is the
@@ -1405,9 +1439,10 @@ private:
 
 /// \brief Takes a sequence of UTF-16 code units and converts them to UTF-8.
 ///
-/// UTF-8 output is produced directly from the UTF-16 input. A code unit from the Basic Multilingual Plane is written as
-/// one, two, or three UTF-8 code units; a high/low surrogate pair is written as four UTF-8 code units built from the
-/// payload bits of the two surrogates without first being combined into a UTF-32 code point.
+/// UTF-8 output is produced directly from the UTF-16 input without an intermediate transcoder. Each call to
+/// operator() determines the single code point to be written (a code unit from the Basic Multilingual Plane, the
+/// combination of a high/low surrogate pair, or U+FFFD REPLACEMENT CHARACTER for a lone low surrogate) and writes it
+/// using details::utf8_write().
 template <> class transcoder<char16_t, char8> {
 public:
   /// The type of the code units consumed by this transcoder.
@@ -1434,40 +1469,34 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
-    if (!has_high_) {
-      if (is_high_surrogate (code_unit)) {
-        // A high surrogate code unit indicates that this is the first of a high/low surrogate pair.
-        high_ = adjusted_high (code_unit);
-        has_high_ = true;
-        return dest;
-      }
-      // A low-surrogate without a preceding high-surrogate.
-      if (is_low_surrogate (code_unit)) {
-        return this->not_well_formed (dest);
-      }
-      return transcoder::write_bmp (code_unit, dest);
-    }
-
-    // A high surrogate followed by a low-surrogate.
-    if (is_low_surrogate (code_unit)) {
-      dest = this->write_surrogate_pair (code_unit, dest);
-      high_ = 0;
+    // The code point that will be written to the output.
+    auto code_point = static_cast<std::uint_least32_t> (code_unit);
+    bool const is_low = is_low_surrogate (code_unit);
+    if (has_high_) {
       has_high_ = false;
-      return dest;
+      if (is_low) {
+        // A high surrogate followed by a low surrogate: combine the two to form a code point from beyond plane 0.
+        code_point =
+            ((static_cast<std::uint_least32_t> (high_) << details::utf16_shift) | (code_point - first_low_surrogate)) +
+            details::utf16_first_surrogate_pair;
+      } else {
+        // A high surrogate followed by something other than a low surrogate. The high surrogate is replaced by
+        // REPLACEMENT CHARACTER and this code unit is then processed normally.
+        dest = this->not_well_formed (dest);
+      }
+    } else if (is_low) {
+      // A low surrogate without a preceding high surrogate is replaced by REPLACEMENT CHARACTER.
+      well_formed_ = false;
+      code_point = replacement_char;
     }
-    // There was a high-surrogate followed by something other than a low surrogate. A high-surrogate followed by a
-    // second high-surrogate yields a single REPLACEMENT CHARACTER. A high-surrogate followed by something other than
-    // a low-surrogate gives REPLACEMENT CHARACTER followed by the second input code point.
-    dest = this->not_well_formed (dest);
     if (is_high_surrogate (code_unit)) {
-      // There was a high surrogate followed by a second high-surrogate: remember the latter.
+      // A high surrogate code unit indicates that this is the first of a high/low surrogate pair. If it followed a
+      // second high surrogate, REPLACEMENT CHARACTER has already been written for that one.
       high_ = adjusted_high (code_unit);
-      assert (has_high_);
+      has_high_ = true;
       return dest;
     }
-    high_ = 0;
-    has_high_ = false;
-    return transcoder::write_bmp (code_unit, dest);
+    return details::utf8_write (code_point, dest);
   }
 
   /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
@@ -1526,61 +1555,6 @@ private:
     return static_cast<uint_least16_t> (high_cu);
   }
 
-  /// Writes a code unit from the Basic Multilingual Plane to the output as one, two, or three UTF-8 code units.
-  ///
-  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
-  /// \param code_unit  A UTF-16 code unit which is not a surrogate.
-  /// \param dest  An output iterator to which the output sequence is written.
-  /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  static OutputIterator write_bmp (input_type const code_unit, OutputIterator dest) {
-    assert (!is_surrogate (code_unit) && "Surrogates cannot be written as a BMP code point");
-    if (code_unit < 0x80) {
-      *(dest++) = static_cast<output_type> (code_unit);
-      return dest;
-    }
-    if (code_unit < 0x800) {
-      return details::utf8_write2 (code_unit, dest);
-    }
-    return details::utf8_write3 (code_unit, dest);
-  }
-
-  /// \brief Writes the code point given by the high surrogate held in high_ and the low surrogate \p low_surrogate
-  ///   to the output as four UTF-8 code units.
-  ///
-  /// A surrogate pair encodes the value (code point - 0x10000) as 20 bits, with the high ten bits carried by the high
-  /// surrogate and the low ten bits by the low surrogate. Adding 0x10000 affects only the top four bits of the high
-  /// surrogate's payload (bits 6-9) which become the five bit "plane" number (1-16). The UTF-8 code units are then
-  /// assembled directly from these bits as shown below, where *u* is the plane number, *h* the payload of the
-  /// high surrogate, and *l* the payload of the low surrogate:
-  ///
-  /// | Byte 1           | Byte 2                   | Byte 3                   | Byte 4         |
-  /// | ---------------- | ------------------------ | ------------------------ | -------------- |
-  /// | 11110 u[4:2]     | 10 u[1:0] h[5:2]         | 10 h[1:0] l[9:6]         | 10 l[5:0]      |
-  ///
-  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
-  /// \param low_surrogate  A UTF-16 low surrogate code unit.
-  /// \param dest  An output iterator to which the output sequence is written.
-  /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator write_surrogate_pair (input_type const low_surrogate, OutputIterator dest) const {
-    assert (has_high_ && is_low_surrogate (low_surrogate));
-    auto const high = static_cast<std::uint_least32_t> (high_);
-    auto const low = static_cast<std::uint_least32_t> (low_surrogate) - first_low_surrogate;
-    // The number of bits of the high surrogate's payload that are not part of the plane number.
-    constexpr auto plane_shift = details::utf16_shift - 4U;
-    auto const plane = (high >> plane_shift) + 1U;
-    assert (plane >= 1U && plane <= 16U && "The plane number of a surrogate pair must be in the range [1, 16]");
-
-    *(dest++) = static_cast<output_type> (details::utf8_byte_1_of_4 | (plane >> 2U));
-    *(dest++) =
-        static_cast<output_type> (details::utf8_continuation | ((plane & 0b11U) << 4U) | ((high >> 2U) & 0b1111U));
-    *(dest++) =
-        static_cast<output_type> (details::utf8_continuation | ((high & 0b11U) << 4U) | (low >> details::utf8_shift));
-    *(dest++) = static_cast<output_type> (details::utf8_continuation | (low & details::utf8_mask));
-    return dest;
-  }
-
   /// Writes U+FFFD REPLACEMENT CHARACTER to the output and records the input as not well formed.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
@@ -1589,9 +1563,7 @@ private:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator not_well_formed (OutputIterator dest) noexcept {
     well_formed_ = false;
-    static_assert (!is_surrogate (replacement_char) && replacement_char >= 0x800 && replacement_char <= 0xFFFF,
-                   "U+FFFD should be encoded as three UTF-8 code units");
-    return details::utf8_write3 (replacement_char, dest);
+    return details::utf8_write (replacement_char, dest);
   }
 };
 
