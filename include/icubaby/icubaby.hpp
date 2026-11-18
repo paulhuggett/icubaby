@@ -285,6 +285,21 @@ template <typename Element> struct contains<type_list<>, Element> : std::bool_co
 /// A helper variable template for contains<>.
 template <typename TypeList, typename Element> inline constexpr bool contains_v = contains<TypeList, Element>::value;
 
+/// \brief True if writing a value of type \p T to an output iterator of type \p OutputIterator (and copying the
+///   iterator) cannot throw an exception.
+///
+/// Every transcoder member function which writes to an output iterator uses this value as its exception
+/// specification: it is noexcept exactly when writing to the iterator cannot throw. If the iterator can throw (for
+/// example, a std::back_insert_iterator<> whose container must allocate memory), the exception propagates to the
+/// caller.
+///
+/// \tparam OutputIterator  An output iterator type.
+/// \tparam T  The type of the value written to the output iterator.
+template <typename OutputIterator, typename T>
+inline constexpr bool is_nothrow_output_v =
+    noexcept (*(std::declval<OutputIterator&> ()++) = std::declval<T> ()) &&
+    std::is_nothrow_copy_constructible_v<OutputIterator> && std::is_nothrow_move_constructible_v<OutputIterator>;
+
 }  // end namespace details
 
 /// \brief The type of a UTF-8 code unit.
@@ -584,7 +599,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept;
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>);
 
   /// Call once the entire input sequence has been fed to \ref transcoder-call-operator "operator()". This function
   /// ensures that the sequence did not end with a partial code point.
@@ -593,7 +609,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  constexpr OutputIterator end_cp (OutputIterator dest) const;
+  constexpr OutputIterator end_cp (OutputIterator dest) const
+      noexcept (details::is_nothrow_output_v<OutputIterator, output_type>);
 
   /// Call once the entire input sequence has been fed to \ref transcoder-call-operator "operator()". This function
   /// ensures that the sequence did not end with a partial code point and flushes any remaining output.
@@ -658,9 +675,9 @@ public:
   /// \param out  An output iterator to which code units produced by the \p transcoder will be written.
   iterator (Transcoder* transcoder, OutputIterator out) : transcoder_{transcoder}, out_{out} {}
   iterator (iterator const& rhs) = default;
-  iterator (iterator&& rhs) noexcept = default;
+  iterator (iterator&& rhs) = default;
 
-  ~iterator () noexcept = default;
+  ~iterator () = default;
 
   /// Passes a code unit to the associated transcoder.
   /// \param value The code unit to be passed to the transcoder.
@@ -671,7 +688,7 @@ public:
   }
 
   iterator& operator= (iterator const& rhs) = default;
-  iterator& operator= (iterator&& rhs) noexcept = default;
+  iterator& operator= (iterator&& rhs) = default;
 
   /// \brief no-op
   /// \returns \*this
@@ -681,10 +698,12 @@ public:
   constexpr iterator& operator++ () noexcept { return *this; }
   /// \brief no-op
   /// \returns \*this
-  constexpr iterator operator++ (int) noexcept { return *this; }
+  constexpr iterator operator++ (int) noexcept (std::is_nothrow_copy_constructible_v<OutputIterator>) { return *this; }
 
   /// Accesses the underlying iterator.
-  [[nodiscard]] constexpr OutputIterator base () const noexcept { return out_; }
+  [[nodiscard]] constexpr OutputIterator base () const noexcept (std::is_nothrow_copy_constructible_v<OutputIterator>) {
+    return out_;
+  }
   /// Accesses the underlying transcoder.
   [[nodiscard]] constexpr Transcoder* transcoder () noexcept { return transcoder_; }
   /// Accesses the underlying transcoder.
@@ -735,20 +754,6 @@ inline constexpr auto utf8_byte_1_of_4 = std::uint_least8_t{0b1111'0000};
 /// three byte sequence, and so on.
 inline constexpr auto utf8_continuation = std::uint_least8_t{0b1000'0000};
 
-/// \brief True if writing a value of type \p T to an output iterator of type \p OutputIterator (and copying the
-///   iterator) cannot throw an exception.
-///
-/// The helper functions which write to an output iterator use this value as their exception specification. A
-/// noexcept caller (such as a transcoder's operator()) need not then provide for an exception that cannot be thrown,
-/// which can noticeably reduce the generated code size for some targets.
-///
-/// \tparam OutputIterator  An output iterator type.
-/// \tparam T  The type of the value written to the output iterator.
-template <typename OutputIterator, typename T>
-inline constexpr bool is_nothrow_output_v =
-    noexcept (*(std::declval<OutputIterator&> ()++) = std::declval<T> ()) &&
-    std::is_nothrow_copy_constructible_v<OutputIterator> && std::is_nothrow_move_constructible_v<OutputIterator>;
-
 /// \brief Writes a code point to the output as between one and four UTF-8 code units.
 ///
 /// The paths for the two, three, and four byte encodings share the code that writes their trailing continuation
@@ -769,7 +774,7 @@ OutputIterator utf8_write (std::uint_least32_t const code_point,
     *(dest++) = static_cast<char8> (code_point);
     return dest;
   }
-  auto const continuation = [] (std::uint_least32_t const value) {
+  auto const continuation = [] (std::uint_least32_t const value) noexcept {
     return static_cast<char8> (utf8_continuation | (value & utf8_mask));
   };
   // Write the first byte together with any continuation bytes which are not common to every multi-byte length. The
@@ -838,7 +843,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (is_surrogate (code_unit) || code_unit > max_code_point) {
       // A code unit that is not a Unicode scalar value is replaced by REPLACEMENT CHARACTER.
       well_formed_ = false;
@@ -925,7 +931,10 @@ public:
     // clamping it to 0xFF (which is also never valid in UTF-8) ensures that it is rejected and keeps the table index in
     // bounds.
     if constexpr (CHAR_BIT > 8 || sizeof (std::uint_least8_t) > 1) {
-      ucu = std::min (ucu, std::uint_least8_t{0xFF});
+      // The comparison uses a wider type to avoid a warning that it is always false where std::uint_least8_t has 8 bits.
+      if (auto const wide = static_cast<std::uint_least32_t> (ucu); wide > 0xFFU) {
+        ucu = std::uint_least8_t{0xFF};
+      }
     }
     static_assert (utf8d_.size () > 255);
     assert (ucu < utf8d_.size ());
@@ -1084,7 +1093,8 @@ public:
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (is_surrogate (code_unit) || code_unit > max_code_point) {
       dest = (*this) (replacement_char, dest);
       well_formed_ = false;
@@ -1104,7 +1114,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  constexpr OutputIterator end_cp (OutputIterator dest) noexcept {
+  constexpr OutputIterator end_cp (OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, output_type>) {
     return dest;
   }
 
@@ -1157,7 +1168,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (high_ == no_high) {
       if (is_high_surrogate (code_unit)) {
         // A high surrogate code unit indicates that this is the first of a
@@ -1421,7 +1433,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     // The code point that will be written to the output.
     auto code_point = static_cast<std::uint_least32_t> (code_unit);
     bool const is_low = is_low_surrogate (code_unit);
@@ -1515,7 +1528,8 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator not_well_formed (OutputIterator dest) noexcept {
+  OutputIterator not_well_formed (OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, output_type>) {
     well_formed_ = false;
     return details::utf8_write (replacement_char, dest);
   }
@@ -1639,7 +1653,8 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator flush_pending (OutputIterator dest) noexcept {
+  OutputIterator flush_pending (OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, output_type>) {
     constexpr auto byte_mask = std::uint_least32_t{0xFF};
     auto const pending = static_cast<std::uint_least32_t> (pending_);
     if (pending > 0xFFFFU) {
@@ -1661,7 +1676,8 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator not_well_formed (OutputIterator dest) noexcept {
+  OutputIterator not_well_formed (OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, output_type>) {
     well_formed_ = false;
     return details::utf8_write (replacement_char, dest);
   }
@@ -1733,7 +1749,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type value, OutputIterator dest) noexcept {
+  OutputIterator operator() (input_type value,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     switch (state_) {
     case states::start: dest = this->start_state (value, dest); break;
     case states::utf8_bom_byte2:
@@ -1824,7 +1841,7 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  OutputIterator end_cp (OutputIterator dest) noexcept {
+  OutputIterator end_cp (OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, ToEncoding>) {
     if (!this->is_run_mode ()) {
       return this->run8_start (state_ != states::start, dest);
     }
@@ -2141,7 +2158,8 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  [[nodiscard]] OutputIterator start_state (input_type const value, OutputIterator dest) noexcept {
+  [[nodiscard]] OutputIterator start_state (input_type const value, OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, ToEncoding>) {
     static constexpr auto byte_number = 0U;
     buffer_[byte_number] = value;
     if (value == transcoder::bom_value (encoding_utf8 | big_endian, byte_number)) {
@@ -2167,7 +2185,8 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  [[nodiscard]] OutputIterator run8_start (bool const copy_buffer, OutputIterator dest) noexcept {
+  [[nodiscard]] OutputIterator run8_start (bool const copy_buffer, OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, ToEncoding>) {
     assert (!this->is_run_mode () && "The FSM should not be in run mode when run8_start is called");
     inner_.t8 = t8_type{};
     if (copy_buffer) {
@@ -2185,7 +2204,8 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  [[nodiscard]] OutputIterator run16_start (OutputIterator dest) noexcept {
+  [[nodiscard]] OutputIterator run16_start (OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, ToEncoding>) {
     assert (!this->is_run_mode () && "The FSM should not be in run mode when run16_start is called");
     inner_.t16 = t16_type{};
     state_ = static_cast<states> (details::to_underlying (
@@ -2204,7 +2224,8 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  [[nodiscard]] OutputIterator run16 (input_type const value, OutputIterator dest) noexcept {
+  [[nodiscard]] OutputIterator run16 (input_type const value, OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, ToEncoding>) {
     assert (state_ == states::run_16be_byte1 || state_ == states::run_16le_byte1);
     dest = inner_.t16 (state_ == states::run_16be_byte1 ? this->char16_from_big_endian_buffer (value)
                                                         : this->char16_from_little_endian_buffer (value),
@@ -2224,7 +2245,8 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  [[nodiscard]] OutputIterator run32 (input_type const value, OutputIterator dest) noexcept {
+  [[nodiscard]] OutputIterator run32 (input_type const value, OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, ToEncoding>) {
     assert (state_ == states::run_32be_byte3 || state_ == states::run_32le_byte3);
     dest = inner_.t32 (state_ == states::run_32be_byte3 ? this->char32_from_big_endian_buffer (value)
                                                         : this->char32_from_little_endian_buffer (value),
@@ -2374,7 +2396,7 @@ public:
     // input is malformed.
     std::array<char32_t, triangulator_intermediate_code_units<FromEncoding, ToEncoding>::value> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-    auto const begin = std::begin (intermediate);
+    auto const begin = intermediate.begin ();
     return copy (begin, intermediate_ (code_unit, begin), dest);
   }
 
@@ -2388,10 +2410,10 @@ public:
   OutputIterator end_cp (OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     std::array<char32_t, triangulator_intermediate_code_units<FromEncoding, ToEncoding>::value> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-    auto const first = std::begin (intermediate);
+    auto const first = intermediate.begin ();
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
     auto const last = intermediate_.end_cp (first);
-    assert (last >= first && last <= std::end (intermediate));
+    assert (last >= first && last <= intermediate.end ());
     return output_.end_cp (this->copy (first, last, dest));
   }
 
@@ -2433,7 +2455,9 @@ private:
   template <typename InputIterator, typename OutputIterator>
   OutputIterator copy (InputIterator first, InputIterator last,
                        OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
-    (void)std::for_each (first, last, [this, &dest] (char32_t const code_unit) { dest = output_ (code_unit, dest); });
+    for (; first != last; ++first) {
+      dest = output_ (*first, dest);
+    }
     return dest;
   }
 };
