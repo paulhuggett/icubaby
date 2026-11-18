@@ -96,6 +96,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
 #include <variant>
 
 /// \brief ICUBABY_CXX20 has value 1 when compiling with C++ 20 or later and 0
@@ -734,75 +735,26 @@ inline constexpr auto utf8_byte_1_of_4 = std::uint_least8_t{0b1111'0000};
 /// three byte sequence, and so on.
 inline constexpr auto utf8_continuation = std::uint_least8_t{0b1000'0000};
 
-/// Writes a series of UTF-8 "continuation" bytes to the output.
+/// \brief True if writing a value of type \p T to an output iterator of type \p OutputIterator (and copying the
+///   iterator) cannot throw an exception.
 ///
-/// Continuation bytes are all but the first byte of a two, three, or four byte encoding and each follows the same
-/// format of having the two most significant bits set to 0b10 and six bits of the input code point filling the rest of
-/// the byte.
+/// The helper functions which write to an output iterator use this value as their exception specification. A
+/// noexcept caller (such as a transcoder's operator()) need not then provide for an exception that cannot be thrown,
+/// which can noticeably reduce the generated code size for some targets.
 ///
-/// \tparam OutputIterator  An output iterator type to which values of type icubaby::char8 can be written.
-/// \param number  The number of continuation bytes to be written.
-/// \param code_point  The code point to be written.
-/// \param dest  An output iterator to which the output sequence is written.
-/// \returns  Iterator one past the last element assigned.
-template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (char8) OutputIterator>
-constexpr OutputIterator utf8_write_continuation (std::uint_least8_t const number, std::uint_least32_t const code_point,
-                                                  OutputIterator dest) {
-  if (number == 0U) {
-    return dest;
-  }
-  *(dest++) = static_cast<char8> (((code_point >> (utf8_shift * (number - 1U))) & utf8_mask) | utf8_continuation);
-  return details::utf8_write_continuation (number - 1U, code_point, dest);
-}
-
-/// Writes a two CU UTF-8 value to the output.
-///
-/// Code points in the range [U+80, U+800) are represented as two UTF-8 code units.
-///
-/// \tparam OutputIterator  An output iterator type to which values of type icubaby::char8 can be written.
-/// \param code_point  The code point to be written.
-/// \param dest  An output iterator to which the output sequence is written.
-/// \returns  Iterator one past the last element assigned.
-template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (char8) OutputIterator>
-OutputIterator utf8_write2 (std::uint_least32_t const code_point, OutputIterator dest) {
-  assert (code_point >= 0x80U && code_point <= 0x7FFU && "Code point is out-of-range for 2 byte UTF-8");
-  *(dest++) = static_cast<char8> ((code_point >> utf8_shift) | utf8_byte_1_of_2);
-  return details::utf8_write_continuation (std::uint_least8_t{1}, code_point, dest);
-}
-/// Writes a three CU UTF-8 value to the output.
-///
-/// Code points in the range [U+800, U+10000) are represented as three UTF-8 code units.
-///
-/// \tparam OutputIterator  An output iterator type to which values of type icubaby::char8 can be written.
-/// \param code_point  The code point to be written.
-/// \param dest  An output iterator to which the output sequence is written.
-/// \returns  Iterator one past the last element assigned.
-template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (char8) OutputIterator>
-OutputIterator utf8_write3 (std::uint_least32_t const code_point, OutputIterator dest) {
-  assert (code_point >= 0x800U && code_point <= 0xFFFFU && "Code point is out-of-range for 3 byte UTF-8");
-  *(dest++) = static_cast<char8> ((code_point >> (utf8_shift * 2U)) | utf8_byte_1_of_3);
-  return details::utf8_write_continuation (std::uint_least8_t{2}, code_point, dest);
-}
-/// Writes a four CU UTF-8 value to the output.
-///
-/// Code points in the range [U+10000, U+10FFFF] are represented as four UTF-8 code units.
-///
-/// \tparam OutputIterator  An output iterator type to which values of type icubaby::char8 can be written.
-/// \param code_point  The code point to be written.
-/// \param dest  An output iterator to which the output sequence is written.
-/// \returns  Iterator one past the last element assigned.
-template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (char8) OutputIterator>
-OutputIterator utf8_write4 (std::uint_least32_t const code_point, OutputIterator dest) {
-  assert (code_point >= 0x10000U && code_point <= 0x10FFFFU && "Code point is out-of-range for 4 byte UTF-8");
-  *(dest++) = static_cast<char8> ((code_point >> (utf8_shift * 3U)) | utf8_byte_1_of_4);
-  return details::utf8_write_continuation (std::uint_least8_t{3}, code_point, dest);
-}
+/// \tparam OutputIterator  An output iterator type.
+/// \tparam T  The type of the value written to the output iterator.
+template <typename OutputIterator, typename T>
+inline constexpr bool is_nothrow_output_v =
+    noexcept (*(std::declval<OutputIterator&> ()++) = std::declval<T> ()) &&
+    std::is_nothrow_copy_constructible_v<OutputIterator> && std::is_nothrow_move_constructible_v<OutputIterator>;
 
 /// \brief Writes a code point to the output as between one and four UTF-8 code units.
 ///
-/// Unlike utf8_write2(), utf8_write3(), and utf8_write4(), this function handles code points of any encoded length.
-/// Rather than having a separate path for each length, all of the continuation bytes are written by a single loop.
-/// A caller that does not know the encoded length in advance therefore needs only one copy of the encoding logic.
+/// The paths for the two, three, and four byte encodings share the code that writes their trailing continuation
+/// bytes and every shift is by a constant amount. Every transcoder which produces UTF-8 uses this function so that only
+/// one copy of the encoding logic is needed, even when several of those transcoders are used together (as in the byte
+/// transcoder).
 ///
 /// \tparam OutputIterator  An output iterator type to which values of type icubaby::char8 can be written.
 /// \param code_point  The code point to be written. Must be a Unicode scalar value (that is, not a surrogate and no
@@ -810,25 +762,30 @@ OutputIterator utf8_write4 (std::uint_least32_t const code_point, OutputIterator
 /// \param dest  An output iterator to which the output sequence is written.
 /// \returns  Iterator one past the last element assigned.
 template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (char8) OutputIterator>
-OutputIterator utf8_write (std::uint_least32_t const code_point, OutputIterator dest) {
+OutputIterator utf8_write (std::uint_least32_t const code_point,
+                           OutputIterator dest) noexcept (is_nothrow_output_v<OutputIterator, char8>) {
   assert (!is_surrogate (code_point) && code_point <= max_code_point && "Code point is not a Unicode scalar value");
   if (code_point < 0x80U) {
     *(dest++) = static_cast<char8> (code_point);
     return dest;
   }
-  // The number of continuation bytes that follow the first byte.
-  auto continuations = code_point < 0x800U ? 1U : (code_point < 0x10000U ? 2U : 3U);
-  // The first byte of an n byte sequence starts with n one bits followed by a zero bit.
-  constexpr auto first_byte_prefix = [] (unsigned const length) constexpr { return (0xFF00U >> length) & 0xFFU; };
-  static_assert (first_byte_prefix (2U) == utf8_byte_1_of_2);
-  static_assert (first_byte_prefix (3U) == utf8_byte_1_of_3);
-  static_assert (first_byte_prefix (4U) == utf8_byte_1_of_4);
-  *(dest++) =
-      static_cast<char8> (first_byte_prefix (continuations + 1U) | (code_point >> (utf8_shift * continuations)));
-  do {
-    --continuations;
-    *(dest++) = static_cast<char8> (utf8_continuation | ((code_point >> (utf8_shift * continuations)) & utf8_mask));
-  } while (continuations > 0U);
+  auto const continuation = [] (std::uint_least32_t const value) {
+    return static_cast<char8> (utf8_continuation | (value & utf8_mask));
+  };
+  // Write the first byte together with any continuation bytes which are not common to every multi-byte length. The
+  // final continuation byte (and the second to last for three and four byte sequences) are written by shared code.
+  if (code_point < 0x800U) {
+    *(dest++) = static_cast<char8> (utf8_byte_1_of_2 | (code_point >> utf8_shift));
+  } else {
+    if (code_point < 0x10000U) {
+      *(dest++) = static_cast<char8> (utf8_byte_1_of_3 | (code_point >> (utf8_shift * 2U)));
+    } else {
+      *(dest++) = static_cast<char8> (utf8_byte_1_of_4 | (code_point >> (utf8_shift * 3U)));
+      *(dest++) = continuation (code_point >> (utf8_shift * 2U));
+    }
+    *(dest++) = continuation (code_point >> utf8_shift);
+  }
+  *(dest++) = continuation (code_point);
   return dest;
 }
 
@@ -845,7 +802,8 @@ OutputIterator utf8_write (std::uint_least32_t const code_point, OutputIterator 
 /// \param dest  An output iterator to which the output sequence is written.
 /// \returns  Iterator one past the last element assigned.
 template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (char16_t) OutputIterator>
-OutputIterator utf16_write_surrogate_pair (std::uint_least32_t const code_point, OutputIterator dest) {
+OutputIterator utf16_write_surrogate_pair (std::uint_least32_t const code_point, OutputIterator dest) noexcept (
+    is_nothrow_output_v<OutputIterator, char16_t>) {
   assert (code_point >= utf16_first_surrogate_pair && code_point <= max_code_point &&
           "Code point is out-of-range for a UTF-16 surrogate pair");
   *(dest++) = static_cast<char16_t> (static_cast<std::uint_least32_t> (first_high_surrogate) -
@@ -881,23 +839,12 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit, OutputIterator dest) noexcept {
-    if (code_unit < 0x80) {
-      *(dest++) = static_cast<output_type> (code_unit);
-      return dest;
+    if (is_surrogate (code_unit) || code_unit > max_code_point) {
+      // A code unit that is not a Unicode scalar value is replaced by REPLACEMENT CHARACTER.
+      well_formed_ = false;
+      code_unit = replacement_char;
     }
-    if (code_unit < 0x800) {
-      return details::utf8_write2 (code_unit, dest);
-    }
-    if (is_surrogate (code_unit)) {
-      return transcoder::not_well_formed (dest);
-    }
-    if (code_unit < 0x10000) {
-      return details::utf8_write3 (code_unit, dest);
-    }
-    if (code_unit <= max_code_point) {
-      return details::utf8_write4 (code_unit, dest);
-    }
-    return transcoder::not_well_formed (dest);
+    return details::utf8_write (code_unit, dest);
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
@@ -907,7 +854,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  constexpr OutputIterator end_cp (OutputIterator dest) const {
+  constexpr OutputIterator end_cp (OutputIterator dest) const
+      noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     return dest;
   }
 
@@ -934,18 +882,6 @@ public:
 private:
   /// True if the input consumed is well formed, false otherwise.
   bool well_formed_ = true;
-
-  /// Writes U+FFFD REPLACEMENT CHAR to the output and records the input as not well formed.
-  ///
-  /// \param dest  An output iterator to which the output sequence is written.
-  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
-  /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator not_well_formed (OutputIterator dest) {
-    well_formed_ = false;
-    static_assert (!is_surrogate (replacement_char));
-    return (*this) (replacement_char, dest);
-  }
 };
 
 namespace details {
@@ -1060,7 +996,8 @@ public:
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     auto const next = details::utf8_dfa::step (static_cast<std::uint_least8_t> (state_), code_point_, code_unit);
     code_point_ = next.code_point;
     state_ = next.state;
@@ -1083,7 +1020,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  constexpr OutputIterator end_cp (OutputIterator dest) {
+  constexpr OutputIterator end_cp (OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (state_ != accept) {
       state_ = reject;
       *(dest++) = replacement_char;
@@ -1264,7 +1202,8 @@ public:
   ///
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator> OutputIterator end_cp (OutputIterator dest) {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator end_cp (OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (high_ != no_high) {
       *(dest++) = replacement_char;
       high_ = no_high;
@@ -1363,7 +1302,8 @@ public:
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     auto const next = details::utf8_dfa::step (static_cast<std::uint_least8_t> (state_), code_point_, code_unit);
     code_point_ = next.code_point;
     state_ = next.state;
@@ -1395,7 +1335,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  constexpr OutputIterator end_cp (OutputIterator dest) {
+  constexpr OutputIterator end_cp (OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (state_ != accept) {
       state_ = reject;
       dest = transcoder::write_replacement_char (dest);
@@ -1440,7 +1381,8 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  static constexpr OutputIterator write_replacement_char (OutputIterator dest) {
+  static constexpr OutputIterator write_replacement_char (OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, output_type>) {
     static_assert (!is_surrogate (replacement_char) && replacement_char < details::utf16_first_surrogate_pair,
                    "U+FFFD should be encoded as a single UTF-16 code unit");
     *(dest++) = static_cast<output_type> (replacement_char);
@@ -1516,7 +1458,8 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator> OutputIterator end_cp (OutputIterator dest) {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator end_cp (OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (has_high_) {
       dest = this->not_well_formed (dest);
       high_ = 0;
@@ -1607,7 +1550,8 @@ public:
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     auto const ucu = static_cast<std::uint_least8_t> (code_unit);
     if (state_ == accept && ucu < 0x80U) {
       // Fast path for ASCII: a single byte code point which can be copied directly to the output.
@@ -1647,7 +1591,8 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator> OutputIterator end_cp (OutputIterator dest) {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator end_cp (OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (state_ != accept) {
       pending_ = 0;
       state_ = reject;
@@ -1718,9 +1663,7 @@ private:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator not_well_formed (OutputIterator dest) noexcept {
     well_formed_ = false;
-    static_assert (!is_surrogate (replacement_char) && replacement_char >= 0x800 && replacement_char <= 0xFFFF,
-                   "U+FFFD should be encoded as three UTF-8 code units");
-    return details::utf8_write3 (replacement_char, dest);
+    return details::utf8_write (replacement_char, dest);
   }
 };
 
@@ -1839,7 +1782,7 @@ public:
       buffer_[this->get_byte_no ()] = value;
       if (value == transcoder::bom_value (encoding_utf32 | (static_cast<std::byte> (state_) & endian_mask),
                                           this->get_byte_no ())) {
-        (void)transcoder_variant_.template emplace<t32_type> ();
+        inner_.t32 = t32_type{};
         state_ = transcoder::set_run_mode (transcoder::set_byte (state_, 0));
       } else {
         // Default input encoding. Emit buffer.
@@ -1860,12 +1803,7 @@ public:
       state_ = this->next_byte ();
       break;
 
-    case states::run_8:
-      assert (std::holds_alternative<t8_type> (transcoder_variant_));
-      if (auto* const utf8_input = std::get_if<t8_type> (&transcoder_variant_)) {
-        dest = (*utf8_input) (details::to_underlying (value), dest);
-      }
-      break;
+    case states::run_8: dest = inner_.t8 (static_cast<char8> (details::to_underlying (value)), dest); break;
 
     case states::run_16be_byte1:
     case states::run_16le_byte1: dest = this->run16 (value, dest); break;
@@ -1887,18 +1825,15 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   OutputIterator end_cp (OutputIterator dest) noexcept {
-    if (transcoder_variant_.valueless_by_exception ()) {
-      return dest;
+    if (!this->is_run_mode ()) {
+      return this->run8_start (state_ != states::start, dest);
     }
-    return std::visit (
-        [this, &dest] (auto& arg) {
-          if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
-            return this->run8_start (state_ != states::start, dest);
-          } else {
-            return arg.end_cp (dest);
-          }
-        },
-        transcoder_variant_);
+    switch (this->get_run_encoding ()) {
+    case run_encoding::utf8: return inner_.t8.end_cp (dest);
+    case run_encoding::utf16: return inner_.t16.end_cp (dest);
+    case run_encoding::utf32: return inner_.t32.end_cp (dest);
+    }
+    return dest;
   }
 
   /// \brief Call once the entire input sequence has been fed to operator().
@@ -2139,14 +2074,8 @@ private:
     assert (((state_byte & (encoding_mask | endian_mask)) >> endian_shift) == (state_byte >> endian_shift));
     auto const encoding_index = static_cast<std::size_t> (details::to_underlying (state_byte >> endian_shift));
     assert (encoding_index < details::boms.size () && "The index is too large for the BOMs array");
-    if (encoding_index >= details::boms.size ()) {
-      return std::byte{0x00};
-    }
     auto const& enc = details::boms[encoding_index];
     assert (byte_number < enc.size () && "Byte number must lie within the BOMs array");
-    if (byte_number >= enc.size ()) {
-      return std::byte{0x00};
-    }
     return enc[byte_number];
   }
   /// \brief Returns a byte from the byte order marker table which corresponds to a specific state as denoted by
@@ -2164,27 +2093,45 @@ private:
   /// A short name for the transcoder used when UTF-32 input has been detected.
   using t32_type = transcoder<char32_t, ToEncoding>;
 
+  /// \brief Holds the transcoder used to convert input code units once the input encoding has been selected.
+  ///
+  /// A union is used rather than std::variant<> because the active member is already recorded by the FSM state: none
+  /// is active in BOM mode; in run mode the encoding bits of the state select t8, t16, or t32. Each of the member types
+  /// is trivially copyable and trivially destructible so a new transcoder is made active simply by assigning to it.
+  union inner_transcoder {
+    constexpr inner_transcoder () noexcept : none{} {}
+    /// The active member until the input encoding has been determined.
+    char none;
+    /// The active member when the input is UTF-8.
+    t8_type t8;
+    /// The active member when the input is UTF-16.
+    t16_type t16;
+    /// The active member when the input is UTF-32.
+    t32_type t32;
+  };
+  static_assert (std::is_trivially_copyable_v<t8_type> && std::is_trivially_destructible_v<t8_type>);
+  static_assert (std::is_trivially_copyable_v<t16_type> && std::is_trivially_destructible_v<t16_type>);
+  static_assert (std::is_trivially_copyable_v<t32_type> && std::is_trivially_destructible_v<t32_type>);
+
+  /// The transcoder used to convert input code units. See inner_transcoder.
+  inner_transcoder inner_;
   /// The current state of the FSM.
   states state_ = states::start;
   /// A buffer into which input bytes are gathered as a complete code unit is being assembled by the state machine.
   std::array<std::byte, 4> buffer_{};
-  /// Holds the transcoder used to convert input code units. Holds monostate until the input encoding has been selected.
-  std::variant<std::monostate, t8_type, t16_type, t32_type> transcoder_variant_;
 
-  /// \brief A helper for ensuring that a type will not cause variant_ to become valueless by exception.
-  ///
-  /// We must ensure that the transcoder_variant_ member cannot be in the valueless by exception state. This means that
-  /// construction and assignment to the variant must never throw. This type is a helper to verify that a type cannot
-  /// throw during default, copy, or move construction as well as copy or move assignment.
-  template <typename T>
-  struct is_nothrowable
-      : std::bool_constant<std::is_nothrow_constructible_v<T> && std::is_nothrow_copy_constructible_v<T> &&
-                           std::is_nothrow_move_constructible_v<T> && std::is_nothrow_copy_assignable_v<T> &&
-                           std::is_nothrow_move_assignable_v<T>> {};
-  static_assert (is_nothrowable<std::monostate>::value);
-  static_assert (is_nothrowable<t8_type>::value);
-  static_assert (is_nothrowable<t16_type>::value);
-  static_assert (is_nothrowable<t32_type>::value);
+  /// The input encodings that may be selected in run mode. The values are those of the encoding bits of a state.
+  enum class run_encoding : std::uint_least8_t {
+    utf8 = details::to_underlying (encoding_utf8),
+    utf16 = details::to_underlying (encoding_utf16),
+    utf32 = details::to_underlying (encoding_utf32),
+  };
+  /// \brief Returns the input encoding selected by a run mode state.
+  /// \returns The input encoding selected by the current state, which must be a run mode state.
+  [[nodiscard]] constexpr run_encoding get_run_encoding () const noexcept {
+    assert (this->is_run_mode () && "The input encoding is only known in run mode");
+    return static_cast<run_encoding> (details::to_underlying (static_cast<std::byte> (state_) & encoding_mask));
+  }
 
   /// Handles the initial state of the FSM. Checks the initial input byte against the collection of potential byte order
   /// mark initial bytes and decides on the next action.
@@ -2222,15 +2169,11 @@ private:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   [[nodiscard]] OutputIterator run8_start (bool const copy_buffer, OutputIterator dest) noexcept {
     assert (!this->is_run_mode () && "The FSM should not be in run mode when run8_start is called");
-    assert (std::holds_alternative<std::monostate> (transcoder_variant_) &&
-            "The variant should hold monostate until the FSM is in run mode");
-    auto& trans = transcoder_variant_.template emplace<t8_type> ();
+    inner_.t8 = t8_type{};
     if (copy_buffer) {
-      // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-      auto const first = std::begin (buffer_);
-      (void)std::for_each (first, first + this->get_byte_no () + 1, [&trans, &dest] (std::byte value) {
-        dest = trans (static_cast<char8> (details::to_underlying (value)), dest);
-      });
+      for (auto index = std::uint_least8_t{0}, last = this->get_byte_no (); index <= last; ++index) {
+        dest = inner_.t8 (static_cast<char8> (details::to_underlying (buffer_[index])), dest);
+      }
     }
     state_ = states::run_8;
     return dest;
@@ -2244,9 +2187,7 @@ private:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   [[nodiscard]] OutputIterator run16_start (OutputIterator dest) noexcept {
     assert (!this->is_run_mode () && "The FSM should not be in run mode when run16_start is called");
-    assert (std::holds_alternative<std::monostate> (transcoder_variant_) &&
-            "The variant should hold monostate until the FSM is in run mode");
-    (void)transcoder_variant_.template emplace<t16_type> ();
+    inner_.t16 = t16_type{};
     state_ = static_cast<states> (details::to_underlying (
         encoding_utf16 | (static_cast<std::byte> (state_) & endian_mask) | run_mode | transcoder::byte_no (0U)));
     return dest;
@@ -2265,13 +2206,9 @@ private:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   [[nodiscard]] OutputIterator run16 (input_type const value, OutputIterator dest) noexcept {
     assert (state_ == states::run_16be_byte1 || state_ == states::run_16le_byte1);
-    assert (std::holds_alternative<t16_type> (transcoder_variant_));
-
-    if (auto* const utf16_input = std::get_if<t16_type> (&transcoder_variant_)) {
-      dest = (*utf16_input) (state_ == states::run_16be_byte1 ? this->char16_from_big_endian_buffer (value)
-                                                              : this->char16_from_little_endian_buffer (value),
-                             dest);
-    }
+    dest = inner_.t16 (state_ == states::run_16be_byte1 ? this->char16_from_big_endian_buffer (value)
+                                                        : this->char16_from_little_endian_buffer (value),
+                       dest);
     state_ = transcoder::set_byte (state_, 0);
     return dest;
   }
@@ -2289,13 +2226,9 @@ private:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   [[nodiscard]] OutputIterator run32 (input_type const value, OutputIterator dest) noexcept {
     assert (state_ == states::run_32be_byte3 || state_ == states::run_32le_byte3);
-    assert (std::holds_alternative<t32_type> (transcoder_variant_));
-
-    if (auto* const utf32_input = std::get_if<t32_type> (&transcoder_variant_)) {
-      dest = (*utf32_input) (state_ == states::run_32be_byte3 ? this->char32_from_big_endian_buffer (value)
-                                                              : this->char32_from_little_endian_buffer (value),
-                             dest);
-    }
+    dest = inner_.t32 (state_ == states::run_32be_byte3 ? this->char32_from_big_endian_buffer (value)
+                                                        : this->char32_from_little_endian_buffer (value),
+                       dest);
     state_ = transcoder::set_byte (state_, 0);
     return dest;
   }
@@ -2351,38 +2284,30 @@ private:
 // ~~~~~~~
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
 constexpr bool transcoder<std::byte, ToEncoding>::partial () const noexcept {
-  // We ensure that the variant cannot ever become stateless. This check is belt and braces to guarantee that
-  // std::visit() cannot throw.
-  if (transcoder_variant_.valueless_by_exception ()) {
-    return false;
+  if (!this->is_run_mode ()) {
+    return state_ != states::start;
   }
-  return std::visit (
-      [this] (auto const& arg) {
-        if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
-          return this->state_ != states::start;
-        } else {
-          return arg.partial ();
-        }
-      },
-      transcoder_variant_);
+  switch (this->get_run_encoding ()) {
+  case run_encoding::utf8: return inner_.t8.partial ();
+  case run_encoding::utf16: return inner_.t16.partial ();
+  case run_encoding::utf32: return inner_.t32.partial ();
+  }
+  return false;
 }
 
 // well formed
 // ~~~~~~~~~~~
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
 constexpr bool transcoder<std::byte, ToEncoding>::well_formed () const noexcept {
-  if (transcoder_variant_.valueless_by_exception ()) {
+  if (!this->is_run_mode ()) {
     return true;
   }
-  return std::visit (
-      [] (auto const& arg) {
-        if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
-          return true;
-        } else {
-          return arg.well_formed ();
-        }
-      },
-      transcoder_variant_);
+  switch (this->get_run_encoding ()) {
+  case run_encoding::utf8: return inner_.t8.well_formed ();
+  case run_encoding::utf16: return inner_.t16.well_formed ();
+  case run_encoding::utf32: return inner_.t32.well_formed ();
+  }
+  return true;
 }
 
 // selected encoding
@@ -2442,7 +2367,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     // The (intermediate) output from the conversion to UTF-32. It's possible
     // for the transcoder to produce more than a single output code unit if the
     // input is malformed.
@@ -2458,7 +2384,8 @@ public:
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
-  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator> OutputIterator end_cp (OutputIterator dest) {
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator end_cp (OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     std::array<char32_t, triangulator_intermediate_code_units<FromEncoding, ToEncoding>::value> intermediate{};
     // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
     auto const first = std::begin (intermediate);
@@ -2504,7 +2431,8 @@ private:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <typename InputIterator, typename OutputIterator>
-  OutputIterator copy (InputIterator first, InputIterator last, OutputIterator dest) {
+  OutputIterator copy (InputIterator first, InputIterator last,
+                       OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     (void)std::for_each (first, last, [this, &dest] (char32_t const code_unit) { dest = output_ (code_unit, dest); });
     return dest;
   }
@@ -2512,8 +2440,129 @@ private:
 
 }  // end namespace details
 
-/// Takes a sequence of UTF-16 code units and converts them to UTF-16.
-template <> class transcoder<char16_t, char16_t> : public details::triangulator<char16_t, char16_t> {};
+/// \brief Takes a sequence of UTF-16 code units, validates them, and produces UTF-16.
+///
+/// The input is validated but not decoded. A well formed high/low surrogate pair is copied unchanged to the output and
+/// each unpaired surrogate is replaced by U+FFFD REPLACEMENT CHARACTER.
+template <> class transcoder<char16_t, char16_t> {
+public:
+  /// The type of the code units consumed by this transcoder.
+  using input_type = char16_t;
+  /// The type of the code units produced by this transcoder.
+  using output_type = char16_t;
+
+  constexpr transcoder () noexcept : transcoder (true) {}
+  /// Initializes a transcoder instance with an initial value for its "well formed" state. This can be useful if
+  /// converting a stream of data which may be using different encodings.
+  ///
+  /// \param well_formed The initial value for the transcoder's "well formed" state.
+  explicit constexpr transcoder (bool well_formed) noexcept
+      : high_{no_high}, well_formed_{static_cast<std::uint_least16_t> (well_formed)} {}
+
+  /// Accepts a code unit in the UTF-16 source encoding. As UTF-16 output code units are generated, they are written to
+  /// the output iterator \p dest.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param code_unit  A code unit in the source encoding.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
+    if (high_ != no_high) {
+      if (is_low_surrogate (code_unit)) {
+        // A high surrogate followed by a low surrogate: copy the pair to the output.
+        *(dest++) = static_cast<output_type> (high_prefix | high_);
+        *(dest++) = code_unit;
+        high_ = no_high;
+        return dest;
+      }
+      // A high surrogate followed by something other than a low surrogate. The high surrogate is replaced by
+      // REPLACEMENT CHARACTER and this code unit is then processed normally.
+      dest = this->not_well_formed (dest);
+      high_ = no_high;
+    } else if (is_low_surrogate (code_unit)) {
+      // A low surrogate without a preceding high surrogate is replaced by REPLACEMENT CHARACTER.
+      well_formed_ = false;
+      code_unit = static_cast<input_type> (replacement_char);
+    }
+    if (is_high_surrogate (code_unit)) {
+      // A high surrogate code unit indicates that this is the first of a high/low surrogate pair.
+      high_ = static_cast<std::uint_least16_t> (code_unit & high_mask);
+      return dest;
+    }
+    *(dest++) = code_unit;
+    return dest;
+  }
+
+  /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
+  /// end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator end_cp (OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
+    if (high_ != no_high) {
+      dest = this->not_well_formed (dest);
+      high_ = no_high;
+    }
+    return dest;
+  }
+
+  /// Call once the entire input sequence has been fed to operator(). This function ensures that the sequence did not
+  /// end with a partial code point.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest) {
+    auto coder = dest.transcoder ();
+    assert (coder == this);
+    return {coder, coder->end_cp (dest.base ())};
+  }
+
+  /// \returns True if the input represented well formed UTF-16.
+  [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
+  /// \returns True if a partial code-point has been passed to operator() and false otherwise.
+  [[nodiscard]] constexpr bool partial () const noexcept { return high_ != no_high; }
+
+private:
+  // As in transcoder<char16_t, char32_t>, a pending high surrogate is recorded as the least significant high_bits bits
+  // of the code unit. Every high surrogate (0xD800-0xDBFF) has bit 11 set, so the stored value is never zero and zero
+  // (no_high) is free to mean "no high surrogate". The high surrogate is recovered by restoring the bits above
+  // high_bits (high_prefix), which are the same for every high surrogate.
+
+  /// The number of bits used to record a high surrogate.
+  static constexpr auto high_bits = 12U;
+  /// A mask which selects the bits of a high surrogate that are recorded in high_.
+  static constexpr auto high_mask = (1U << high_bits) - 1U;
+  /// The bits that are common to every high surrogate and are not recorded in high_.
+  static constexpr auto high_prefix = static_cast<std::uint_least16_t> (first_high_surrogate & ~high_mask);
+  /// The value of high_ which indicates that the previous code unit was not a high surrogate.
+  static constexpr auto no_high = std::uint_least16_t{0};
+  static_assert ((last_high_surrogate & ~high_mask) == high_prefix && (first_high_surrogate & high_mask) != no_high,
+                 "Every high surrogate must have the same prefix and a non-zero recorded value");
+
+  /// The least significant high_bits bits of the previous code unit if it was a high surrogate, otherwise no_high.
+  std::uint_least16_t high_ : high_bits;
+  /// true if the code units passed to operator() represent well formed UTF-16 input, false otherwise.
+  std::uint_least16_t well_formed_ : 1;
+
+  /// Writes U+FFFD REPLACEMENT CHARACTER to the output and records the input as not well formed.
+  ///
+  /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
+  /// \param dest  An output iterator to which the output sequence is written.
+  /// \returns  Iterator one past the last element assigned.
+  template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
+  OutputIterator not_well_formed (OutputIterator dest) noexcept (
+      details::is_nothrow_output_v<OutputIterator, output_type>) {
+    well_formed_ = false;
+    *(dest++) = static_cast<output_type> (replacement_char);
+    return dest;
+  }
+};
 /// Takes a sequence of UTF-32 code units and converts them to UTF-32.
 template <> class transcoder<char32_t, char32_t> {
 public:
@@ -2531,7 +2580,8 @@ public:
   /// \param dest  Iterator to which the output should be written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  OutputIterator operator() (input_type code_unit, OutputIterator dest) {
+  OutputIterator operator() (input_type code_unit,
+                             OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     // From D90 in Chapter 3 of Unicode 15.0.0
     // <https://www.unicode.org/versions/Unicode15.0.0/ch03.pdf>:
     //
@@ -2552,7 +2602,8 @@ public:
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  The output iterator.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
-  constexpr OutputIterator end_cp (OutputIterator dest) const {
+  constexpr OutputIterator end_cp (OutputIterator dest) const
+      noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     return dest;
   }
 
