@@ -566,6 +566,23 @@ TYPED_TEST (ByteTranscoderTruncated, BOMUtf16LEThenOneByte) {
   TestFixture::ends_in_bom (make_bytes ({0xFF, 0xFE, 0x00}), {icubaby::replacement_char}, false,
                             icubaby::encoding::utf16le);
 }
+// A byte which cuts short a UTF-8 sequence (including the start of a UTF-8 byte order mark) is not swallowed: the
+// truncated sequence is replaced by U+FFFD REPLACEMENT CHARACTER and the byte is then decoded normally.
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, Utf8TruncatedSequence) {
+  constexpr auto fffd = char32_t{icubaby::replacement_char};
+  std::vector<std::byte> const none;
+  TestFixture::check (make_bytes ({0xEF, 'A'}), false, none, 0, {fffd, 'A'}, false);
+  TestFixture::check (make_bytes ({0xEF, 0xBB, 'A'}), false, none, 0, {fffd, 'A'}, false);
+  TestFixture::check (make_bytes ({0xEF, 0x00}), false, none, 0, {fffd, 0x0000}, false);
+  TestFixture::check (make_bytes ({0xEF, 0xBB, 0x00}), false, none, 0, {fffd, 0x0000}, false);
+  TestFixture::check (make_bytes ({0xFE, 0x00}), false, none, 0, {fffd, 0x0000}, false);
+  // After a UTF-8 byte order mark.
+  TestFixture::check (make_bytes ({0xEF, 0xBB, 0xBF, 0xC3, 'A'}), false, none, 0, {fffd, 'A'}, false);
+  // Without a byte order mark. E2 98 83 is U+2603 SNOWMAN.
+  TestFixture::check (make_bytes ({'A', 0xC3, 0xE2, 0x98, 0x83}), false, none, 0, {'A', fffd, 0x2603}, false);
+}
+
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
 #if ICUBABY_HAVE_RANGES
@@ -602,6 +619,37 @@ TEST (ByteTranscoder, RangesUtf16BE) {
   (void)std::ranges::copy (range, std::back_inserter (output));
   EXPECT_THAT (output, ElementsAre (char32_t{'A'}, char32_t{'b'}));
   EXPECT_TRUE (range.well_formed ());
+}
+// A single input byte can produce several output code units. The view's output buffer must be large enough.
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, RangesManyOutputsFromOneByte) {
+  {
+    // The final 41 cuts short EF BB: U+FFFD then 'A'.
+    std::array const input{std::byte{0xEF}, std::byte{0xBB}, std::byte{'A'}};
+    std::vector<char32_t> output;
+    auto range = input | icubaby::views::transcode<std::byte, char32_t>;
+    (void)std::ranges::copy (range, std::back_inserter (output));
+    EXPECT_THAT (output, ElementsAre (icubaby::replacement_char, char32_t{'A'}));
+    EXPECT_FALSE (range.well_formed ());
+  }
+  {
+    // The final 00 shows that this is not a UTF-32 byte order mark: all four bytes are decoded as UTF-8 at once.
+    std::array const input{std::byte{0x00}, std::byte{0x00}, std::byte{0xFE}, std::byte{0x00}};
+    std::vector<char32_t> output;
+    auto range = input | icubaby::views::transcode<std::byte, char32_t>;
+    (void)std::ranges::copy (range, std::back_inserter (output));
+    EXPECT_THAT (output, ElementsAre (char32_t{0}, char32_t{0}, icubaby::replacement_char, char32_t{0}));
+    EXPECT_FALSE (range.well_formed ());
+  }
+  {
+    std::array const input{std::byte{0x00}, std::byte{0x00}, std::byte{0xFE}, std::byte{0xC3}, std::byte{'A'}};
+    std::vector<icubaby::char8> output;
+    auto range = input | icubaby::views::transcode<std::byte, icubaby::char8>;
+    (void)std::ranges::copy (range, std::back_inserter (output));
+    std::vector<icubaby::char8> const expected{0x00, 0x00, 0xEF, 0xBF, 0xBD, 0xEF, 0xBF, 0xBD, 'A'};
+    EXPECT_THAT (output, testing::ContainerEq (expected));
+    EXPECT_FALSE (range.well_formed ());
+  }
 }
 // NOLINTNEXTLINE
 TEST (ByteTranscoder, Utf16BEAndIterMove) {

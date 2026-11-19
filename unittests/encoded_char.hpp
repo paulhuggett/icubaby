@@ -58,6 +58,7 @@ enum class code_point : char32_t {
   hiragana_letter_u = char32_t{0x3046},
   hiragana_letter_yo = char32_t{0x3088},
   hiragana_letter_za = char32_t{0x3056},
+  left_parenthesis = char32_t{0x0028},
   line_feed = char32_t{0x000A},
   linear_b_syllable_b008_a = char32_t{0x10000},
   pilcrow_sign = char32_t{0x00B6},
@@ -82,6 +83,16 @@ template <> struct encoded_char<code_point::line_feed, char16_t> {
 };
 template <> struct encoded_char<code_point::line_feed, icubaby::char8> {
   static constexpr std::array value{static_cast<icubaby::char8> (code_point::line_feed)};
+};
+
+template <> struct encoded_char<code_point::left_parenthesis, char32_t> {
+  static constexpr std::array value{static_cast<char32_t> (code_point::left_parenthesis)};
+};
+template <> struct encoded_char<code_point::left_parenthesis, char16_t> {
+  static constexpr std::array value{static_cast<char16_t> (code_point::left_parenthesis)};
+};
+template <> struct encoded_char<code_point::left_parenthesis, icubaby::char8> {
+  static constexpr std::array value{static_cast<icubaby::char8> (code_point::left_parenthesis)};
 };
 
 template <> struct encoded_char<code_point::start_of_heading, char32_t> {
