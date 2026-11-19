@@ -675,20 +675,21 @@ public:
   /// \param out  An output iterator to which code units produced by the \p transcoder will be written.
   iterator (Transcoder* transcoder, OutputIterator out) : transcoder_{transcoder}, out_{out} {}
   iterator (iterator const& rhs) = default;
-  iterator (iterator&& rhs) = default;
+  iterator (iterator&& rhs) noexcept (std::is_nothrow_move_constructible_v<OutputIterator>) = default;
 
   ~iterator () = default;
 
   /// Passes a code unit to the associated transcoder.
   /// \param value The code unit to be passed to the transcoder.
   /// \returns \*this
-  iterator& operator= (typename Transcoder::input_type const& value) {
+  iterator& operator= (typename Transcoder::input_type const& value) noexcept (
+      noexcept (out_ = (*transcoder_) (value, out_))) {
     out_ = (*transcoder_) (value, out_);
     return *this;
   }
 
   iterator& operator= (iterator const& rhs) = default;
-  iterator& operator= (iterator&& rhs) = default;
+  iterator& operator= (iterator&& rhs) noexcept (std::is_nothrow_move_assignable_v<OutputIterator>) = default;
 
   /// \brief no-op
   /// \returns \*this
@@ -2346,21 +2347,6 @@ constexpr encoding transcoder<std::byte, ToEncoding>::selected_encoding () const
 
 namespace details {
 
-/// \brief The maximum number of code units produced as the intermediate output from the triangulator's conversion to
-///        UTF-32.
-///
-/// The maximum number of code units produced from a single input code unit can vary (particularly if the input is
-/// malformed).
-///
-/// \tparam FromEncoding  The source encoding.
-/// \tparam ToEncoding  The destination encoding.
-template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE FromEncoding, ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
-struct triangulator_intermediate_code_units : public std::integral_constant<std::size_t, 1> {};
-/// \brief The maximum number of code units produced when converting from UTF-16.
-/// \tparam ToEncoding  The destination encoding.
-template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
-struct triangulator_intermediate_code_units<char16_t, ToEncoding> : public std::integral_constant<std::size_t, 2> {};
-
 /// \brief A "triangulator" converts from the \p FromEncoding encoding to the \p ToEncoding encoding via an
 ///        intermediate UTF-32 encoding.
 ///
@@ -2375,7 +2361,7 @@ public:
   using output_type = ToEncoding;
 
   /// Accepts a code unit in the source encoding (as given by triangulator::input_type). These are first converted
-  /// to UTF-32 and then to the output encoding (double_transcoder::output_type). As output code units are generated,
+  /// to UTF-32 and then to the output encoding (triangulator::output_type). As output code units are generated,
   /// they are written to the output iterator \p dest.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
@@ -2385,13 +2371,8 @@ public:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit,
                              OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
-    // The (intermediate) output from the conversion to UTF-32. It's possible
-    // for the transcoder to produce more than a single output code unit if the
-    // input is malformed.
-    std::array<char32_t, triangulator_intermediate_code_units<FromEncoding, ToEncoding>::value> intermediate{};
-    // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-    auto const begin = intermediate.begin ();
-    return copy (begin, intermediate_ (code_unit, begin), dest);
+    // The UTF-32 output from intermediate_ is passed directly to output_.
+    return intermediate_ (code_unit, iterator{&output_, dest}).base ();
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
@@ -2402,13 +2383,7 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator end_cp (OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
-    std::array<char32_t, triangulator_intermediate_code_units<FromEncoding, ToEncoding>::value> intermediate{};
-    // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-    auto const first = intermediate.begin ();
-    // NOLINTNEXTLINE(llvm-qualified-auto,readability-qualified-auto)
-    auto const last = intermediate_.end_cp (first);
-    assert (last >= first && last <= intermediate.end ());
-    return output_.end_cp (this->copy (first, last, dest));
+    return output_.end_cp (intermediate_.end_cp (iterator{&output_, dest}).base ());
   }
 
   /// Call once the entire input sequence has been fed to operator(). This
@@ -2439,21 +2414,10 @@ private:
   transcoder<input_type, char32_t> intermediate_;
   /// The output_ transcoder converts from the intermediate (UTF-32) encoding to the selected output encoding.
   transcoder<char32_t, output_type> output_;
-
-  /// Copies the range [first, last) to the output iterator \p dest via the output_ transcoder.
-  ///
-  /// \param first  The first of the range to copy.
-  /// \param last  The last of the range to copy.
-  /// \param dest  An output iterator to which the output sequence is written.
-  /// \returns  Iterator one past the last element assigned.
-  template <typename InputIterator, typename OutputIterator>
-  OutputIterator copy (InputIterator first, InputIterator last,
-                       OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
-    for (; first != last; ++first) {
-      dest = output_ (*first, dest);
-    }
-    return dest;
-  }
+  // The UTF-32 output of intermediate_ is written to output_ using an icubaby::iterator. If intermediate_ and output_
+  // had the same type, intermediate_.end_cp() would choose its overload for an icubaby::iterator of its own type.
+  static_assert (!std::is_same_v<decltype (intermediate_), decltype (output_)>,
+                 "A UTF-32 to UTF-32 triangulator is not supported");
 };
 
 }  // end namespace details
