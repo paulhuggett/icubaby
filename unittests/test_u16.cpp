@@ -284,25 +284,34 @@ TYPED_TEST (Utf16, LonelyHighSurrogate) {
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
 }
 
-// The UTF-16 to UTF-8 transcoder converts directly between the two encodings. The following tests check that its
-// behavior is identical to converting via an intermediate UTF-32 encoding.
+// The UTF-16 to UTF-8 and UTF-16 to UTF-16 transcoders convert directly between the two encodings. The following tests
+// check that their behavior is identical to converting via an intermediate UTF-32 encoding.
+
+namespace {
+
+template <typename T> class Utf16Direct : public testing::Test {};
+using Utf16DirectOutputTypes = testing::Types<icubaby::char8, char16_t>;
+
+}  // end anonymous namespace
+
+TYPED_TEST_SUITE (Utf16Direct, Utf16DirectOutputTypes, OutputTypeNames);
 
 // NOLINTNEXTLINE
-TEST (Utf16To8Direct, MatchesTriangulatorForEverySingleCodeUnit) {
-  direct_vs_triangulator<char16_t, icubaby::char8> check;
+TYPED_TEST (Utf16Direct, MatchesTriangulatorForEverySingleCodeUnit) {
+  direct_vs_triangulator<char16_t, TypeParam> check;
   for (auto code_unit = std::uint_least32_t{0}; code_unit <= 0xFFFF; ++code_unit) {
     ASSERT_TRUE (check ({static_cast<char16_t> (code_unit)}));
   }
 }
 // NOLINTNEXTLINE
-TEST (Utf16To8Direct, MatchesTriangulatorForSurrogatePairs) {
-  // The bits of the high and low surrogates contribute independently to the UTF-8 output. Pair every high surrogate
+TYPED_TEST (Utf16Direct, MatchesTriangulatorForSurrogatePairs) {
+  // The bits of the high and low surrogates contribute independently to the output. Pair every high surrogate
   // with a selection of low surrogates and vice versa.
   static constexpr auto some_high = std::array{char16_t{0xD800}, char16_t{0xD801}, char16_t{0xD803}, char16_t{0xD83C},
                                                char16_t{0xD83F}, char16_t{0xD840}, char16_t{0xDBC0}, char16_t{0xDBFF}};
   static constexpr auto some_low = std::array{char16_t{0xDC00}, char16_t{0xDC01}, char16_t{0xDC3F}, char16_t{0xDC40},
                                               char16_t{0xDDC0}, char16_t{0xDE00}, char16_t{0xDFC0}, char16_t{0xDFFF}};
-  direct_vs_triangulator<char16_t, icubaby::char8> check;
+  direct_vs_triangulator<char16_t, TypeParam> check;
   for (auto high = std::uint_least32_t{icubaby::first_high_surrogate}; high <= icubaby::last_high_surrogate; ++high) {
     for (auto const low : some_low) {
       ASSERT_TRUE (check ({static_cast<char16_t> (high), low}));
@@ -315,15 +324,15 @@ TEST (Utf16To8Direct, MatchesTriangulatorForSurrogatePairs) {
   }
 }
 // NOLINTNEXTLINE
-TEST (Utf16To8Direct, MatchesTriangulatorForEveryCodeUnitAfterHighSurrogate) {
-  direct_vs_triangulator<char16_t, icubaby::char8> check;
+TYPED_TEST (Utf16Direct, MatchesTriangulatorForEveryCodeUnitAfterHighSurrogate) {
+  direct_vs_triangulator<char16_t, TypeParam> check;
   static constexpr auto high = char16_t{0xD83D};
   for (auto code_unit = std::uint_least32_t{0}; code_unit <= 0xFFFF; ++code_unit) {
     ASSERT_TRUE (check ({high, static_cast<char16_t> (code_unit)}));
   }
 }
 // NOLINTNEXTLINE
-TEST (Utf16To8Direct, MatchesTriangulatorForSequencesOfThree) {
+TYPED_TEST (Utf16Direct, MatchesTriangulatorForSequencesOfThree) {
   // Code units at the boundaries of the 1, 2, 3, and 4 byte UTF-8 encodings together with a selection of high and
   // low surrogates.
   static constexpr auto interesting = std::array{
@@ -331,7 +340,7 @@ TEST (Utf16To8Direct, MatchesTriangulatorForSequencesOfThree) {
       char16_t{0xD7FF}, char16_t{0xD800}, char16_t{0xD83D}, char16_t{0xDBFF}, char16_t{0xDC00}, char16_t{0xDE00},
       char16_t{0xDFFF}, char16_t{0xE000}, char16_t{0xFFFD}, char16_t{0xFFFF},
   };
-  direct_vs_triangulator<char16_t, icubaby::char8> check;
+  direct_vs_triangulator<char16_t, TypeParam> check;
   for (auto const cu1 : interesting) {
     for (auto const cu2 : interesting) {
       for (auto const cu3 : interesting) {

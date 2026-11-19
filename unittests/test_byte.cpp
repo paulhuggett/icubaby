@@ -559,6 +559,82 @@ TEST (ByteTranscoder, Utf16BEAndIterMove) {
 }
 #endif  // ICUBABY_HAVE_RANGES
 
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, Utf16BigEndianSurrogatePairIsPartial) {
+  icubaby::transcoder<std::byte, icubaby::char8> transcoder;
+  std::vector<decltype (transcoder)::output_type> output;
+  auto dest = std::back_inserter (output);
+  dest = transcoder (std::byte{0xFE}, dest);
+  dest = transcoder (std::byte{0xFF}, dest);
+
+  // The high surrogate of U+1F600 GRINNING FACE.
+  dest = transcoder (std::byte{0xD8}, dest);
+  dest = transcoder (std::byte{0x3D}, dest);
+  EXPECT_TRUE (transcoder.partial ()) << "Expected partial() after a high surrogate";
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_TRUE (output.empty ());
+
+  // The low surrogate completes the code point.
+  dest = transcoder (std::byte{0xDE}, dest);
+  dest = transcoder (std::byte{0x00}, dest);
+  EXPECT_FALSE (transcoder.partial ()) << "Expected !partial() after the low surrogate";
+  (void)transcoder.end_cp (dest);
+
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_EQ (transcoder.selected_encoding (), icubaby::encoding::utf16be);
+  EXPECT_THAT (output, ElementsAre (static_cast<icubaby::char8> (0xF0), static_cast<icubaby::char8> (0x9F),
+                                    static_cast<icubaby::char8> (0x98), static_cast<icubaby::char8> (0x80)));
+}
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, Utf16LittleEndianHighSurrogateAtEnd) {
+  icubaby::transcoder<std::byte, char32_t> transcoder;
+  std::vector<decltype (transcoder)::output_type> output;
+  auto dest = std::back_inserter (output);
+  dest = transcoder (std::byte{0xFF}, dest);
+  dest = transcoder (std::byte{0xFE}, dest);
+
+  // A high surrogate with no following low surrogate.
+  dest = transcoder (std::byte{0x3D}, dest);
+  dest = transcoder (std::byte{0xD8}, dest);
+  EXPECT_TRUE (transcoder.partial ()) << "Expected partial() after a high surrogate";
+  (void)transcoder.end_cp (dest);
+
+  EXPECT_FALSE (transcoder.partial ()) << "end_cp() should have consumed the high surrogate";
+  EXPECT_FALSE (transcoder.well_formed ());
+  EXPECT_EQ (transcoder.selected_encoding (), icubaby::encoding::utf16le);
+  EXPECT_THAT (output, ElementsAre (icubaby::replacement_char));
+}
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, Utf32BigEndianIsNeverPartial) {
+  icubaby::transcoder<std::byte, char16_t> transcoder;
+  std::vector<decltype (transcoder)::output_type> output;
+  auto dest = std::back_inserter (output);
+  dest = transcoder (std::byte{0x00}, dest);
+  dest = transcoder (std::byte{0x00}, dest);
+  dest = transcoder (std::byte{0xFE}, dest);
+  dest = transcoder (std::byte{0xFF}, dest);
+
+  // U+1F600 GRINNING FACE.
+  dest = transcoder (std::byte{0x00}, dest);
+  dest = transcoder (std::byte{0x01}, dest);
+  dest = transcoder (std::byte{0xF6}, dest);
+  dest = transcoder (std::byte{0x00}, dest);
+  EXPECT_FALSE (transcoder.partial ());
+  EXPECT_TRUE (transcoder.well_formed ());
+
+  // A UTF-32 code unit holding a surrogate is ill-formed.
+  dest = transcoder (std::byte{0x00}, dest);
+  dest = transcoder (std::byte{0x00}, dest);
+  dest = transcoder (std::byte{0xD8}, dest);
+  dest = transcoder (std::byte{0x00}, dest);
+  EXPECT_FALSE (transcoder.partial ());
+  (void)transcoder.end_cp (dest);
+
+  EXPECT_FALSE (transcoder.well_formed ());
+  EXPECT_EQ (transcoder.selected_encoding (), icubaby::encoding::utf32be);
+  EXPECT_THAT (output, ElementsAre (char16_t{0xD83D}, char16_t{0xDE00}, char16_t{icubaby::replacement_char}));
+}
+
 namespace {
 
 void ByteTranscoderNeverCrashes (std::vector<std::byte> const& input) {
