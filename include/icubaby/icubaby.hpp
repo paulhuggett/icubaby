@@ -1845,6 +1845,19 @@ public:
     if (!this->is_run_mode ()) {
       return this->run8_start (state_ != states::start, dest);
     }
+    if (this->get_byte_no () != 0) {
+      // The input ended part way through a UTF-16 or UTF-32 code unit. Replace it with one made entirely of 0xD8 bytes
+      // and complete it in the usual way. In either byte order, 0xD8D8 is a UTF-16 high surrogate and 0xD8D8D8D8 is
+      // beyond the UTF-32 code space so each is ill-formed and yields a single U+FFFD REPLACEMENT CHARACTER: at once
+      // for UTF-32 and from the inner transcoder's end_cp() for UTF-16. A UTF-16 high surrogate that was waiting for
+      // its low surrogate gets its own U+FFFD, just as it would if the following code unit were complete, so that case
+      // produces two replacement characters.
+      static constexpr auto filler = std::byte{0xD8};
+      buffer_ = {filler, filler, filler, filler};
+      do {
+        dest = (*this) (filler, dest);
+      } while (this->get_byte_no () != 0);
+    }
     switch (this->get_run_encoding ()) {
     case run_encoding::utf8: return inner_.t8.end_cp (dest);
     case run_encoding::utf16: return inner_.t16.end_cp (dest);
@@ -2308,8 +2321,13 @@ private:
 // ~~~~~~~
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding>
 constexpr bool transcoder<std::byte, ToEncoding>::partial () const noexcept {
+  // A non-zero byte number means that we have consumed some but not all of the bytes of either a byte order mark or
+  // a UTF-16/UTF-32 code unit.
+  if (this->get_byte_no () != 0) {
+    return true;
+  }
   if (!this->is_run_mode ()) {
-    return state_ != states::start;
+    return false;  // We're in the start state.
   }
   switch (this->get_run_encoding ()) {
   case run_encoding::utf8: return inner_.t8.partial ();
