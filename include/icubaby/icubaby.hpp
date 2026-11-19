@@ -2187,8 +2187,14 @@ private:
     // part way through, a later call will replay buffer_ from the start so t8 must begin again from its initial state.
     inner_.t8 = t8_type{};
     if (copy_buffer) {
-      for (auto index = std::uint_least8_t{0}, last = this->get_byte_no (); index <= last; ++index) {
-        dest = inner_.t8 (static_cast<char8> (details::to_underlying (buffer_[index])), dest);
+      // Copy bytes 0 to get_byte_no() inclusive.
+      assert (this->get_byte_no () < buffer_.size ());
+      auto remaining = this->get_byte_no ();
+      for (auto const value : buffer_) {
+        dest = inner_.t8 (static_cast<char8> (details::to_underlying (value)), dest);
+        if (remaining-- == 0U) {
+          break;
+        }
       }
     }
     state_ = states::run_8;
