@@ -70,6 +70,21 @@ jobs:
           echo "INSTALL_BASENAME=$(basename $value)" | tee -a "$GITHUB_OUTPUT"
           echo "### Created installer: $value" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Dump PreinstallOutput.log
+        if: failure()
+        shell: bash
+        run: |
+          logfile="${{ github.workspace }}/build/_CPack_Packages/Linux/TGZ/PreinstallOutput.log"
+
+          if [[ -f "$logfile" ]]; then
+            echo "===== $logfile ====="
+            cat "$logfile"
+            echo "===== end of PreinstallOutput.log ====="
+          else
+            echo "PreinstallOutput.log was not found: $logfile"
+            find "${{ github.workspace }}/build" -name 'PreinstallOutput.log' -print
+          fi
+
       - name: Upload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
