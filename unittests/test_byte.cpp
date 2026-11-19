@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <initializer_list>
 #include <iterator>
 #include <ostream>
 #include <vector>
@@ -54,7 +55,11 @@ inline void PrintTo(char8_t c, ::std::ostream* os) {
 #endif // __cpp_lib_char8_t
 #endif // ICUBABY_FUZZTEST
 
+// Local includes
+#include "typed_test.hpp"
+
 using testing::ElementsAre;
+using testing::ElementsAreArray;
 
 namespace icubaby {
 
@@ -387,6 +392,122 @@ TEST (ByteTranscoder, Utf32FirstByteOfLittleEndianBOM) {
   EXPECT_EQ (transcoder.selected_encoding (), icubaby::encoding::utf8);
   EXPECT_THAT (output, ElementsAre (icubaby::replacement_char, 'A', 'b', 'c'));
 }
+
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+namespace {
+
+std::vector<std::byte> make_bytes (std::initializer_list<unsigned> const values) {
+  std::vector<std::byte> result;
+  result.reserve (values.size ());
+  (void)std::transform (std::begin (values), std::end (values), std::back_inserter (result),
+                        [] (unsigned const value) { return static_cast<std::byte> (value); });
+  return result;
+}
+
+template <typename T> class ByteTranscoderTruncated : public testing::Test {
+protected:
+  using output_type = T;
+
+  /// Converts a sequence of code points to the output encoding.
+  static std::vector<output_type> encode (std::initializer_list<char32_t> const code_points) {
+    std::vector<output_type> result;
+    icubaby::transcoder<char32_t, output_type> transcoder;
+    auto dest = std::back_inserter (result);
+    for (auto const code_point : code_points) {
+      dest = transcoder (code_point, dest);
+    }
+    (void)transcoder.end_cp (dest);
+    return result;
+  }
+
+  /// Passes \p head to a byte transcoder followed by the first \p count bytes of \p tail, then calls end_cp(). Checks
+  /// partial() as each byte of \p tail is consumed, then the output and the partial() and well_formed() states.
+  ///
+  /// \param head  Input bytes that end on a code unit boundary.
+  /// \param head_partial  The expected value of partial() once \p head has been consumed.
+  /// \param tail  The bytes of a single code unit.
+  /// \param count  The number of bytes of \p tail to be consumed.
+  /// \param expected  The expected output code points.
+  /// \param well_formed  The expected value of well_formed() after end_cp().
+  static void check (std::vector<std::byte> const& head, bool const head_partial, std::vector<std::byte> const& tail,
+                     std::size_t const count, std::initializer_list<char32_t> const expected, bool const well_formed) {
+    icubaby::transcoder<std::byte, output_type> transcoder;
+    std::vector<output_type> output;
+    auto dest = std::back_inserter (output);
+    for (auto const value : head) {
+      dest = transcoder (value, dest);
+    }
+    EXPECT_EQ (transcoder.partial (), head_partial);
+    for (auto index = std::size_t{0}; index < count; ++index) {
+      dest = transcoder (tail.at (index), dest);
+      EXPECT_TRUE (transcoder.partial ()) << "after byte #" << index << " of the final code unit";
+    }
+    (void)transcoder.end_cp (dest);
+    EXPECT_FALSE (transcoder.partial ());
+    EXPECT_EQ (transcoder.well_formed (), well_formed);
+    EXPECT_THAT (output, ElementsAreArray (encode (expected)));
+  }
+
+  /// Checks the input made of \p bom, then optionally \p unit (the encoding of 'A'), then each possible truncation
+  /// of the code unit \p tail.
+  ///
+  /// \param bom_partial  The expected value of partial() once \p bom has been consumed. This is true if the bytes
+  ///   could also be the start of a different byte order mark.
+  static void truncations (std::vector<std::byte> const& bom, std::vector<std::byte> const& unit,
+                           std::vector<std::byte> const& tail, bool const bom_partial = false) {
+    std::vector<std::byte> head = bom;
+    head.insert (std::end (head), std::begin (unit), std::end (unit));
+    for (auto count = std::size_t{0}; count < tail.size (); ++count) {
+      SCOPED_TRACE (testing::Message () << count << " byte(s) of the final code unit");
+      if (count == 0) {
+        check (head, false, tail, count, {'A'}, true);
+      } else {
+        // The bytes of an incomplete code unit straight after the BOM.
+        check (bom, bom_partial, tail, count, {icubaby::replacement_char}, false);
+        // The bytes of an incomplete code unit after a complete one.
+        check (head, false, tail, count, {'A', icubaby::replacement_char}, false);
+      }
+    }
+  }
+};
+
+}  // end anonymous namespace
+
+TYPED_TEST_SUITE (ByteTranscoderTruncated, OutputTypes, OutputTypeNames);
+
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, Utf16BE) {
+  TestFixture::truncations (make_bytes ({0xFE, 0xFF}), make_bytes ({0x00, 'A'}), make_bytes ({0x00, 'B'}));
+}
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, Utf16LE) {
+  // FF FE could be the start of a UTF-32 LE byte order mark so the transcoder is in the partial state.
+  TestFixture::truncations (make_bytes ({0xFF, 0xFE}), make_bytes ({'A', 0x00}), make_bytes ({'B', 0x00}), true);
+}
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, Utf32BE) {
+  TestFixture::truncations (make_bytes ({0x00, 0x00, 0xFE, 0xFF}), make_bytes ({0x00, 0x00, 0x00, 'A'}),
+                            make_bytes ({0x00, 0x00, 0x00, 'B'}));
+}
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, Utf32LE) {
+  TestFixture::truncations (make_bytes ({0xFF, 0xFE, 0x00, 0x00}), make_bytes ({'A', 0x00, 0x00, 0x00}),
+                            make_bytes ({'B', 0x00, 0x00, 0x00}));
+}
+// A high surrogate followed by an incomplete code unit. The high surrogate is reported with a U+FFFD REPLACEMENT
+// CHARACTER as it would be if it were followed by any complete code unit other than a low surrogate; the incomplete
+// code unit produces a second.
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, Utf16BEHighSurrogate) {
+  TestFixture::check (make_bytes ({0xFE, 0xFF, 0xD8, 0x3D}), true, make_bytes ({0xDE, 0x00}), 1,
+                      {icubaby::replacement_char, icubaby::replacement_char}, false);
+}
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, Utf16LEHighSurrogate) {
+  TestFixture::check (make_bytes ({0xFF, 0xFE, 0x3D, 0xD8}), true, make_bytes ({0x00, 0xDE}), 1,
+                      {icubaby::replacement_char, icubaby::replacement_char}, false);
+}
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
 #if ICUBABY_HAVE_RANGES
 // NOLINTNEXTLINE

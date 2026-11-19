@@ -1907,6 +1907,19 @@ public:
     if (transcoder_variant_.valueless_by_exception ()) {
       return dest;
     }
+    if (this->is_run_mode () && this->get_byte_no () != 0) {
+      // The input ended part way through a UTF-16 or UTF-32 code unit. Replace it with one made entirely of 0xD8 bytes
+      // and complete it in the usual way. In either byte order, 0xD8D8 is a UTF-16 high surrogate and 0xD8D8D8D8 is
+      // beyond the UTF-32 code space so each is ill-formed and yields a single U+FFFD REPLACEMENT CHARACTER: at once
+      // for UTF-32 and from the inner transcoder's end_cp() for UTF-16. A UTF-16 high surrogate that was waiting for
+      // its low surrogate gets its own U+FFFD, just as it would if the following code unit were complete, so that case
+      // produces two replacement characters.
+      static constexpr auto filler = std::byte{0xD8};
+      buffer_ = {filler, filler, filler, filler};
+      do {
+        dest = (*this) (filler, dest);
+      } while (this->get_byte_no () != 0);
+    }
     return std::visit (
         [this, &dest] (auto& arg) {
           if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
@@ -2373,10 +2386,15 @@ constexpr bool transcoder<std::byte, ToEncoding>::partial () const noexcept {
   if (transcoder_variant_.valueless_by_exception ()) {
     return false;
   }
+  // A non-zero byte number means that we have consumed some but not all of the bytes of either a byte order mark or
+  // a UTF-16/UTF-32 code unit.
+  if (this->get_byte_no () != 0) {
+    return true;
+  }
   return std::visit (
-      [this] (auto const& arg) {
+      [] (auto const& arg) {
         if constexpr (std::is_same_v<std::decay_t<decltype (arg)>, std::monostate>) {
-          return this->state_ != states::start;
+          return false;  // We're in the start state.
         } else {
           return arg.partial ();
         }
