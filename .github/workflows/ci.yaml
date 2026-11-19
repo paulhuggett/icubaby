@@ -93,6 +93,26 @@ jobs:
             os: ubuntu-24.04
             package: TGZ
 
+          - name: Ubuntu-24.04/gcc-13/C++17/Debug
+            apt_install: ninja-build
+            build_type: Debug
+            cxx_compiler: -D CMAKE_CXX_COMPILER=g++-13 -D CMAKE_C_COMPILER=gcc-13
+            gcc_install: 13
+            options: -D ICUBABY_CXX17=Yes -D ICUBABY_SANITIZE=Yes
+            generator: Unix Makefiles
+            os: ubuntu-24.04
+            package: TGZ
+
+          - name: Ubuntu-24.04/clang-18/C++17/Debug
+            apt_install: cmake ninja-build
+            llvm_install: 18
+            build_type: Debug
+            cxx_compiler: -D CMAKE_CXX_COMPILER=clang++-18 -D CMAKE_C_COMPILER=clang-18
+            generator: Ninja
+            options: -D ICUBABY_CXX17=Yes -D ICUBABY_SANITIZE=Yes
+            os: ubuntu-24.04
+            package: TGZ
+
           # Windows builds
           # ~~~~~~~~~~~~~~
           - name: windows-2022/VS2022/Debug
