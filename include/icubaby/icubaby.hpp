@@ -1758,7 +1758,13 @@ public:
       assert (this->get_byte_no () == 2 && "Expected this state to target byte #2");
       buffer_[this->get_byte_no ()] = value;
       // Start decoding as UTF-8. If we have a complete UTF-8 BOM drop it, otherwise output the code units seen so far.
-      dest = this->run8_start (value != this->bom_value (), dest);
+      // In the former case, nothing has been passed to the UTF-8 transcoder so it is still in its initial state. (The
+      // exception is a caller that, after a write threw part way through run8_start(), supplies a different byte.)
+      if (value == this->bom_value ()) {
+        state_ = states::run_8;
+      } else {
+        dest = this->run8_start (true, dest);
+      }
       break;
 
     case states::utf16_be_bom_byte1:
@@ -1842,8 +1848,19 @@ public:
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
   OutputIterator end_cp (OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, ToEncoding>) {
-    if (!this->is_run_mode ()) {
-      return this->run8_start (state_ != states::start, dest);
+    static_assert (details::to_underlying (states::utf32_le_bom_byte3) ==
+                       details::to_underlying (states::utf32_or_16_le_bom_byte2) + 1U,
+                   "The FF FE and FF FE 00 states must be adjacent");
+    if (auto const extra = static_cast<unsigned> (details::to_underlying (state_) -
+                                                  details::to_underlying (states::utf32_or_16_le_bom_byte2));
+        extra < 2U) {
+      // The input was FF FE, possibly followed by 00: it ended before the FF FE 00 00 of a UTF-32 LE byte order mark
+      // was complete. Treat this as a UTF-16 LE byte order mark followed by the first byte (if any) of a code unit.
+      state_ = static_cast<states> (details::to_underlying (states::run_16le_byte0) + extra);
+    } else if (!this->is_run_mode ()) {
+      // The input ended part way through what might have been a byte order mark so decode the bytes received as UTF-8.
+      // In BOM mode, get_byte_no() is the number of bytes received so far rather than the index of the latest.
+      dest = this->run8_start (false, dest);
     }
     if (this->get_byte_no () != 0) {
       // The input ended part way through a UTF-16 or UTF-32 code unit. Replace it with one made entirely of 0xD8 bytes
@@ -2189,26 +2206,21 @@ private:
   /// Switches to the run state in which the input has been determined to be UTF-8 encoded.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type output_type can be written.
-  /// \param copy_buffer  True if the contents of buffer_ should be copied immediately to the output.
+  /// \param current  True if the byte at index get_byte_no() of buffer_ has been received. Bytes 0 to get_byte_no()
+  ///   of buffer_ are then passed to the UTF-8 transcoder, otherwise only those before it are.
   /// \param dest  An output iterator to which the output sequence is written.
   /// \returns  Iterator one past the last element assigned.
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (ToEncoding) OutputIterator>
-  [[nodiscard]] OutputIterator run8_start (bool const copy_buffer, OutputIterator dest) noexcept (
+  [[nodiscard]] OutputIterator run8_start (bool const current, OutputIterator dest) noexcept (
       details::is_nothrow_output_v<OutputIterator, ToEncoding>) {
     assert (!this->is_run_mode () && "The FSM should not be in run mode when run8_start is called");
     // Unlike the other inner transcoders, t8 is fed (from buffer_) before the FSM leaves BOM mode. Should a write throw
     // part way through, a later call will replay buffer_ from the start so t8 must begin again from its initial state.
     inner_.t8 = t8_type{};
-    if (copy_buffer) {
-      // Copy bytes 0 to get_byte_no() inclusive.
-      assert (this->get_byte_no () < buffer_.size ());
-      auto remaining = this->get_byte_no ();
-      for (auto const value : buffer_) {
-        dest = inner_.t8 (static_cast<char8> (details::to_underlying (value)), dest);
-        if (remaining-- == 0U) {
-          break;
-        }
-      }
+    auto const count = this->get_byte_no () + static_cast<unsigned> (current);
+    assert (count <= buffer_.size () && "The count must not exceed the size of the buffer");
+    for (auto index = 0U; index < count; ++index) {
+      dest = inner_.t8 (static_cast<char8> (details::to_underlying (buffer_[index])), dest);
     }
     state_ = states::run_8;
     return dest;
