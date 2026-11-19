@@ -456,7 +456,7 @@ protected:
   static void truncations (std::vector<std::byte> const& bom, std::vector<std::byte> const& unit,
                            std::vector<std::byte> const& tail, bool const bom_partial = false) {
     std::vector<std::byte> head = bom;
-    head.insert (std::end (head), std::begin (unit), std::end (unit));
+    (void)head.insert (std::end (head), std::begin (unit), std::end (unit));
     for (auto count = std::size_t{0}; count < tail.size (); ++count) {
       SCOPED_TRACE (testing::Message () << count << " byte(s) of the final code unit");
       if (count == 0) {
