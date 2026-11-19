@@ -469,6 +469,31 @@ protected:
       }
     }
   }
+
+  /// Passes \p input, which ends while the transcoder is still looking for a byte order mark, to a byte transcoder and
+  /// then calls end_cp(). Checks partial() before and after end_cp() and then the output, well_formed(), and
+  /// selected_encoding().
+  ///
+  /// \param input  The input bytes.
+  /// \param expected  The expected output code points.
+  /// \param well_formed  The expected value of well_formed() after end_cp().
+  /// \param enc  The expected value of selected_encoding() after end_cp().
+  static void ends_in_bom (std::vector<std::byte> const& input, std::initializer_list<char32_t> const expected,
+                           bool const well_formed, icubaby::encoding const enc) {
+    icubaby::transcoder<std::byte, output_type> transcoder;
+    std::vector<output_type> output;
+    auto dest = std::back_inserter (output);
+    for (auto const value : input) {
+      dest = transcoder (value, dest);
+    }
+    EXPECT_TRUE (transcoder.partial ());
+    EXPECT_EQ (transcoder.selected_encoding (), icubaby::encoding::unknown);
+    (void)transcoder.end_cp (dest);
+    EXPECT_FALSE (transcoder.partial ());
+    EXPECT_EQ (transcoder.well_formed (), well_formed);
+    EXPECT_EQ (transcoder.selected_encoding (), enc);
+    EXPECT_THAT (output, ElementsAreArray (encode (expected)));
+  }
 };
 
 }  // end anonymous namespace
@@ -506,6 +531,40 @@ TYPED_TEST (ByteTranscoderTruncated, Utf16BEHighSurrogate) {
 TYPED_TEST (ByteTranscoderTruncated, Utf16LEHighSurrogate) {
   TestFixture::check (make_bytes ({0xFF, 0xFE, 0x3D, 0xD8}), true, make_bytes ({0x00, 0xDE}), 1,
                       {icubaby::replacement_char, icubaby::replacement_char}, false);
+}
+// Input that ends while the transcoder is still looking for a byte order mark. The bytes received are decoded as UTF-8
+// unless they are FF FE (perhaps followed by 00), which is a UTF-16 LE byte order mark.
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, BOMFirstByteOfUtf32BE) {
+  TestFixture::ends_in_bom (make_bytes ({0x00}), {0x0000}, true, icubaby::encoding::utf8);
+}
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, BOMFirstTwoBytesOfUtf32BE) {
+  TestFixture::ends_in_bom (make_bytes ({0x00, 0x00}), {0x0000, 0x0000}, true, icubaby::encoding::utf8);
+}
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, BOMFirstThreeBytesOfUtf32BE) {
+  TestFixture::ends_in_bom (make_bytes ({0x00, 0x00, 0xFE}), {0x0000, 0x0000, icubaby::replacement_char}, false,
+                            icubaby::encoding::utf8);
+}
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, BOMFirstByteOfUtf16BE) {
+  TestFixture::ends_in_bom (make_bytes ({0xFE}), {icubaby::replacement_char}, false, icubaby::encoding::utf8);
+}
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, BOMFirstByteOfUtf16LE) {
+  TestFixture::ends_in_bom (make_bytes ({0xFF}), {icubaby::replacement_char}, false, icubaby::encoding::utf8);
+}
+// An empty UTF-16 LE file. This is also the start of a UTF-32 LE byte order mark.
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, BOMUtf16LE) {
+  TestFixture::ends_in_bom (make_bytes ({0xFF, 0xFE}), {}, true, icubaby::encoding::utf16le);
+}
+// A UTF-16 LE byte order mark followed by a truncated code unit. This is also the start of a UTF-32 LE byte order mark.
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, BOMUtf16LEThenOneByte) {
+  TestFixture::ends_in_bom (make_bytes ({0xFF, 0xFE, 0x00}), {icubaby::replacement_char}, false,
+                            icubaby::encoding::utf16le);
 }
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
