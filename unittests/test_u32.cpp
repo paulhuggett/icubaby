@@ -197,6 +197,18 @@ TYPED_TEST (Utf32, BeyondMaxCodePoint) {
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
 }
 
+// Like the other transcoders, the UTF-32 to UTF-32 transcoder can be given an initial "well formed" state.
+// NOLINTNEXTLINE
+TEST (Utf32To32, InitialWellFormedState) {
+  for (auto const initial : {true, false}) {
+    icubaby::t32_32 transcoder{initial};
+    std::vector<char32_t> output;
+    (void)transcoder.end_cp (transcoder (U'$', std::back_inserter (output)));
+    EXPECT_EQ (transcoder.well_formed (), initial);
+    EXPECT_THAT (output, testing::ElementsAre (U'$'));
+  }
+}
+
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 // NOLINTNEXTLINE
@@ -271,6 +283,72 @@ TYPED_TEST (Utf32, RangesArrowOperator) {
   (void)append<code_point::dollar_sign, TypeParam> (expected_out);
   EXPECT_THAT (output, ElementsAreArray (expected));
 }
+// U+10080 LINEAR B SYLLABLE B008 A is more than one code unit in UTF-8 and UTF-16. Iterators referring to different
+// code units compare unequal even when those code units come from the same code point.
+// NOLINTNEXTLINE
+TYPED_TEST (Utf32, RangesIteratorEquality) {
+  std::vector const input{static_cast<char32_t> (code_point::linear_b_syllable_b008_a),
+                          static_cast<char32_t> (code_point::dollar_sign)};
+  std::vector<TypeParam> expected;
+  (void)append<code_point::dollar_sign, TypeParam> (
+      append<code_point::linear_b_syllable_b008_a, TypeParam> (std::back_inserter (expected)));
+
+  auto const range = input | icubaby::views::transcode<char32_t, TypeParam>;
+  std::vector<decltype (std::ranges::begin (range))> iterators;
+  for (auto it = std::ranges::begin (range), end = std::ranges::end (range); it != end; ++it) {
+    iterators.push_back (it);
+  }
+  ASSERT_EQ (iterators.size (), expected.size ());
+  for (auto lhs = std::size_t{0}; lhs < iterators.size (); ++lhs) {
+    EXPECT_EQ (*iterators.at (lhs), expected.at (lhs));
+    EXPECT_EQ (std::ranges::distance (iterators.front (), iterators.at (lhs)), static_cast<std::ptrdiff_t> (lhs));
+    for (auto rhs = std::size_t{0}; rhs < iterators.size (); ++rhs) {
+      EXPECT_EQ (iterators.at (lhs) == iterators.at (rhs), lhs == rhs) << "iterators #" << lhs << " and #" << rhs;
+    }
+  }
+  // Searching for the final code unit finds it in the right place.
+  auto const found = std::ranges::find (range, expected.back ());
+  EXPECT_EQ (std::ranges::distance (std::ranges::begin (range), found),
+             static_cast<std::ptrdiff_t> (expected.size () - 1U));
+}
+// A view of a temporary container owns it. Check such a view, both on its own and when it is not a common range.
+// NOLINTNEXTLINE
+TYPED_TEST (Utf32, RangesOwningViews) {
+  std::vector<TypeParam> expected;
+  (void)append<code_point::linear_b_syllable_b008_a, TypeParam> (
+      append<code_point::dollar_sign, TypeParam> (std::back_inserter (expected)));
+
+  auto const range = std::vector{static_cast<char32_t> (code_point::dollar_sign),
+                                 static_cast<char32_t> (code_point::linear_b_syllable_b008_a)} |
+                     icubaby::views::transcode<char32_t, TypeParam>;
+  EXPECT_EQ (*std::ranges::begin (range).base (), static_cast<char32_t> (code_point::dollar_sign));
+  std::vector<TypeParam> output;
+  (void)std::ranges::copy (range, std::back_inserter (output));
+  EXPECT_THAT (output, ElementsAreArray (expected));
+
+  auto const until_nul = std::vector{static_cast<char32_t> (code_point::dollar_sign),
+                                     static_cast<char32_t> (code_point::linear_b_syllable_b008_a), char32_t{0},
+                                     static_cast<char32_t> (code_point::dollar_sign)} |
+                         std::views::take_while ([] (char32_t const c) { return c != 0; }) |
+                         icubaby::views::transcode<char32_t, TypeParam>;
+  static_assert (!std::ranges::common_range<decltype (until_nul)>);
+  output.clear ();
+  (void)std::ranges::copy (until_nul, std::back_inserter (output));
+  EXPECT_THAT (output, ElementsAreArray (expected));
+}
+
+namespace {
+
+constexpr auto is_not_nul = [] (char32_t const c) { return c != 0; };
+using transcode_to_16 = decltype (icubaby::views::transcode<char32_t, char16_t>);
+// The view is only accessed through const so it can't be applied to views such as filter_view that can't be iterated
+// through const, or to input-only views.
+static_assert (!std::invocable<transcode_to_16 const&, decltype (std::declval<std::vector<char32_t> const&> () |
+                                                                 std::views::filter (is_not_nul))>);
+static_assert (std::invocable<transcode_to_16 const&, decltype (std::declval<std::vector<char32_t> const&> () |
+                                                                std::views::take_while (is_not_nul))>);
+
+}  // end anonymous namespace
 
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
@@ -305,7 +383,7 @@ static void ManualAndIteratorAlwaysMatch8 (std::vector<char32_t> const& input) {
 FUZZ_TEST (T32, ManualAndIteratorAlwaysMatch8);
 
 static void ManualAndIteratorAlwaysMatch16 (std::vector<char32_t> const& input) {
-  ManualAndIteratorAlwaysMatch<char32_t> (input);
+  ManualAndIteratorAlwaysMatch<char16_t> (input);
 }
 FUZZ_TEST (T32, ManualAndIteratorAlwaysMatch16);
 
@@ -333,7 +411,7 @@ static void ManualAndRangeAdaptorAlwaysMatch8 (std::vector<char32_t> const& inpu
 FUZZ_TEST (T32, ManualAndRangeAdaptorAlwaysMatch8);
 
 static void ManualAndRangeAdaptorAlwaysMatch16 (std::vector<char32_t> const& input) {
-  ManualAndRangeAdaptorAlwaysMatch<char32_t> (input);
+  ManualAndRangeAdaptorAlwaysMatch<char16_t> (input);
 }
 FUZZ_TEST (T32, ManualAndRangeAdaptorAlwaysMatch16);
 
