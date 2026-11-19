@@ -399,7 +399,7 @@ namespace {
 std::vector<std::byte> make_bytes (std::initializer_list<unsigned> const values) {
   std::vector<std::byte> result;
   result.reserve (values.size ());
-  (void)std::ranges::transform (values, std::back_inserter (result),
+  (void)std::transform (std::begin (values), std::end (values), std::back_inserter (result),
                         [] (unsigned const value) { return static_cast<std::byte> (value); });
   return result;
 }
