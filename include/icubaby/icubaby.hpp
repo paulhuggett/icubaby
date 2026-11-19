@@ -1848,9 +1848,10 @@ public:
     switch (this->get_run_encoding ()) {
     case run_encoding::utf8: return inner_.t8.end_cp (dest);
     case run_encoding::utf16: return inner_.t16.end_cp (dest);
-    case run_encoding::utf32: return inner_.t32.end_cp (dest);
+    default:
+      assert (this->get_run_encoding () == run_encoding::utf32 && "Unknown run mode encoding");
+      return inner_.t32.end_cp (dest);
     }
-    return dest;
   }
 
   /// \brief Call once the entire input sequence has been fed to operator().
@@ -2307,9 +2308,10 @@ constexpr bool transcoder<std::byte, ToEncoding>::partial () const noexcept {
   switch (this->get_run_encoding ()) {
   case run_encoding::utf8: return inner_.t8.partial ();
   case run_encoding::utf16: return inner_.t16.partial ();
-  case run_encoding::utf32: return inner_.t32.partial ();
+  default:
+    assert (this->get_run_encoding () == run_encoding::utf32 && "Unknown run mode encoding");
+    return inner_.t32.partial ();
   }
-  return false;
 }
 
 // well formed
@@ -2322,9 +2324,10 @@ constexpr bool transcoder<std::byte, ToEncoding>::well_formed () const noexcept 
   switch (this->get_run_encoding ()) {
   case run_encoding::utf8: return inner_.t8.well_formed ();
   case run_encoding::utf16: return inner_.t16.well_formed ();
-  case run_encoding::utf32: return inner_.t32.well_formed ();
+  default:
+    assert (this->get_run_encoding () == run_encoding::utf32 && "Unknown run mode encoding");
+    return inner_.t32.well_formed ();
   }
-  return true;
 }
 
 // selected encoding
