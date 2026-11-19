@@ -291,10 +291,19 @@ TYPED_TEST (Utf8, PartialEndCp) {
 
   out = transcoder.end_cp (out);
   EXPECT_FALSE (transcoder.well_formed ());
-  EXPECT_TRUE (transcoder.partial ());
+  EXPECT_FALSE (transcoder.partial ());
 
   std::vector<TypeParam> expected;
   (void)append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
+  EXPECT_THAT (output, ContainerEq (expected));
+
+  // end_cp() returned the transcoder to its initial state (other than well_formed()): the truncated sequence that it
+  // has already replaced is not reported again.
+  out = transcoder (static_cast<icubaby::char8> ('$'), out);
+  out = transcoder.end_cp (out);
+  EXPECT_FALSE (transcoder.well_formed ());
+  EXPECT_FALSE (transcoder.partial ());
+  (void)append<code_point::dollar_sign, TypeParam> (std::back_inserter (expected));
   EXPECT_THAT (output, ContainerEq (expected));
 }
 

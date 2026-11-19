@@ -1039,7 +1039,7 @@ public:
   constexpr OutputIterator end_cp (OutputIterator dest) noexcept (
       details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (state_ != accept) {
-      state_ = reject;
+      state_ = accept;
       *(dest++) = replacement_char;
       well_formed_ = false;
     }
@@ -1363,7 +1363,7 @@ public:
   constexpr OutputIterator end_cp (OutputIterator dest) noexcept (
       details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (state_ != accept) {
-      state_ = reject;
+      state_ = accept;
       dest = transcoder::write_replacement_char (dest);
       well_formed_ = false;
     }
@@ -1628,7 +1628,7 @@ public:
   OutputIterator end_cp (OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
     if (state_ != accept) {
       pending_ = 0;
-      state_ = reject;
+      state_ = accept;
       dest = this->not_well_formed (dest);
     }
     return dest;
@@ -1818,13 +1818,11 @@ public:
       }
       break;
 
-    case states::utf32_le_bom_byte3:
     case states::utf32_be_bom_byte3:
       assert (this->get_byte_no () == 3 && "Expected this to be byte #3");
       buffer_[this->get_byte_no ()] = value;
-      if (value == transcoder::bom_value (encoding_utf32 | (static_cast<std::byte> (state_) & endian_mask),
-                                          this->get_byte_no ())) {
-        state_ = transcoder::set_run_mode (transcoder::set_byte (state_, 0));
+      if (value == transcoder::bom_value (encoding_utf32 | big_endian, this->get_byte_no ())) {
+        state_ = states::run_32be_byte0;
       } else {
         // Default input encoding. Emit buffer.
         dest = this->run8_start (true, dest);
@@ -1846,6 +1844,17 @@ public:
 
     case states::run_8: dest = inner_.t8 (static_cast<char8> (details::to_underlying (value)), dest); break;
 
+    case states::utf32_le_bom_byte3:
+      assert (this->get_byte_no () == 3 && "Expected this state to target byte #3");
+      if (value == transcoder::bom_value (encoding_utf32 | little_endian, this->get_byte_no ())) {
+        state_ = states::run_32le_byte0;
+        break;
+      }
+      // This isn't a UTF-32 LE BOM. FF FE was a UTF-16 LE BOM and the 00 that followed was the first (low) byte of a
+      // code unit that this value completes.
+      buffer_[0] = std::byte{0};
+      state_ = states::run_16le_byte1;
+      [[fallthrough]];
     case states::run_16be_byte1:
     case states::run_16le_byte1: dest = this->run16 (value, dest); break;
 

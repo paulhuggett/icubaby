@@ -566,6 +566,49 @@ TYPED_TEST (ByteTranscoderTruncated, BOMUtf16LEThenOneByte) {
   TestFixture::ends_in_bom (make_bytes ({0xFF, 0xFE, 0x00}), {icubaby::replacement_char}, false,
                             icubaby::encoding::utf16le);
 }
+// A UTF-16 LE byte order mark followed by a code unit whose low byte is 00. FF FE 00 is also the start of a UTF-32 LE
+// byte order mark, so the transcoder can't tell which it has until the following byte arrives.
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, BOMUtf16LEThenLowByteZero) {
+  std::vector<std::byte> const none;
+  // 00 4E is U+4E00 CJK UNIFIED IDEOGRAPH-4E00 and 2D 4E is U+4E2D CJK UNIFIED IDEOGRAPH-4E2D.
+  TestFixture::check (make_bytes ({0xFF, 0xFE, 0x00, 0x4E}), false, none, 0, {0x4E00}, true);
+  TestFixture::check (make_bytes ({0xFF, 0xFE, 0x00, 0x4E, 0x2D, 0x4E}), false, none, 0, {0x4E00, 0x4E2D}, true);
+  // 00 D8 00 DC is a surrogate pair for U+10000 LINEAR B SYLLABLE B008 A.
+  TestFixture::check (make_bytes ({0xFF, 0xFE, 0x00, 0xD8, 0x00, 0xDC}), false, none, 0, {0x10000}, true);
+  // A high surrogate at the end of the input.
+  TestFixture::check (make_bytes ({0xFF, 0xFE, 0x00, 0xD8}), true, none, 0, {icubaby::replacement_char}, false);
+}
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, BOMUtf16LEThenLowByteZeroSelectsUtf16LE) {
+  icubaby::transcoder<std::byte, char32_t> transcoder;
+  std::vector<char32_t> output;
+  auto dest = std::back_inserter (output);
+  for (auto const value : make_bytes ({0xFF, 0xFE, 0x00, 0x4E})) {
+    dest = transcoder (value, dest);
+  }
+  EXPECT_EQ (transcoder.selected_encoding (), icubaby::encoding::utf16le);
+  (void)transcoder.end_cp (dest);
+  EXPECT_TRUE (transcoder.well_formed ());
+  EXPECT_THAT (output, ElementsAre (char32_t{0x4E00}));
+}
+// A UTF-8 transcoder that has replaced a truncated sequence in end_cp() does not report it again if it is reused.
+// NOLINTNEXTLINE
+TYPED_TEST (ByteTranscoderTruncated, Utf8ReuseAfterEndCp) {
+  using output_type = typename TestFixture::output_type;
+  icubaby::transcoder<std::byte, output_type> transcoder;
+  std::vector<output_type> output;
+  auto dest = std::back_inserter (output);
+  dest = transcoder (std::byte{0xC3}, dest);
+  EXPECT_TRUE (transcoder.partial ());
+  dest = transcoder.end_cp (dest);
+  EXPECT_FALSE (transcoder.partial ());
+  dest = transcoder (std::byte{'A'}, dest);
+  (void)transcoder.end_cp (dest);
+  EXPECT_FALSE (transcoder.partial ());
+  EXPECT_FALSE (transcoder.well_formed ());
+  EXPECT_THAT (output, ElementsAreArray (TestFixture::encode ({icubaby::replacement_char, 'A'})));
+}
 // A byte which cuts short a UTF-8 sequence (including the start of a UTF-8 byte order mark) is not swallowed: the
 // truncated sequence is replaced by U+FFFD REPLACEMENT CHARACTER and the byte is then decoded normally.
 // NOLINTNEXTLINE
