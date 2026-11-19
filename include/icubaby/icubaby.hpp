@@ -1799,7 +1799,6 @@ public:
       buffer_[this->get_byte_no ()] = value;
       if (value == transcoder::bom_value (encoding_utf32 | (static_cast<std::byte> (state_) & endian_mask),
                                           this->get_byte_no ())) {
-        inner_.t32 = t32_type{};
         state_ = transcoder::set_run_mode (transcoder::set_byte (state_, 0));
       } else {
         // Default input encoding. Emit buffer.
@@ -2110,27 +2109,21 @@ private:
   /// A short name for the transcoder used when UTF-32 input has been detected.
   using t32_type = transcoder<char32_t, ToEncoding>;
 
-  /// \brief Holds the transcoder used to convert input code units once the input encoding has been selected.
+  /// \brief Holds the transcoders used to convert input code units once the input encoding has been selected.
   ///
-  /// A union is used rather than std::variant<> because the active member is already recorded by the FSM state: none
-  /// is active in BOM mode; in run mode the encoding bits of the state select t8, t16, or t32. Each of the member types
-  /// is trivially copyable and trivially destructible so a new transcoder is made active simply by assigning to it.
-  union inner_transcoder {
-    constexpr inner_transcoder () noexcept : none{} {}
-    /// The active member until the input encoding has been determined.
-    char none;
-    /// The active member when the input is UTF-8.
+  /// Only one of the members is used: none in BOM mode; in run mode the encoding bits of the FSM state select t8, t16,
+  /// or t32. The FSM leaves BOM mode at most once, so the selected transcoder is in its initial state when it is first
+  /// used. Each member is small, so holding all three costs little and there is no need to track which is valid.
+  struct inner_transcoder {
+    /// The transcoder used when the input is UTF-8.
     t8_type t8;
-    /// The active member when the input is UTF-16.
+    /// The transcoder used when the input is UTF-16.
     t16_type t16;
-    /// The active member when the input is UTF-32.
+    /// The transcoder used when the input is UTF-32.
     t32_type t32;
   };
-  static_assert (std::is_trivially_copyable_v<t8_type> && std::is_trivially_destructible_v<t8_type>);
-  static_assert (std::is_trivially_copyable_v<t16_type> && std::is_trivially_destructible_v<t16_type>);
-  static_assert (std::is_trivially_copyable_v<t32_type> && std::is_trivially_destructible_v<t32_type>);
 
-  /// The transcoder used to convert input code units. See inner_transcoder.
+  /// The transcoders used to convert input code units. See inner_transcoder.
   inner_transcoder inner_;
   /// The current state of the FSM.
   states state_ = states::start;
@@ -2188,6 +2181,8 @@ private:
   [[nodiscard]] OutputIterator run8_start (bool const copy_buffer, OutputIterator dest) noexcept (
       details::is_nothrow_output_v<OutputIterator, ToEncoding>) {
     assert (!this->is_run_mode () && "The FSM should not be in run mode when run8_start is called");
+    // Unlike the other inner transcoders, t8 is fed (from buffer_) before the FSM leaves BOM mode. Should a write throw
+    // part way through, a later call will replay buffer_ from the start so t8 must begin again from its initial state.
     inner_.t8 = t8_type{};
     if (copy_buffer) {
       for (auto index = std::uint_least8_t{0}, last = this->get_byte_no (); index <= last; ++index) {
@@ -2207,7 +2202,6 @@ private:
   [[nodiscard]] OutputIterator run16_start (OutputIterator dest) noexcept (
       details::is_nothrow_output_v<OutputIterator, ToEncoding>) {
     assert (!this->is_run_mode () && "The FSM should not be in run mode when run16_start is called");
-    inner_.t16 = t16_type{};
     state_ = static_cast<states> (details::to_underlying (
         encoding_utf16 | (static_cast<std::byte> (state_) & endian_mask) | run_mode | transcoder::byte_no (0U)));
     return dest;
