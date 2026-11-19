@@ -1008,15 +1008,21 @@ public:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit,
                              OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
-    auto const next = details::utf8_dfa::step (static_cast<std::uint_least8_t> (state_), code_point_, code_unit);
+    auto const prev_state = static_cast<std::uint_least8_t> (state_);
+    auto const next = details::utf8_dfa::step (prev_state, code_point_, code_unit);
     code_point_ = next.code_point;
     state_ = next.state;
-    switch (state_) {
-    case accept: *(dest++) = code_point_; break;
+    switch (next.state) {
+    case accept: *(dest++) = next.code_point; break;
     case reject:
       well_formed_ = false;
       state_ = accept;
       *(dest++) = replacement_char;
+      if (prev_state != accept) {
+        // This code unit cut short a multi-byte sequence. It is not part of the ill-formed subsequence that was just
+        // replaced so it is processed again from the start state.
+        dest = (*this) (code_unit, dest);
+      }
       break;
     default: break;
     }
@@ -1317,24 +1323,30 @@ public:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   OutputIterator operator() (input_type code_unit,
                              OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>) {
-    auto const next = details::utf8_dfa::step (static_cast<std::uint_least8_t> (state_), code_point_, code_unit);
+    auto const prev_state = static_cast<std::uint_least8_t> (state_);
+    auto const next = details::utf8_dfa::step (prev_state, code_point_, code_unit);
     code_point_ = next.code_point;
     state_ = next.state;
-    switch (state_) {
+    switch (next.state) {
     case accept:
-      // The UTF-8 decoder rejects surrogates and values beyond max_code_point so we know that code_point_ is a valid
+      // The UTF-8 decoder rejects surrogates and values beyond max_code_point so we know that code_point is a valid
       // Unicode scalar value.
-      assert (!is_surrogate (code_point_) && code_point_ <= max_code_point);
-      if (code_point_ < details::utf16_first_surrogate_pair) {
-        *(dest++) = static_cast<output_type> (code_point_);
+      assert (!is_surrogate (next.code_point) && next.code_point <= max_code_point);
+      if (next.code_point < details::utf16_first_surrogate_pair) {
+        *(dest++) = static_cast<output_type> (next.code_point);
       } else {
-        dest = details::utf16_write_surrogate_pair (code_point_, dest);
+        dest = details::utf16_write_surrogate_pair (next.code_point, dest);
       }
       break;
     case reject:
       well_formed_ = false;
       state_ = accept;
       dest = transcoder::write_replacement_char (dest);
+      if (prev_state != accept) {
+        // This code unit cut short a multi-byte sequence. It is not part of the ill-formed subsequence that was just
+        // replaced so it is processed again from the start state.
+        dest = (*this) (code_unit, dest);
+      }
       break;
     default: break;
     }
@@ -1575,7 +1587,8 @@ public:
       return dest;
     }
     // We only need the automaton's state: the code point value that it assembles is not used.
-    auto const next_state = details::utf8_dfa::step (static_cast<std::uint_least8_t> (state_), 0U, code_unit).state;
+    auto const prev_state = static_cast<std::uint_least8_t> (state_);
+    auto const next_state = details::utf8_dfa::step (prev_state, 0U, code_unit).state;
     switch (next_state) {
     case accept:
       // The sequence is complete and well formed: copy it to the output.
@@ -1588,6 +1601,11 @@ public:
       pending_ = 0;
       state_ = accept;
       dest = this->not_well_formed (dest);
+      if (prev_state != accept) {
+        // This code unit cut short a multi-byte sequence. It is not part of the ill-formed subsequence that was just
+        // replaced so it is processed again from the start state.
+        dest = (*this) (code_unit, dest);
+      }
       break;
     default:
       // Part way through a multi-byte sequence: remember this code unit until we know whether the sequence is well
@@ -2749,6 +2767,31 @@ template <> inline constexpr auto max_output_bytes<char16_t, icubaby::char8> = s
 
 /// \brief The maximum number of bytes produced by a single code-unit being passed to a transcoder consuming UTF-32.
 template <> inline constexpr auto max_output_bytes<char16_t, char32_t> = std::size_t{2};
+
+/// \brief The maximum number of bytes produced by a single code-unit being passed to the UTF-8 to UTF-8 transcoder.
+///
+/// A code unit which cuts short a multi-byte sequence causes REPLACEMENT CHARACTER to be written and is then
+/// processed again from the start state. If the code unit is itself ill-formed (for example, C2 C0), a second
+/// REPLACEMENT CHARACTER is written. Each is 3 bytes when encoded as UTF-8.
+template <> inline constexpr auto max_output_bytes<icubaby::char8, icubaby::char8> = std::size_t{6};
+
+/// \brief The maximum number of code units produced by a single code-unit being passed to the UTF-8 to UTF-32
+/// transcoder.
+///
+/// A code unit which cuts short a multi-byte sequence produces REPLACEMENT CHARACTER followed by the result of
+/// processing that code unit again from the start state (for example, C2 41 gives U+FFFD U+0041).
+template <> inline constexpr auto max_output_bytes<icubaby::char8, char32_t> = std::size_t{2};
+
+/// \brief The maximum number of code units produced by a single byte being passed to the byte transcoder.
+///
+/// When the bytes seen so far turn out not to be a byte order mark, up to four bytes are passed to the UTF-8
+/// transcoder at once. These yield at most four code points (for example, 00 00 FE 00 gives U+0000 U+0000 U+FFFD
+/// U+0000) and each code point that is encoded as 4 UTF-8 bytes or a UTF-16 surrogate pair consumes all four.
+template <> inline constexpr auto max_output_bytes<std::byte, icubaby::char8> = std::size_t{12};
+/// \brief The maximum number of code units produced by a single byte being passed to the byte transcoder.
+template <> inline constexpr auto max_output_bytes<std::byte, char16_t> = std::size_t{4};
+/// \brief The maximum number of code units produced by a single byte being passed to the byte transcoder.
+template <> inline constexpr auto max_output_bytes<std::byte, char32_t> = std::size_t{4};
 
 /// \brief The iterator type of transcode_view.
 template <typename FromEncoding, typename ToEncoding, std::ranges::input_range View>

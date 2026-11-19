@@ -28,6 +28,7 @@
 #include <array>
 #include <cstdint>
 #include <cstdlib>
+#include <initializer_list>
 #include <iterator>
 #include <stdexcept>
 #include <type_traits>
@@ -118,6 +119,8 @@ TYPED_TEST (Utf8, FirstLowSurrogate) {
 
   std::vector<TypeParam> expected;
   auto expected_out = std::back_inserter (expected);
+  // ED is a valid lead byte but A0 cannot follow it, so each of the three code units is replaced individually.
+  expected_out = append<code_point::replacement_char, TypeParam> (expected_out);
   expected_out = append<code_point::replacement_char, TypeParam> (expected_out);
   (void)append<code_point::replacement_char, TypeParam> (expected_out);
   EXPECT_THAT (output, ContainerEq (expected));
@@ -319,6 +322,18 @@ protected:
     return ContainerEq (expected);
   }
 
+  /// \returns A matcher which checks for the code points \p code_points encoded as OutputChar.
+  static auto is_expected (std::initializer_list<char32_t> const code_points) {
+    icubaby::transcoder<char32_t, OutputChar> transcoder;
+    std::vector<OutputChar> expected;
+    auto out = std::back_inserter (expected);
+    for (auto const code_point : code_points) {
+      out = transcoder (code_point, out);
+    }
+    (void)transcoder.end_cp (out);
+    return ContainerEq (expected);
+  }
+
 private:
   // A transcoder which converts from UTF-8 to the OutputChar encoding.
   using transcoder_8_x = icubaby::transcoder<icubaby::char8, OutputChar>;
@@ -357,9 +372,9 @@ TYPED_TEST (Utf8BadInput, NonShortestFormsForLowestSingleByte) {
   // Two-byte sequence (C0 80)
   EXPECT_THAT (this->convert (0xC0, 0x80), this->is_expected (2));
   // Three-byte sequence (E0 80 80)
-  EXPECT_THAT (this->convert (0xE0, 0x80, 0x80), this->is_expected (2));
+  EXPECT_THAT (this->convert (0xE0, 0x80, 0x80), this->is_expected (3));
   // Four-byte sequence (F0 80 80 80)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x80), this->is_expected (3));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x80), this->is_expected (4));
   // Five-byte sequence (F8 80 80 80 80)
   EXPECT_THAT (this->convert (0xF8, 0x80, 0x80, 0x80, 0x80), this->is_expected (5));
   // Six-byte sequence (FC 80 80 80 80 80)
@@ -371,21 +386,21 @@ TYPED_TEST (Utf8BadInput, NonShortestFormsForHighestSingleByte) {
   // Two-byte sequence (C1 BF)
   EXPECT_THAT (this->convert (0xC1, 0xBF), this->is_expected (2));
   // Three-byte sequence (E0 81 BF)
-  EXPECT_THAT (this->convert (0xE0, 0x81, 0xBF), this->is_expected (2));
+  EXPECT_THAT (this->convert (0xE0, 0x81, 0xBF), this->is_expected (3));
   // Four-byte sequence (F0 80 81 BF)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x81, 0xBF), this->is_expected (3));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x81, 0xBF), this->is_expected (4));
   // Five-byte sequence (F8 80 80 81 BF)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x81, 0xBF), this->is_expected (4));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x81, 0xBF), this->is_expected (5));
   // Six-byte sequence (FC 80 80 80 81 BF)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x80, 0x81, 0xBF), this->is_expected (5));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x80, 0x81, 0xBF), this->is_expected (6));
 }
 
 // Non-shortest forms for lowest two-byte (U+0080)
 TYPED_TEST (Utf8BadInput, NonShortestFormsForLowestTwoByte) {
   // Three-byte sequence (E0 82 80)
-  EXPECT_THAT (this->convert (0xE0, 0x82, 0x80), this->is_expected (2));
+  EXPECT_THAT (this->convert (0xE0, 0x82, 0x80), this->is_expected (3));
   // Four-byte sequence (F0 80 82 80)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x82, 0x80), this->is_expected (3));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x82, 0x80), this->is_expected (4));
   // Five-byte sequence (F8 80 80 82 80)
   EXPECT_THAT (this->convert (0xF8, 0x80, 0x80, 0x82, 0x80), this->is_expected (5));
   // Six-byte sequence (FC 80 80 80 82 80)
@@ -395,33 +410,33 @@ TYPED_TEST (Utf8BadInput, NonShortestFormsForLowestTwoByte) {
 // Non-shortest forms for highest two-byte (U+07FF)
 TYPED_TEST (Utf8BadInput, NonShortestFormsForHighestTwoByte) {
   // Three-byte sequence (E0 9F BF)
-  EXPECT_THAT (this->convert (0xE0, 0x9F, 0xBF), this->is_expected (2));
+  EXPECT_THAT (this->convert (0xE0, 0x9F, 0xBF), this->is_expected (3));
   // Four-byte sequence (F0 80 9F BF)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x9F, 0xBF), this->is_expected (3));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x9F, 0xBF), this->is_expected (4));
   // Five-byte sequence (F8 80 80 9F BF)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x9F, 0xBF), this->is_expected (4));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x9F, 0xBF), this->is_expected (5));
   // Six-byte sequence (FC 80 80 80 9F BF)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x80, 0x9F, 0xBF), this->is_expected (5));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x80, 0x9F, 0xBF), this->is_expected (6));
 }
 
 // Non-shortest forms for lowest three-byte (U+0800)
 TYPED_TEST (Utf8BadInput, NonShortestFormsForLowestThreeByte) {
   // Four-byte sequence (F0 80 A0 80)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0xA0, 0x80), this->is_expected (3));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0xA0, 0x80), this->is_expected (4));
   // Five-byte sequence (F8 80 80 A0 80)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0xA0, 0x80), this->is_expected (4));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0xA0, 0x80), this->is_expected (5));
   // Six-byte sequence (FC 80 80 80 A0 80)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x80, 0xA0, 0x80), this->is_expected (5));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x80, 0xA0, 0x80), this->is_expected (6));
 }
 
 // Non-shortest forms for highest three-byte (U+FFFF)
 TYPED_TEST (Utf8BadInput, NonShortestFormsForHighestThreeByte) {
   // Four-byte sequence (F0 8F BF BF)
-  EXPECT_THAT (this->convert (0xF0, 0x8F, 0xBF, 0xBF), this->is_expected (3));
+  EXPECT_THAT (this->convert (0xF0, 0x8F, 0xBF, 0xBF), this->is_expected (4));
   // Five-byte sequence (F8 80 8F BF BF)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x8F, 0xBF, 0xBF), this->is_expected (4));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x8F, 0xBF, 0xBF), this->is_expected (5));
   // Six-byte sequence (FC 80 80 8F BF BF)
-  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x8F, 0xBF, 0xBF), this->is_expected (5));
+  EXPECT_THAT (this->convert (0xF0, 0x80, 0x80, 0x8F, 0xBF, 0xBF), this->is_expected (6));
 }
 
 // Non-shortest forms for lowest four-byte (U+10000)
@@ -449,11 +464,11 @@ TYPED_TEST (Utf8BadInput, OutOfRange) {
   // Longest six-byte sequence (FD BF BF BF BF BF)
   EXPECT_THAT (this->convert (0xFC, 0xBF, 0xBF, 0xBF, 0xBF, 0xBF), this->is_expected (6));
   // First surrogate (ED A0 80)
-  EXPECT_THAT (this->convert (0xED, 0xA0, 0x80), this->is_expected (2));
+  EXPECT_THAT (this->convert (0xED, 0xA0, 0x80), this->is_expected (3));
   // Last surrogate (ED BF BF)
-  EXPECT_THAT (this->convert (0xED, 0xBF, 0xBF), this->is_expected (2));
+  EXPECT_THAT (this->convert (0xED, 0xBF, 0xBF), this->is_expected (3));
   // CESU-8 surrogate pair (ED A0 BD ED B2 A9)
-  EXPECT_THAT (this->convert (0xED, 0xA0, 0xBD, 0xED, 0xB2, 0xA9), this->is_expected (4));
+  EXPECT_THAT (this->convert (0xED, 0xA0, 0xBD, 0xED, 0xB2, 0xA9), this->is_expected (6));
 }
 
 // Out of range and non-shortest
@@ -463,11 +478,11 @@ TYPED_TEST (Utf8BadInput, OutOfRangeAndNonShortest) {
   // One past Unicode as six-byte sequence (FC 80 84 90 80 80)
   EXPECT_THAT (this->convert (0xFC, 0x80, 0x84, 0x90, 0x80, 0x80), this->is_expected (6));
   // First surrogate as four-byte sequence (F0 8D A0 80)
-  EXPECT_THAT (this->convert (0xF0, 0x8D, 0xA0, 0x80), this->is_expected (3));
+  EXPECT_THAT (this->convert (0xF0, 0x8D, 0xA0, 0x80), this->is_expected (4));
   // Last surrogate as four-byte sequence (F0 8D BF BF)
-  EXPECT_THAT (this->convert (0xF0, 0x8D, 0xBF, 0xBF), this->is_expected (3));
+  EXPECT_THAT (this->convert (0xF0, 0x8D, 0xBF, 0xBF), this->is_expected (4));
   // CESU-8 surrogate pair as two four-byte overlongs (F0 8D A0 BD F0 8D B2 A9)
-  EXPECT_THAT (this->convert (0xF0, 0x8D, 0xA0, 0xBD, 0xF0, 0x8D, 0xB2, 0xA9), this->is_expected (6));
+  EXPECT_THAT (this->convert (0xF0, 0x8D, 0xA0, 0xBD, 0xF0, 0x8D, 0xB2, 0xA9), this->is_expected (8));
 }
 
 // Lone trails
@@ -538,6 +553,70 @@ TYPED_TEST (Utf8BadInput, TruncatedSequences) {
   EXPECT_THAT (this->convert (0xF0, 0x9F, 0x92), this->is_expected (1));
 }
 
+// A code unit which cuts short a multi-byte sequence is not part of the ill-formed subsequence. It is processed again
+// so that the following character is not lost. See the Unicode Standard section 3.9 "U+FFFD Substitution of Maximal
+// Subparts".
+TYPED_TEST (Utf8BadInput, TruncatedSequenceFollowedByAscii) {
+  constexpr auto fffd = char32_t{icubaby::replacement_char};
+  // Two-byte lead then 'A' (C3 41)
+  EXPECT_THAT (this->convert (0xC3, 0x41), this->is_expected ({fffd, U'A'}));
+  // Three-byte lead then 'A' (EF 41)
+  EXPECT_THAT (this->convert (0xEF, 0x41), this->is_expected ({fffd, U'A'}));
+  // Three-byte lead and one trail then 'A' (EF BB 41)
+  EXPECT_THAT (this->convert (0xEF, 0xBB, 0x41), this->is_expected ({fffd, U'A'}));
+  // Four-byte lead then 'A' (F0 41)
+  EXPECT_THAT (this->convert (0xF0, 0x41), this->is_expected ({fffd, U'A'}));
+  // Four-byte lead and one trail then 'A' (F0 9F 41)
+  EXPECT_THAT (this->convert (0xF0, 0x9F, 0x41), this->is_expected ({fffd, U'A'}));
+  // Four-byte lead and two trails then 'A' (F0 9F 92 41)
+  EXPECT_THAT (this->convert (0xF0, 0x9F, 0x92, 0x41), this->is_expected ({fffd, U'A'}));
+  // Three-byte lead then NUL (EF 00)
+  EXPECT_THAT (this->convert (0xEF, 0x00), this->is_expected ({fffd, U'\0'}));
+  // Three-byte lead and one trail then NUL (EF BB 00)
+  EXPECT_THAT (this->convert (0xEF, 0xBB, 0x00), this->is_expected ({fffd, U'\0'}));
+  // Delimiters must not vanish (22 E2 98 22 3C)
+  EXPECT_THAT (this->convert (0x22, 0xE2, 0x98, 0x22, 0x3C), this->is_expected ({U'"', fffd, U'"', U'<'}));
+}
+
+TYPED_TEST (Utf8BadInput, TruncatedSequenceFollowedByLead) {
+  constexpr auto fffd = char32_t{icubaby::replacement_char};
+  constexpr auto pilcrow = static_cast<char32_t> (code_point::pilcrow_sign);
+  constexpr auto snowman = static_cast<char32_t> (code_point::snowman);
+  constexpr auto poo = static_cast<char32_t> (code_point::pile_of_poop);
+  // Two-byte lead then a two-byte sequence (C3 C2 B6)
+  EXPECT_THAT (this->convert (0xC3, 0xC2, 0xB6), this->is_expected ({fffd, pilcrow}));
+  // Two-byte lead then a three-byte sequence (C3 E2 98 83)
+  EXPECT_THAT (this->convert (0xC3, 0xE2, 0x98, 0x83), this->is_expected ({fffd, snowman}));
+  // Three-byte lead then a four-byte sequence (E2 F0 9F 92 A9)
+  EXPECT_THAT (this->convert (0xE2, 0xF0, 0x9F, 0x92, 0xA9), this->is_expected ({fffd, poo}));
+  // Three-byte lead and one trail then a two-byte sequence (E2 98 C2 B6)
+  EXPECT_THAT (this->convert (0xE2, 0x98, 0xC2, 0xB6), this->is_expected ({fffd, pilcrow}));
+  // Four-byte lead then a three-byte sequence (F0 E2 98 83)
+  EXPECT_THAT (this->convert (0xF0, 0xE2, 0x98, 0x83), this->is_expected ({fffd, snowman}));
+  // Four-byte lead and one trail then a four-byte sequence (F0 9F F0 9F 92 A9)
+  EXPECT_THAT (this->convert (0xF0, 0x9F, 0xF0, 0x9F, 0x92, 0xA9), this->is_expected ({fffd, poo}));
+  // Four-byte lead and two trails then a two-byte sequence (F0 9F 92 C2 B6)
+  EXPECT_THAT (this->convert (0xF0, 0x9F, 0x92, 0xC2, 0xB6), this->is_expected ({fffd, pilcrow}));
+  // Two-byte lead then a lead which is cut short by the end of input (C3 E2)
+  EXPECT_THAT (this->convert (0xC3, 0xE2), this->is_expected (2));
+  // Four-byte lead and two trails then a lead and trail cut short by the end of input (F0 9F 92 E2 98)
+  EXPECT_THAT (this->convert (0xF0, 0x9F, 0x92, 0xE2, 0x98), this->is_expected (2));
+  // Two-byte lead then a byte which is never valid (C3 FE 41)
+  EXPECT_THAT (this->convert (0xC3, 0xFE, 0x41), this->is_expected ({fffd, fffd, U'A'}));
+  // Two-byte lead then a byte which is never valid followed by NUL (FE 00)
+  EXPECT_THAT (this->convert (0xFE, 0x00), this->is_expected ({fffd, U'\0'}));
+}
+
+TYPED_TEST (Utf8BadInput, TruncatedSequenceAtEnd) {
+  constexpr auto fffd = char32_t{icubaby::replacement_char};
+  // 'A' then a two-byte lead (41 C3)
+  EXPECT_THAT (this->convert (0x41, 0xC3), this->is_expected ({U'A', fffd}));
+  // 'A' then a three-byte lead and one trail (41 E2 98)
+  EXPECT_THAT (this->convert (0x41, 0xE2, 0x98), this->is_expected ({U'A', fffd}));
+  // 'A' then a four-byte lead and two trails (41 F0 9F 92)
+  EXPECT_THAT (this->convert (0x41, 0xF0, 0x9F, 0x92), this->is_expected ({U'A', fffd}));
+}
+
 // Leftovers
 TYPED_TEST (Utf8BadInput, Leftovers) {
   // FE (FE)
@@ -590,8 +669,11 @@ TYPED_TEST (Utf8, RangesBadInput) {
   (void)std::ranges::copy (range, std::back_inserter (output));
   EXPECT_FALSE (range.well_formed ());
 
+  // C3 is replaced by U+FFFD. The code unit (28) that cut short the sequence is not swallowed.
   std::vector<TypeParam> expected;
-  (void)append<code_point::replacement_char, TypeParam> (std::back_inserter (expected));
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::replacement_char, TypeParam> (expected_out);
+  (void)append<code_point::left_parenthesis, TypeParam> (expected_out);
   EXPECT_THAT (output, ContainerEq (expected));
 }
 // NOLINTNEXTLINE
