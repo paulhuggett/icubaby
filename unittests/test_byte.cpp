@@ -707,6 +707,33 @@ TEST (ByteTranscoder, Utf16BEAndIterMove) {
   EXPECT_THAT (output, ElementsAre (char32_t{'A'}, char32_t{'b'}));
   EXPECT_TRUE (range.well_formed ());
 }
+
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+namespace {
+
+/// Checks that a view of \p input, which produces no output, is empty.
+template <typename ToEncoding> void expect_empty_view (std::vector<std::byte> const& input) {
+  auto const range = input | icubaby::views::transcode<std::byte, ToEncoding>;
+  EXPECT_TRUE (std::ranges::begin (range) == std::ranges::end (range));
+  EXPECT_TRUE (range.empty ());
+  EXPECT_EQ (std::ranges::distance (range), 0);
+  EXPECT_TRUE (range.well_formed ());
+}
+
+}  // end anonymous namespace
+
+// A byte order mark on its own produces no output so a view of it is empty.
+// NOLINTNEXTLINE
+TEST (ByteTranscoder, RangesByteOrderMarkOnly) {
+  for (auto const& input : {make_bytes ({0xEF, 0xBB, 0xBF}), make_bytes ({0xFE, 0xFF}), make_bytes ({0xFF, 0xFE}),
+                            make_bytes ({0x00, 0x00, 0xFE, 0xFF}), make_bytes ({0xFF, 0xFE, 0x00, 0x00})}) {
+    SCOPED_TRACE (testing::Message () << input.size () << " byte input");
+    expect_empty_view<icubaby::char8> (input);
+    expect_empty_view<char16_t> (input);
+    expect_empty_view<char32_t> (input);
+  }
+}
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 #endif  // ICUBABY_HAVE_RANGES
 
 // NOLINTNEXTLINE

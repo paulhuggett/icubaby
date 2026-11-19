@@ -255,6 +255,22 @@ TYPED_TEST (Utf32, RangesBadInput) {
   EXPECT_THAT (output, ElementsAreArray (encoded_char_v<code_point::replacement_char, TypeParam>));
   EXPECT_FALSE (range.well_formed ());
 }
+// NOLINTNEXTLINE
+TYPED_TEST (Utf32, RangesArrowOperator) {
+  auto& output = this->output_;
+  std::vector const input{static_cast<char32_t> (code_point::linear_b_syllable_b008_a),
+                          static_cast<char32_t> (code_point::dollar_sign)};
+  auto const range = input | icubaby::views::transcode<char32_t, TypeParam>;
+  for (auto it = std::ranges::begin (range), end = std::ranges::end (range); it != end; ++it) {
+    EXPECT_EQ (it.operator->(), &*it);
+    output.push_back (*it.operator->());
+  }
+  std::vector<TypeParam> expected;
+  auto expected_out = std::back_inserter (expected);
+  expected_out = append<code_point::linear_b_syllable_b008_a, TypeParam> (expected_out);
+  (void)append<code_point::dollar_sign, TypeParam> (expected_out);
+  EXPECT_THAT (output, ElementsAreArray (expected));
+}
 
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 

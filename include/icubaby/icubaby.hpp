@@ -2834,7 +2834,7 @@ public:
   constexpr std::ranges::iterator_t<View> base () && { return std::move (current_); }
 
   constexpr value_type const& operator* () const { return state_.front (); }
-  constexpr std::ranges::iterator_t<View> operator->() const { return state_.front (); }
+  constexpr value_type const* operator->() const { return &state_.front (); }
 
   constexpr iterator& operator++ () {
     state_.advance ();
@@ -2958,7 +2958,9 @@ constexpr std::ranges::iterator_t<View const> transcode_view<FromEncoding, ToEnc
   }
   first_ = std::uint_least8_t{0};
   last_ = static_cast<std::uint_least8_t> (out_it - out_begin);
-  return result;
+  // If the rest of the input produced no output (it might be just a byte order mark), the iterator is at the end of
+  // the view.
+  return this->empty () ? next_ : result;
 }
 
 /// \brief The sentinel type of transcode_view when the underlying view is not a common_range.
