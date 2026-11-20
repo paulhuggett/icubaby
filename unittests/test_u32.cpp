@@ -312,6 +312,9 @@ TYPED_TEST (Utf32, RangesIteratorEquality) {
              static_cast<std::ptrdiff_t> (expected.size () - 1U));
 }
 // A view of a temporary container owns it. Check such a view, both on its own and when it is not a common range.
+// Standard libraries without std::ranges::owning_view (P2415, such as libstdc++ 11) can't make a view of a temporary
+// container.
+#if __cpp_lib_ranges >= 202110L
 // NOLINTNEXTLINE
 TYPED_TEST (Utf32, RangesOwningViews) {
   std::vector<TypeParam> expected;
@@ -336,6 +339,7 @@ TYPED_TEST (Utf32, RangesOwningViews) {
   (void)std::ranges::copy (until_nul, std::back_inserter (output));
   EXPECT_THAT (output, ElementsAreArray (expected));
 }
+#endif  // __cpp_lib_ranges >= 202110L
 
 namespace {
 
