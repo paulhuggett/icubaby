@@ -132,7 +132,7 @@
 #include <ranges>
 #endif
 
-/// \brief Defined as true if compiler and library support for concepts are available.
+/// \brief Defined as 1 if the compiler's __cpp_concepts macro is available and 0 otherwise.
 /// \hideinitializer
 #ifdef __cpp_concepts
 #define ICUBABY_CPP_CONCEPTS_DEFINED (1)
@@ -163,8 +163,8 @@
 /// \brief Defined as `std::output_iterator<x>` if C++ 20 concepts are supported and as `typename` otherwise.
 /// \hideinitializer
 ///
-/// Used as a shortcut to restrict a specific template argument to be an output iterator in C++ 20 and simply
-/// declaring a typename in C++ 17.
+/// A shortcut which requires a template argument to be an output iterator in C++ 20 and simply declares a type
+/// parameter in C++ 17.
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define ICUBABY_CONCEPT_OUTPUT_ITERATOR(x) std::output_iterator<x>
 /// \brief A convenience macro for defining a template argument that must be icubaby::unicode_char_type.
@@ -316,11 +316,11 @@ using u8string = std::basic_string<char8>;
 /// A UTF-8 string_view.
 using u8string_view = std::basic_string_view<char8>;
 
-/// A constant for the U+FFFD REPLACEMENT CHARACTER code point
+/// A constant for the U+FFFD REPLACEMENT CHARACTER code point.
 inline constexpr auto replacement_char = char32_t{0xFFFD};
-/// A constant for the U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK) code point
+/// A constant for the U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK) code point.
 inline constexpr auto zero_width_no_break_space = char32_t{0xFEFF};
-/// A constant for the U+FEFF ZERO WIDTH NO-BREAK SPACE (BYTE ORDER MARK) code point
+/// A constant for the U+FEFF BYTE ORDER MARK code point: another name for icubaby::zero_width_no_break_space.
 inline constexpr auto byte_order_mark = zero_width_no_break_space;
 
 /// \brief The number of bits required to represent a code point.
@@ -338,17 +338,16 @@ inline constexpr auto first_low_surrogate = char32_t{0xDC00};
 /// The code point of the last UTF-16 low surrogate.
 inline constexpr auto last_low_surrogate = char32_t{0xDFFF};
 
-/// The number of the last code point.
+/// The last code point in the Unicode code space.
 inline constexpr auto max_code_point = char32_t{0x10FFFF};
 static_assert (std::uint_least32_t{1} << code_point_bits > max_code_point);
 
-/// A list of the character types used for UTF-8 UTF-16, and UTF-32 encoded
-/// text.
+/// A list of the character types used for UTF-8, UTF-16, and UTF-32 encoded text.
 using character_types = details::make_t<char8, char16_t, char32_t>;
 
-/// \brief Checks whether the argument is one of the unicode character types
+/// \brief Checks whether the argument is one of the Unicode character types.
 ///
-/// Provides the boolean constant `value` which is true if T is one of the unicode character types as defined by
+/// Provides the boolean constant `value` which is true if T is one of the Unicode character types as defined by
 /// icubaby::character_types and false otherwise.
 ///
 /// \tparam T  The type to be checked.
@@ -356,11 +355,11 @@ template <typename T> struct is_unicode_char_type : std::bool_constant<details::
 /// \brief A helper variable template to simplify use of icubaby::is_unicode_char_type.
 template <typename T> inline constexpr bool is_unicode_char_type_v = is_unicode_char_type<T>::value;
 
-/// \brief Checks whether the argument is one of the unicode data source types
+/// \brief Checks whether the argument is one of the Unicode data source types.
 ///
-/// Provides the constant `value` which is equal to true if T is one of the types which may contain unicode data
-/// otherwise, value is equal to false. The unicode data types are the types allowed by
-/// icubaby::is_unicode_char_type_v plus ``std::byte``.
+/// Provides the boolean constant `value` which is true if T is one of the types which may contain Unicode data and
+/// false otherwise. The Unicode data source types are the types allowed by icubaby::is_unicode_char_type_v plus
+/// `std::byte`.
 ///
 /// \tparam T  The type to be checked.
 template <typename T>
@@ -371,17 +370,17 @@ template <typename T> inline constexpr bool is_unicode_input_v = is_unicode_inpu
 
 #if ICUBABY_HAVE_CONCEPTS
 
-/// \brief Checks whether the argument is one of the unicode character types
+/// \brief Checks whether the argument is one of the Unicode character types.
 ///
-/// The unicode_char_type concept defines the requires of a type that matches one of the types that denote a
-/// Unicode encoding.
+/// The unicode_char_type concept is satisfied by the types that denote a Unicode encoding: those listed by
+/// icubaby::character_types.
 template <typename T>
 concept unicode_char_type = is_unicode_char_type_v<T>;
 
-/// \brief Checks whether the argument is one of the unicode data source types
+/// \brief Checks whether the argument is one of the Unicode data source types.
 ///
-/// The unicode_char_type concept defines the requires of a type that matches one of the types that denote a
-/// Unicode data source.
+/// The unicode_input concept is satisfied by the types that denote a Unicode data source: the Unicode character types
+/// plus `std::byte`.
 template <typename T>
 concept unicode_input = is_unicode_input_v<T>;
 
@@ -420,7 +419,7 @@ inline constexpr auto longest_sequence_v = longest_sequence<Encoding>::value;
 /// \brief Returns true if the code point \p code_point represents a UTF-16 low or high surrogate.
 ///
 /// \param code_point  The code point to be tested.
-/// \returns true if the code point \p c represents a UTF-16 high or low surrogate.
+/// \returns true if the code point \p code_point represents a UTF-16 high or low surrogate.
 [[nodiscard]] constexpr bool is_surrogate (char32_t const code_point) noexcept {
   return is_high_surrogate (code_point) || is_low_surrogate (code_point);
 }
@@ -428,18 +427,18 @@ inline constexpr auto longest_sequence_v = longest_sequence<Encoding>::value;
 /// \name Code Point Start
 ///@{
 
-/// \brief Returns true if \p code_unit represents the start of a multi-byte UTF-8 sequence.
+/// \brief Returns true if \p code_unit can start a UTF-8 code point: that is, if it is not a continuation byte.
 ///
 /// \param code_unit  The UTF-8 code unit to be tested.
-/// \returns true if \p code_unit represents the start of a multi-byte UTF-8 sequence.
+/// \returns true if \p code_unit is either a single-byte code point or the first byte of a multi-byte sequence.
 [[nodiscard]] constexpr bool is_code_point_start (char8 const code_unit) noexcept {
   static_assert (sizeof (code_unit) == sizeof (std::byte));
   return (static_cast<std::byte> (code_unit) & std::byte{0b1100'0000}) != std::byte{0b1000'0000};
 }
-/// \brief Returns true if \p code_unit represents the start of a UTF-16 high/low surrogate pair.
+/// \brief Returns true if \p code_unit can start a UTF-16 code point: that is, if it is not a low surrogate.
 ///
 /// \param code_unit  The UTF-16 code unit to be tested.
-/// \returns  true if \p code_unit represents the start of a UTF-16 high/low surrogate pair.
+/// \returns  true if \p code_unit is either a code point by itself or the high surrogate of a surrogate pair.
 [[nodiscard]] constexpr bool is_code_point_start (char16_t const code_unit) noexcept {
   return !is_low_surrogate (code_unit);
 }
@@ -473,6 +472,9 @@ template <std::ranges::input_range Range, typename Proj = std::identity>
 /// \brief Returns the number of code points in a sequence.
 ///
 /// \note The input sequence must be well formed for the result to be accurate.
+/// \tparam I  An input iterator type.
+/// \tparam S  A sentinel type for \p I.
+/// \tparam Proj  Type of the projection applied to elements.
 /// \param first  The start of the range of code units to examine.
 /// \param last  The end of the range of code units to examine.
 /// \param proj  Projection to apply to the elements.
@@ -502,14 +504,15 @@ template <typename InputIterator,
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
-/// Returns an iterator to the beginning of the pos'th code point in the range of code-units given by \p range.
+/// Returns an iterator to the beginning of the pos'th code point in the range of code units given by \p range.
 ///
+/// \note The input sequence must be well formed for the result to be accurate.
 /// \tparam Range  An input range.
 /// \tparam Proj   The type of the projection applied to elements.
 /// \param range  The range of code units to examine.
 /// \param pos  The number of code points to move.
 /// \param proj  Projection to apply to the elements.
-/// \returns  Iterator to the start of the selected code point or iterator equal to last if no such element is found.
+/// \returns  Iterator to the start of the selected code point or the end of the range if there is no such code point.
 template <std::ranges::input_range Range, typename Proj = std::identity>
   requires unicode_char_type<std::iter_value_t<std::projected<std::ranges::iterator_t<Range>, Proj>>>
 [[nodiscard]] constexpr std::ranges::borrowed_iterator_t<Range> index (Range&& range, std::size_t pos, Proj proj = {}) {
@@ -525,6 +528,10 @@ template <std::ranges::input_range Range, typename Proj = std::identity>
 /// Returns an iterator to the beginning of the pos'th code point in the code
 /// unit sequence [first, last).
 ///
+/// \note The input sequence must be well formed for the result to be accurate.
+/// \tparam I  An input iterator type.
+/// \tparam S  A sentinel type for \p I.
+/// \tparam Proj  Type of the projection applied to elements.
 /// \param first  The start of the range of code units to examine.
 /// \param last  The end of the range of code units to examine.
 /// \param pos  The number of code points to move.
@@ -542,6 +549,7 @@ template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::id
 /// Returns an iterator to the beginning of the pos'th code point in the code
 /// unit sequence [first, last).
 ///
+/// \note The input sequence must be well formed for the result to be accurate.
 /// \param first  The start of the range of code units to examine.
 /// \param last  The end of the range of code units to examine.
 /// \param pos  The number of code points to move.
@@ -577,11 +585,18 @@ template <typename Transcoder, typename OutputIterator>
 ICUBABY_REQUIRES ((is_transcoder<Transcoder> && std::output_iterator<OutputIterator, typename Transcoder::output_type>))
 class iterator;
 
-/// \brief A transcoder takes a sequence of either bytes or Unicode code-units (one of UTF-8, 16 or 32) and
+/// \brief A transcoder takes a sequence of either bytes or Unicode code units (one of UTF-8, 16 or 32) and
 ///   converts it to another Unicode encoding.
 ///
 /// Each of the specializations of this template (there is one for each input/output combination) supplies the same
-/// interface.
+/// interface. Each can be default constructed. Apart from the byte transcoder, each also has an explicit constructor
+/// `transcoder (bool well_formed)` which sets the initial value returned by well_formed(): this can be useful when a
+/// stream of data is converted in parts.
+///
+/// Malformed input is never an error. Each ill-formed sequence is replaced by U+FFFD REPLACEMENT CHARACTER and
+/// well_formed() becomes false. UTF-8 input is replaced following the Unicode Standard's recommended practice of one
+/// U+FFFD for each maximal subpart of an ill-formed sequence. Noncharacters such as U+FFFF are valid and are converted
+/// like any other code point.
 template <typename FromEncoding, typename ToEncoding>
 class transcoder {
 public:
@@ -605,7 +620,9 @@ public:
                              OutputIterator dest) noexcept (details::is_nothrow_output_v<OutputIterator, output_type>);
 
   /// Call once the entire input sequence has been fed to \ref transcoder-call-operator "operator()". This function
-  /// ensures that the sequence did not end with a partial code point.
+  /// ensures that the sequence did not end with a partial code point: if it did, U+FFFD REPLACEMENT CHARACTER is
+  /// written and well_formed() becomes false. Afterwards, partial() is false and the transcoder may be used to convert
+  /// another sequence.
   ///
   /// \tparam OutputIterator  An output iterator type to which values of type transcoder::output_type can be written.
   /// \param dest  An output iterator to which the output sequence is written.
@@ -623,7 +640,11 @@ public:
   template <ICUBABY_CONCEPT_OUTPUT_ITERATOR (output_type) OutputIterator>
   constexpr iterator<transcoder, OutputIterator> end_cp (iterator<transcoder, OutputIterator> dest);
 
-  /// Indicates whether the input was well formed
+  /// \brief Indicates whether the input was well formed.
+  ///
+  /// Once malformed input has been seen, well_formed() remains false for the life of the transcoder, including after
+  /// a call to end_cp().
+  ///
   /// \returns True if the input was well formed.
   [[nodiscard]] constexpr bool well_formed () const noexcept;
 
@@ -638,12 +659,12 @@ public:
 
 /// \brief An output iterator which passes code units being output through a transcoder.
 ///
-/// This iterator simplifies the job of converting unicode representation and storing the results of that conversion.
-/// Each time that a code point is recovered from the sequence written to this class, the equivalent sequence is written
-/// to the iterator with which the object was constructed.
+/// This iterator simplifies converting between Unicode encodings and storing the results of that conversion. Each
+/// time that a code point is recovered from the sequence written to this class, the equivalent sequence is written to
+/// the iterator with which the object was constructed. Once all of the input has been written, pass the iterator to
+/// the transcoder's end_cp() member function.
 ///
-/// For example, a function to convert a UTF-16 string to UTF-8 becomes very
-/// simple:
+/// For example, a function to convert a UTF-16 string to UTF-8 becomes very simple:
 /// ~~~
 /// std::u8string utf16_to_8_demo (std::u16string u16) {
 ///   std::u8string u8;
@@ -676,7 +697,9 @@ public:
   /// \param transcoder  The underlying transcoder. This class does not take ownership of the pointer.
   /// \param out  An output iterator to which code units produced by the \p transcoder will be written.
   iterator (Transcoder* transcoder, OutputIterator out) : transcoder_{transcoder}, out_{out} {}
+  /// \brief Copy constructor.
   iterator (iterator const& rhs) = default;
+  /// \brief Move constructor.
   iterator (iterator&& rhs) noexcept (std::is_nothrow_move_constructible_v<OutputIterator>) = default;
 
   ~iterator () = default;
@@ -690,7 +713,9 @@ public:
     return *this;
   }
 
+  /// \brief Copy assignment operator.
   iterator& operator= (iterator const& rhs) = default;
+  /// \brief Move assignment operator.
   iterator& operator= (iterator&& rhs) noexcept (std::is_nothrow_move_assignable_v<OutputIterator>) = default;
 
   /// \brief no-op
@@ -1735,8 +1760,21 @@ inline array2d<std::byte, 5, 4> const boms{{
 /// \brief The "byte transcoder" takes a sequence of bytes, determines their encoding and converts
 ///    to a specified encoding.
 ///
-/// This transcoder is used when the input encoding is not known at compile-time. If present, a leading
-/// byte-order-mark is interpreted to select the source encoding; if not present, UTF-8 encoding is assumed.
+/// This transcoder is used when the input encoding is not known at compile time. If present, a leading byte order mark
+/// selects the source encoding; if not, UTF-8 is assumed. The byte order mark is not copied to the output. The byte
+/// order marks are:
+///
+/// | Bytes       | Encoding  |
+/// | ----------- | --------- |
+/// | EF BB BF    | UTF-8     |
+/// | FE FF       | UTF-16 BE |
+/// | FF FE       | UTF-16 LE |
+/// | 00 00 FE FF | UTF-32 BE |
+/// | FF FE 00 00 | UTF-32 LE |
+///
+/// FF FE 00 00 is always read as a UTF-32 LE byte order mark, so UTF-16 LE input whose first character is U+0000 is
+/// not recognized. Once chosen, the encoding remains in effect after end_cp() so that further input is decoded in the
+/// same way. The selected_encoding() member function reports the encoding in use.
 ///
 /// The byte transcoder is implemented as a finite state machine. The following diagram shows the state transitions that
 /// occur as input bytes are received. Each vertex rectangle represents a state (the upper half has the state name
@@ -1746,7 +1784,9 @@ inline array2d<std::byte, 5, 4> const boms{{
 /// - An edge with description of the form *x=y* (where *y* is a hexadecimal constant) is taken if the input value *x*
 ///   is equal to the constant *y*.
 /// - An edge with the description "otherwise" is taken if no other edges with the same origin are matched.
-/// - An edge without a description is unconditionally taken for the next byte
+/// - An edge without a description is unconditionally taken for the next byte.
+/// - When the input turns out not to be a byte order mark, the bytes received so far are decoded using the encoding
+///   that has been selected: UTF-8 or, following FF FE, UTF-16 LE.
 ///
 /// \dotfile byte_transcoder.dot
 template <ICUBABY_CONCEPT_UNICODE_CHAR_TYPE ToEncoding> class transcoder<std::byte, ToEncoding> {
@@ -2642,10 +2682,11 @@ using tx_32 = transcoder<std::byte, char32_t>;
 /// \brief icubaby C++ 20 ranges support types.
 namespace ranges {
 
-/// \brief A range adaptor for lazily converting between Unicode encodings.
+/// \brief A view which lazily converts between Unicode encodings.
 ///
-/// A range adaptor that represents view of an underlying sequence consisting of Unicode code points in the encoding
-/// given by FromEncoding and produces the equivalent code points in the encoding given by ToEncoding.
+/// A view of an underlying sequence of code units in the encoding given by FromEncoding which produces the equivalent
+/// code units in the encoding given by ToEncoding. Reaching the end of the underlying sequence has the same effect as
+/// calling a transcoder's end_cp() member function. Usually created with icubaby::ranges::views::transcode.
 ///
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced by this range adaptor.
@@ -2680,7 +2721,12 @@ public:
     }
   }
 
-  /// \returns True if the input processed was well formed.
+  /// \brief Indicates whether the input consumed so far was well formed.
+  ///
+  /// The view converts its input lazily, so this value only reflects the input that has been consumed by iterating
+  /// over the view: it is true until an iterator reaches malformed input and false thereafter.
+  ///
+  /// \returns True if the input consumed so far was well formed.
   [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
 
 private:
@@ -2690,29 +2736,32 @@ private:
   mutable bool well_formed_ = true;
 };
 
-/// The maximum number of bytes that can be produced by a single code-unit being passed to a transcoder.
+/// The maximum number of code units that can be produced by a single code unit being passed to a transcoder.
 template <typename FromEncoding, typename ToEncoding>
 inline constexpr auto max_output_bytes = longest_sequence_v<ToEncoding>;
 
-/// \brief The maximum number of bytes produced by a single code-unit being passed to a transcoder consuming UTF-16.
+/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-16 to UTF-8
+/// transcoder.
 ///
-/// The value six comes from the worst-case output which happens when converting a code-units
-/// char16_t{0xD902}, char16_t{0xFFFF} (that is a high surrogate followed by the maximum 16-bit value). This will
-/// cause the second invocation of the UTF-16 to UTF-8 transcoder to produce the REPLACEMENT CHAR and "Not a Character"
-/// code-points which are each 3 bytes when encoded as UTF-8.
+/// The value six comes from the worst-case output which happens when converting the code units
+/// char16_t{0xD902}, char16_t{0xFFFF} (that is, a high surrogate followed by the maximum 16-bit value). The second
+/// code unit causes the transcoder to produce U+FFFD REPLACEMENT CHARACTER and the noncharacter U+FFFF, each of which
+/// is 3 bytes when encoded as UTF-8.
 template <> inline constexpr auto max_output_bytes<char16_t, icubaby::char8> = std::size_t{6};
 
-/// \brief The maximum number of bytes produced by a single code-unit being passed to a transcoder consuming UTF-32.
+/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-16 to UTF-32
+/// transcoder.
 template <> inline constexpr auto max_output_bytes<char16_t, char32_t> = std::size_t{2};
 
-/// \brief The maximum number of bytes produced by a single code-unit being passed to the UTF-8 to UTF-8 transcoder.
+/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-8 to UTF-8
+/// transcoder.
 ///
 /// A code unit which cuts short a multi-byte sequence causes REPLACEMENT CHARACTER to be written and is then
 /// processed again from the start state. If the code unit is itself ill-formed (for example, C2 C0), a second
 /// REPLACEMENT CHARACTER is written. Each is 3 bytes when encoded as UTF-8.
 template <> inline constexpr auto max_output_bytes<icubaby::char8, icubaby::char8> = std::size_t{6};
 
-/// \brief The maximum number of code units produced by a single code-unit being passed to the UTF-8 to UTF-32
+/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-8 to UTF-32
 /// transcoder.
 ///
 /// A code unit which cuts short a multi-byte sequence produces REPLACEMENT CHARACTER followed by the result of
@@ -2746,7 +2795,12 @@ public:
   /// A type that can be used to identify distance between iterators.
   using difference_type = std::ranges::range_difference_t<View const>;
 
+  /// \brief Default initializes the iterator. The result may only be assigned to or destroyed.
   iterator () requires std::default_initializable<std::ranges::iterator_t<View const>> = default;
+  /// \brief Initializes an iterator which refers to the code units produced from the input at \p current.
+  ///
+  /// \param parent  The view to which this iterator belongs.
+  /// \param current  An iterator referring to the element of the underlying view from which to start.
   constexpr iterator (transcode_view const& parent, std::ranges::iterator_t<View const> const& current)
       : current_{current}, parent_{&parent}, state_{current} {
     assert (state_.empty ());
@@ -2756,14 +2810,17 @@ public:
     }
   }
 
-  /// \brief Returns the underlying view
+  /// \brief Returns the underlying iterator.
   constexpr std::ranges::iterator_t<View const> const& base () const& noexcept { return current_; }
-  /// \brief Returns the underlying view
+  /// \brief Moves the underlying iterator out of this object.
   constexpr std::ranges::iterator_t<View const> base () && { return std::move (current_); }
 
+  /// \brief Returns the current code unit.
   constexpr value_type const& operator* () const { return state_.front (); }
+  /// \brief Returns a pointer to the current code unit.
   constexpr value_type const* operator->() const { return &state_.front (); }
 
+  /// \brief Advances to the next code unit.
   constexpr iterator& operator++ () {
     state_.advance ();
     if (state_.empty ()) {
@@ -2772,12 +2829,16 @@ public:
     }
     return *this;
   }
+  /// \brief Advances to the next code unit.
+  /// \returns A copy of the iterator before it was advanced.
   constexpr iterator operator++ (int) {
     auto result = *this;
     ++*this;
     return result;
   }
 
+  /// \brief Compares two iterators for equality.
+  /// \returns True if \p lhs and \p rhs refer to the same code unit of the same view.
   friend constexpr bool operator== (iterator const& lhs, iterator const& rhs)
     requires std::equality_comparable<std::ranges::iterator_t<View const>>
   {
@@ -2855,13 +2916,16 @@ private:
     ///
     /// Together with the last_ field, determines the code-units to be produced when the view is dereferenced.
     std::uint_least8_t first_ : valid_range_bits = 0;
-    /// \brief The index one beyond the end of the the valid range of code units in the state::out_ container.
+    /// \brief The index one beyond the end of the valid range of code units in the state::out_ container.
     ///
-    /// Together with the last_ field, determines the code-units to be produced when the view is dereferenced.
+    /// Together with the first_ field, determines the code-units to be produced when the view is dereferenced.
     std::uint_least8_t last_ : valid_range_bits = 0;
   };
+  /// An iterator referring to the next element of the underlying view to be consumed.
   std::ranges::iterator_t<View const> current_{};
+  /// The view to which this iterator belongs.
   transcode_view const* parent_ = nullptr;
+  /// The transcoder and the code units that it has produced but which have not yet been consumed.
   mutable state state_{};
 };
 
@@ -2915,10 +2979,18 @@ private:
 
 namespace views {
 
+/// \brief The type of the icubaby::ranges::views::transcode range adaptor object.
+///
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced by this adaptor.
 template <typename FromEncoding, typename ToEncoding> class transcode_range_adaptor {
 public:
+  /// \brief Creates a transcode_view of \p range.
+  ///
+  /// \p range must be a forward range which can be iterated both with and without const.
+  ///
+  /// \param range  The range of code units to be converted.
+  /// \returns  A transcode_view of \p range.
   template <std::ranges::viewable_range Range>
     requires std::ranges::forward_range<std::ranges::views::all_t<Range>> &&
              std::ranges::forward_range<std::ranges::views::all_t<Range> const>
@@ -2927,6 +2999,9 @@ public:
   }
 };
 
+/// \brief Applies the transcode range adaptor to \p range: `range | transcode<From, To>` is equivalent to
+///   `transcode<From, To> (range)`.
+///
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced.
 /// \tparam Range  The type of the range that will be consumed.
@@ -2936,6 +3011,17 @@ constexpr auto operator| (Range&& range, transcode_range_adaptor<FromEncoding, T
   return adaptor (std::forward<Range> (range));
 }
 
+/// \brief A range adaptor object which lazily converts a range of code units in the FromEncoding encoding to the
+///   ToEncoding encoding.
+///
+/// FromEncoding is one of `std::byte`, icubaby::char8, `char16_t`, and `char32_t`. ToEncoding is one of
+/// icubaby::char8, `char16_t`, and `char32_t`. For example:
+/// ~~~
+/// auto const in = std::array{char32_t{0x1F600}};
+/// std::vector<char16_t> out;
+/// std::ranges::copy (in | icubaby::views::transcode<char32_t, char16_t>, std::back_inserter (out));
+/// ~~~
+///
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced.
 template <typename FromEncoding, typename ToEncoding>

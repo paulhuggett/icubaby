@@ -31,8 +31,8 @@ int main () {
   // must decide on the input encoding) and emit icubaby::char8 (UTF-8).
   icubaby::transcoder<std::byte, icubaby::char8> transcode;
 
-  // Call the transcoder for each source byte. Output goes to the 'out' output
-  // iterator.
+  // Call the transcoder for each source byte. Output goes to the `out_it`
+  // output iterator.
   for (auto b : input) {
     out_it = transcode (b, out_it);
   }
@@ -42,7 +42,7 @@ int main () {
   (void)transcode.end_cp (out_it);
 
   // Write the output to the console. This example sticks to the ASCII subset of
-  // code point, so this should work on most terminals!
+  // code points, so this should work on most terminals!
   for (auto c : output) {
     std::cout << static_cast<char> (c);
   }

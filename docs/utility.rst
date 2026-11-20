@@ -64,7 +64,7 @@ Functions that determine whether a particular code point is one of the high or l
 
 Code Point Start
 ^^^^^^^^^^^^^^^^
-An overloaded function that can be used used to determine whether a code unit represents the start
+An overloaded function that can be used to determine whether a code unit represents the start
 of a code point.
 
 .. doxygenfunction:: icubaby::is_code_point_start(char8)
