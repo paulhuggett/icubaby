@@ -31,9 +31,10 @@
 #include <vector>
 
 #include "icubaby/icubaby.hpp"
+#include "triangulator.hpp"
 
 /// Checks that a transcoder which converts directly between two encodings behaves identically to
-/// icubaby::details::triangulator<> which converts between the same encodings via an intermediate UTF-32 encoding.
+/// triangulator<> which converts between the same encodings via an intermediate UTF-32 encoding.
 /// The output and the well_formed() and partial() states are compared after every input code unit and after the
 /// call to end_cp().
 ///
@@ -42,7 +43,7 @@
 template <typename FromEncoding, typename ToEncoding> class direct_vs_triangulator {
 public:
   using direct_type = icubaby::transcoder<FromEncoding, ToEncoding>;
-  using indirect_type = icubaby::details::triangulator<FromEncoding, ToEncoding>;
+  using indirect_type = triangulator<FromEncoding, ToEncoding>;
 
   testing::AssertionResult operator() (std::initializer_list<FromEncoding> input) {
     return this->check (std::begin (input), std::end (input));

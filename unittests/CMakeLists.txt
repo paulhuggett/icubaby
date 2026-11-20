@@ -29,6 +29,7 @@ add_executable (icubaby-unittests
   test_u32.cpp
   test_u8.cpp
   test_utility.cpp
+  triangulator.hpp
   typed_test.hpp
 )
 setup_target (icubaby-unittests PEDANTIC $<NOT:$<BOOL:${ICUBABY_FUZZTEST}>>)
