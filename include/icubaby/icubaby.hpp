@@ -463,7 +463,7 @@ inline constexpr auto longest_sequence_v = longest_sequence<Encoding>::value;
 /// \param proj  Projection to apply to the elements.
 /// \returns  The number of code points.
 template <std::ranges::input_range Range, typename Proj = std::identity>
-  requires unicode_char_type<std::ranges::range_value_t<Range>>
+  requires unicode_char_type<std::iter_value_t<std::projected<std::ranges::iterator_t<Range>, Proj>>>
 [[nodiscard]] constexpr std::ranges::range_difference_t<Range> length (Range&& range, Proj proj = {}) {
   return std::ranges::count_if (
       std::forward<Range> (range),
@@ -478,7 +478,7 @@ template <std::ranges::input_range Range, typename Proj = std::identity>
 /// \param proj  Projection to apply to the elements.
 /// \returns  The number of code points.
 template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
-  requires unicode_char_type<typename std::iterator_traits<I>::value_type>
+  requires unicode_char_type<std::iter_value_t<std::projected<I, Proj>>>
 [[nodiscard]] constexpr std::iter_difference_t<I> length (I first, S last, Proj proj = {}) {
   return length (std::ranges::subrange{first, last}, proj);
 }
@@ -511,6 +511,7 @@ template <typename InputIterator,
 /// \param proj  Projection to apply to the elements.
 /// \returns  Iterator to the start of the selected code point or iterator equal to last if no such element is found.
 template <std::ranges::input_range Range, typename Proj = std::identity>
+  requires unicode_char_type<std::iter_value_t<std::projected<std::ranges::iterator_t<Range>, Proj>>>
 [[nodiscard]] constexpr std::ranges::borrowed_iterator_t<Range> index (Range&& range, std::size_t pos, Proj proj = {}) {
   auto count = std::size_t{0};
   return std::ranges::find_if (
@@ -531,6 +532,7 @@ template <std::ranges::input_range Range, typename Proj = std::identity>
 /// \returns  An iterator that is 'pos' code points after the start of the range or
 ///           'last' if the end of the range was encountered.
 template <std::input_iterator I, std::sentinel_for<I> S, typename Proj = std::identity>
+  requires unicode_char_type<std::iter_value_t<std::projected<I, Proj>>>
 [[nodiscard]] constexpr I index (I first, S last, std::size_t pos, Proj proj = {}) {
   return index (std::ranges::subrange{first, last}, pos, proj);
 }
@@ -716,10 +718,6 @@ private:
   /// An output iterator to which code units produced by the transcoder will be written.
   ICUBABY_NO_UNIQUE_ADDRESS OutputIterator out_;
 };
-
-/// A class template argument deduction guide for icubaby::iterator.
-template <typename Transcoder, typename OutputIterator>
-iterator (Transcoder& transcoder, OutputIterator out) -> iterator<Transcoder, OutputIterator>;
 
 namespace details {
 
@@ -938,7 +936,6 @@ public:
       }
     }
     static_assert (utf8d_.size () > 255);
-    assert (ucu < utf8d_.size ());
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     auto const type = utf8d_[ucu];
     auto const cp = (state != accept) ? static_cast<std::uint_least32_t> (ucu & utf8_mask) |
