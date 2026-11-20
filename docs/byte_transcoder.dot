@@ -75,18 +75,18 @@ digraph StateTransitionDiagram {
     utf32_or_16_le_bom_byte1 -> utf32_or_16_le_bom_byte2[xlabel="x=0xFE"];
     utf32_or_16_le_bom_byte1 -> run8[taillabel="otherwise"];
 
-    utf32_or_16_le_bom_byte2 -> run_16le_byte0[xlabel="x=0x00"];
-    utf32_or_16_le_bom_byte2 -> utf32_le_bom_byte3[taillabel="otherwise"];
+    utf32_or_16_le_bom_byte2 -> utf32_le_bom_byte3[xlabel="x=0x00"];
+    utf32_or_16_le_bom_byte2 -> run_16le_byte1[taillabel="otherwise"];
 
     utf32_le_bom_byte3 -> run_32le_byte0[xlabel="x=0x00"];
-    utf32_le_bom_byte3 -> run8[taillabel="otherwise"];
+    utf32_le_bom_byte3 -> run_16le_byte0[taillabel="otherwise"];
 
     utf32_or_16_be_bom_byte1 -> utf32_be_bom_byte2[xlabel="x=0x00"];
     utf32_or_16_be_bom_byte1 -> run8[taillabel="otherwise"];
 
-    utf32_be_bom_byte2 -> utf32_be_bom_byte3[xlabel="value=0xFE"];
+    utf32_be_bom_byte2 -> utf32_be_bom_byte3[xlabel="x=0xFE"];
     utf32_be_bom_byte2 -> run8[taillabel="otherwise"];
-    utf32_be_bom_byte3 -> run_32be_byte0[label="value=0xFF"];
+    utf32_be_bom_byte3 -> run_32be_byte0[xlabel="x=0xFF"];
     utf32_be_bom_byte3 -> run8[taillabel="otherwise"];
 
     run8 -> run8;

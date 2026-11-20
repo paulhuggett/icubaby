@@ -45,8 +45,8 @@ int main () {
   auto inserter = std::back_inserter (output);
   auto output_it = icubaby::iterator{&transcoder, inserter};
 
-  // Loop through the input assigning each UTF-16 to the `it` output iterator
-  // created on the previous line.
+  // Loop through the input assigning each UTF-8 code unit to the `output_it`
+  // output iterator created on the previous line.
   for (auto code_unit : input) {
     *(output_it++) = code_unit;
   }

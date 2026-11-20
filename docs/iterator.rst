@@ -1,8 +1,8 @@
 Iterator Interface
 ==================
 
-The :cpp:class:`icubaby::iterator` class is an output iterator to which code units in the source encoding can be assigned. This
-will produce equivalent code units in the output encoding which are written to a second output iterator. This makes it
+The :cpp:class:`icubaby::iterator` class is an output iterator to which code units in the source encoding can be assigned. It
+produces the equivalent code units in the output encoding and writes them to a second output iterator. This makes it
 straightforward to use standard library algorithms such as
 `std::copy() <https://en.cppreference.com/w/cpp/algorithm/copy>`_ or
 `std::ranges::copy() <https://en.cppreference.com/w/cpp/algorithm/ranges/copy>`_ with the library.
@@ -25,13 +25,14 @@ Iterator Interface Example
   }
   it = t.end_cp (it);
 
-This code creates an instance of :cpp:class:`icubaby::iterator` named `it` which holds two values: a pointer to
-transcoder `t` and output iterator
-(`std::back_insert_iterator() <https://en.cppreference.com/w/cpp/iterator/back_insert_iterator>`_ in this case).
-Assigning a series of code units from the input to `it` results in the `out` vector being filled with equivalent code
-units in the output encoding.
+This code creates an instance of :cpp:class:`icubaby::iterator` named ``it`` which holds two values: a pointer to
+transcoder ``t`` and an output iterator
+(`std::back_insert_iterator <https://en.cppreference.com/w/cpp/iterator/back_insert_iterator>`_ in this case).
+Assigning a series of code units from the input to ``it`` fills the ``out`` vector with the equivalent code units in
+the output encoding. Finally, passing ``it`` to the transcoder's ``end_cp()`` member function checks that the input
+didn't end part way through a code point.
 
-The above code snippet loops over the contents of the `in` array one code unit at a time. We can use
+The above code snippet loops over the contents of the ``in`` array one code unit at a time. We can use
 `std::ranges::copy() <https://en.cppreference.com/w/cpp/algorithm/ranges/copy>`_ to achieve the same effect:
 
 .. code-block:: cpp

@@ -20,7 +20,7 @@ int main () {
   // transcoder.
   auto r = input | icubaby::views::transcode<char32_t, char16_t>;
 
-  // A vector to contain the output UTF=16 code units.
+  // A vector to contain the output UTF-16 code units.
   std::vector<char16_t> out;
 
   // Copy from the input range to the output vector.

@@ -1,14 +1,17 @@
 Welcome to icubaby!
 ===================
 icubaby is a C++ Library to Immediately Convert Unicode. It is a portable, header-only,
-dependency-free library for C++ 17 or later. Fast, minimal, and easy to use for converting sequences
-of text between any of the Unicode UTF encodings. Simple to use and exceptionally simple to
-integrate into a project, it does not allocate dynamic memory and neither throws or catches
-exceptions.
+dependency-free library for C++ 17 or later. It is fast, minimal, and easy to use for converting
+sequences of text between any of the Unicode UTF encodings. Simple to use and exceptionally simple to
+integrate into a project, it does not allocate dynamic memory and neither throws nor catches
+exceptions. (Exceptions thrown by an output iterator that you supply are passed through to you.)
 
 The library offers an API which converts to and from UTF-8, UTF-16, or UTF-32 encodings. It can also
 consume a byte stream where an optional byte order mark at the start of the stream identifies the
-source encoding and byte-order.
+source encoding and byte order.
+
+Malformed input is never an error: each ill-formed sequence is replaced by U+FFFD REPLACEMENT
+CHARACTER. See :ref:`Malformed Input` for details.
 
 Installation
 ------------
@@ -18,8 +21,7 @@ self-configures to your environment.
 
 Usage
 -----
-icubaby uses four different types to express the different Unicode encodings that it supports. They
-are:
+icubaby uses four different types to express the different Unicode encodings that it supports:
 
 .. list-table::
   :header-rows: 1
@@ -29,7 +31,8 @@ are:
     - Input type?
     - Output type?
   * - `std::byte <https://en.cppreference.com/w/cpp/types/byte>`_
-    - Encoding and byte-order is determined by an optional stream byte order mark
+    - Encoding and byte order are determined by an optional byte order mark at the start of the
+      stream (UTF-8 if there is none)
     - :octicon:`check`
     - :octicon:`x`
   * - :cpp:type:`icubaby::char8`
@@ -50,10 +53,10 @@ There are three ways to use the icubaby library depending on your needs:
 
 1. C++ 20 Range Adaptor
 
-   Leverage the C++20 range adaptor for expressive and concise code when working with ranges of
+   Use the C++ 20 range adaptor for expressive and concise code when working with ranges of
    elements. The snippet below converts from native-endian UTF-32 to native-endian UTF-16.
 
-   .. code-block::
+   .. code-block:: cpp
      
      auto const src = std::array{char32_t{0x1F600}};
      auto const r = src | icubaby::views::transcode<char32_t, char16_t>;
@@ -64,10 +67,10 @@ There are three ways to use the icubaby library depending on your needs:
 
 2. Iterator Interface
 
-   Utilize the iterator interface for flexibility in processing sequences of text with
+   Use the iterator interface for flexibility in processing sequences of text with
    iterator-based algorithms.
 
-   .. code-block::
+   .. code-block:: cpp
      
      auto const src = std::array{char32_t{0x1F600}};
      std::vector<char16_t> out;
@@ -80,10 +83,10 @@ There are three ways to use the icubaby library depending on your needs:
 
 3. Explicit Conversion
 
-   Drive the conversion one code-unit at a time, providing fine-grained control over the conversion
+   Drive the conversion one code unit at a time, providing fine-grained control over the conversion
    process.
 
-   .. code-block::
+   .. code-block:: cpp
     
     auto const src = std::array{char32_t{0x1F600}};
     std::vector<char16_t> out;
