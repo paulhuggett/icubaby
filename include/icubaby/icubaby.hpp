@@ -113,7 +113,7 @@
 #define ICUBABY_CXX20 (0)
 #endif
 
-#ifndef ICUBABY_CXX20
+#if ICUBABY_CXX20
 #include <version>
 #endif
 
