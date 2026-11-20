@@ -14,10 +14,10 @@ UTF-8 code units (0xF0, 0x9F, 0x98, 0x80) to UTF-16 (where it is the surrogate p
   }
   it = t.end_cp (it);
 
-The ``out`` vector will contain a two UTF-16 code units 0xD83D and 0xDE00.
+The ``out`` vector will contain two UTF-16 code units 0xD83D and 0xDE00.
 
-Disecting the explicit conversion code
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Dissecting the explicit conversion code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. Define where and how the output should be written:
     

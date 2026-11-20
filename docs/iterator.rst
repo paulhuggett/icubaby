@@ -26,9 +26,9 @@ Iterator Interface Example
   it = t.end_cp (it);
 
 This code creates an instance of :cpp:class:`icubaby::iterator` named `it` which holds two values: a pointer to
-transcoder `t` and output interator
+transcoder `t` and output iterator
 (`std::back_insert_iterator() <https://en.cppreference.com/w/cpp/iterator/back_insert_iterator>`_ in this case).
-Assigning a series of code units from the input to `it` result in the `out` vector being filled with equivalent code
+Assigning a series of code units from the input to `it` results in the `out` vector being filled with equivalent code
 units in the output encoding.
 
 The above code snippet loops over the contents of the `in` array one code unit at a time. We can use
