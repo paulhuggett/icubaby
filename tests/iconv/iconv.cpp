@@ -37,6 +37,10 @@
 
 #include "icubaby/icubaby.hpp"
 
+#if ICUBABY_CXX20
+#include <bit>
+#endif
+
 namespace {
 
 #if defined(__cpp_lib_endian) && __cpp_lib_endian >= 201907L
