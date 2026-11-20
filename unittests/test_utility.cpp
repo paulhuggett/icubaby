@@ -22,6 +22,7 @@
 
 #include <array>
 #include <cstddef>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <vector>
@@ -253,6 +254,50 @@ TYPED_TEST (CjkUnifiedIdeographCodePoints, Index) {
 
   EXPECT_EQ (end, icubaby::index (begin, end, size_t{4}));
 }
+
+#if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
+
+namespace {
+
+struct cell {
+  icubaby::char8 code_unit;
+  int tag;
+};
+// U+0041 LATIN CAPITAL LETTER A, U+00E9 LATIN SMALL LETTER E WITH ACUTE, U+1F600 GRINNING FACE.
+constexpr std::array cells{cell{static_cast<icubaby::char8> (0x41), 0}, cell{static_cast<icubaby::char8> (0xC3), 1},
+                           cell{static_cast<icubaby::char8> (0xA9), 2}, cell{static_cast<icubaby::char8> (0xF0), 3},
+                           cell{static_cast<icubaby::char8> (0x9F), 4}, cell{static_cast<icubaby::char8> (0x98), 5},
+                           cell{static_cast<icubaby::char8> (0x80), 6}};
+
+template <typename Range, typename Proj>
+concept has_length = requires (Range const& range, Proj proj) { icubaby::length (range, proj); };
+template <typename Range, typename Proj>
+concept has_index = requires (Range const& range, Proj proj) { icubaby::index (range, std::size_t{0}, proj); };
+
+// The projected element type, not the range's own element type, must be a Unicode character type.
+static_assert (has_length<decltype (cells), decltype (&cell::code_unit)>);
+static_assert (!has_length<decltype (cells), std::identity>);
+static_assert (!has_length<decltype (cells), decltype (&cell::tag)>);
+static_assert (has_index<decltype (cells), decltype (&cell::code_unit)>);
+static_assert (!has_index<decltype (cells), std::identity>);
+static_assert (!has_index<decltype (cells), decltype (&cell::tag)>);
+
+}  // end anonymous namespace
+
+// NOLINTNEXTLINE
+TEST (Length, Projection) {
+  EXPECT_EQ (icubaby::length (cells, &cell::code_unit), 3);
+  EXPECT_EQ (icubaby::length (std::begin (cells), std::end (cells), &cell::code_unit), 3);
+}
+// NOLINTNEXTLINE
+TEST (Index, Projection) {
+  EXPECT_EQ (icubaby::index (cells, std::size_t{0}, &cell::code_unit)->tag, 0);
+  EXPECT_EQ (icubaby::index (cells, std::size_t{1}, &cell::code_unit)->tag, 1);
+  EXPECT_EQ (icubaby::index (std::begin (cells), std::end (cells), std::size_t{2}, &cell::code_unit)->tag, 3);
+  EXPECT_EQ (icubaby::index (cells, std::size_t{3}, &cell::code_unit), std::end (cells));
+}
+
+#endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 #if ICUBABY_FUZZTEST && ICUBABY_HAVE_RANGES
 
