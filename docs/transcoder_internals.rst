@@ -102,16 +102,3 @@ UTF-8 to UTF-8 transcoders.
   :private-members:
   :undoc-members:
   :allow-dot-graphs:
-
-Triangulator
-------------
-A triangulator converts between two encodings via an intermediate UTF-32 encoding. Each of the transcoders now
-converts directly between its input and output encodings so the triangulator is not used by the library itself. It is
-retained as a simple reference implementation against which the unit tests check the direct transcoders.
-
-.. doxygenclass:: icubaby::details::triangulator
-  :members:
-  :protected-members:
-  :private-members:
-  :undoc-members:
-  :allow-dot-graphs:
