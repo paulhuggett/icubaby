@@ -2619,6 +2619,13 @@ public:
   /// The type of the code units produced by this transcoder.
   using output_type = char32_t;
 
+  constexpr transcoder () noexcept = default;
+  /// Initializes a transcoder instance with an initial value for its "well formed" state. This can be useful if
+  /// converting a stream of data which may be using different encodings.
+  ///
+  /// \param well_formed The initial value for the transcoder's "well formed" state.
+  explicit constexpr transcoder (bool well_formed) noexcept : well_formed_{well_formed} {}
+
   /// Accepts a code unit in the UTF-32 source encoding. As UTF-32 output code units are generated, they are written to
   /// the output iterator \p dest.
   ///
@@ -2722,9 +2729,10 @@ namespace ranges {
 ///
 /// \tparam FromEncoding  The encoding used by the underlying sequence.
 /// \tparam ToEncoding  The encoding that will be produced by this range adaptor.
-/// \tparam View  The type of the underlying view.
-template <typename FromEncoding, typename ToEncoding, std::ranges::input_range View>
-  requires std::ranges::view<View>
+/// \tparam View  The type of the underlying view. The view is only accessed through const so this must be a forward
+///   range both with and without const. (This excludes views such as std::ranges::filter_view.)
+template <typename FromEncoding, typename ToEncoding, std::ranges::forward_range View>
+  requires std::ranges::view<View> && std::ranges::forward_range<View const>
 class transcode_view : public std::ranges::view_interface<transcode_view<FromEncoding, ToEncoding, View>> {
 public:
   class iterator;
@@ -2745,7 +2753,7 @@ public:
 
   /// \brief Obtains the sentinel denoting the end of transcode_view.
   constexpr auto end () const {
-    if constexpr (std::ranges::common_range<View>) {
+    if constexpr (std::ranges::common_range<View const>) {
       return iterator{*this, std::ranges::end (base_)};
     } else {
       return sentinel{*this};
@@ -2803,8 +2811,8 @@ template <> inline constexpr auto max_output_bytes<std::byte, char16_t> = std::s
 template <> inline constexpr auto max_output_bytes<std::byte, char32_t> = std::size_t{4};
 
 /// \brief The iterator type of transcode_view.
-template <typename FromEncoding, typename ToEncoding, std::ranges::input_range View>
-  requires std::ranges::view<View>
+template <typename FromEncoding, typename ToEncoding, std::ranges::forward_range View>
+  requires std::ranges::view<View> && std::ranges::forward_range<View const>
 class transcode_view<FromEncoding, ToEncoding, View>::iterator {
 public:
   /// Defines this class as fulfilling the requirements of a forward iterator.
@@ -2816,9 +2824,9 @@ public:
   using value_type = ToEncoding;
 
   /// A type that can be used to identify distance between iterators.
-  using difference_type = std::ranges::range_difference_t<View>;
+  using difference_type = std::ranges::range_difference_t<View const>;
 
-  iterator () requires std::default_initializable<std::ranges::iterator_t<View>> = default;
+  iterator () requires std::default_initializable<std::ranges::iterator_t<View const>> = default;
   constexpr iterator (transcode_view const& parent, std::ranges::iterator_t<View const> const& current)
       : current_{current}, parent_{&parent}, state_{current} {
     assert (state_.empty ());
@@ -2829,9 +2837,9 @@ public:
   }
 
   /// \brief Returns the underlying view
-  constexpr std::ranges::iterator_t<View> const& base () const& noexcept { return current_; }
+  constexpr std::ranges::iterator_t<View const> const& base () const& noexcept { return current_; }
   /// \brief Returns the underlying view
-  constexpr std::ranges::iterator_t<View> base () && { return std::move (current_); }
+  constexpr std::ranges::iterator_t<View const> base () && { return std::move (current_); }
 
   constexpr value_type const& operator* () const { return state_.front (); }
   constexpr value_type const* operator->() const { return &state_.front (); }
@@ -2844,17 +2852,19 @@ public:
     }
     return *this;
   }
-  constexpr void operator++ (int) { ++*this; }
-  constexpr iterator operator++ (int) requires std::ranges::forward_range<View> {
+  constexpr iterator operator++ (int) {
     auto result = *this;
     ++*this;
     return result;
   }
 
   friend constexpr bool operator== (iterator const& lhs, iterator const& rhs)
-    requires std::equality_comparable<std::ranges::iterator_t<View>>
+    requires std::equality_comparable<std::ranges::iterator_t<View const>>
   {
-    return lhs.current_ == rhs.current_ && lhs.parent_ == rhs.parent_;
+    // A single input code point may produce several output code units so iterators that share an input position must
+    // also be at the same output code unit.
+    return lhs.current_ == rhs.current_ && lhs.state_.position () == rhs.state_.position () &&
+           lhs.parent_ == rhs.parent_;
   }
 
 private:
@@ -2876,6 +2886,9 @@ private:
       assert (first_ <= last_ && last_ <= out_.size () && "first_ and last_ must be valid indexes in the out_ array");
       return first_ == last_;
     }
+
+    /// Returns the index of the current code unit within those produced for the current code point.
+    [[nodiscard]] constexpr std::uint_least8_t position () const noexcept { return first_; }
 
     /// Returns the first element from the range of code units forming the current code point.
     [[nodiscard]] constexpr auto& front () const noexcept {
@@ -2932,8 +2945,8 @@ private:
   mutable state state_{};
 };
 
-template <typename FromEncoding, typename ToEncoding, std::ranges::input_range View>
-  requires std::ranges::view<View>
+template <typename FromEncoding, typename ToEncoding, std::ranges::forward_range View>
+  requires std::ranges::view<View> && std::ranges::forward_range<View const>
 constexpr std::ranges::iterator_t<View const> transcode_view<FromEncoding, ToEncoding, View>::iterator::state::fill (
     transcode_view const* parent) {
   auto result = next_;
@@ -2964,20 +2977,20 @@ constexpr std::ranges::iterator_t<View const> transcode_view<FromEncoding, ToEnc
 }
 
 /// \brief The sentinel type of transcode_view when the underlying view is not a common_range.
-template <typename FromEncoding, typename ToEncoding, std::ranges::input_range View>
-  requires std::ranges::view<View>
+template <typename FromEncoding, typename ToEncoding, std::ranges::forward_range View>
+  requires std::ranges::view<View> && std::ranges::forward_range<View const>
 class transcode_view<FromEncoding, ToEncoding, View>::sentinel {
 public:
   sentinel () = default;
   /// Derives the value of this sentinel instance from the end of the associated view.
   constexpr explicit sentinel (transcode_view const& parent) : end_{std::ranges::end (parent.base_)} {}
   /// \returns The underlying view's end sentinel
-  constexpr std::ranges::sentinel_t<View> base () const { return end_; }
+  constexpr std::ranges::sentinel_t<View const> base () const { return end_; }
   /// \brief Compares an iterator and sentinel for equality.
   friend constexpr bool operator== (iterator const& lhs, sentinel const& rhs) { return lhs.base () == rhs.end_; }
 
 private:
-  std::ranges::sentinel_t<View> end_{};  ///< The underlying view's end sentinel
+  std::ranges::sentinel_t<View const> end_{};  ///< The underlying view's end sentinel
 };
 
 namespace views {
@@ -2986,7 +2999,10 @@ namespace views {
 /// \tparam ToEncoding  The encoding that will be produced by this adaptor.
 template <typename FromEncoding, typename ToEncoding> class transcode_range_adaptor {
 public:
-  template <std::ranges::viewable_range Range> constexpr auto operator() (Range&& range) const {
+  template <std::ranges::viewable_range Range>
+    requires std::ranges::forward_range<std::ranges::views::all_t<Range>> &&
+             std::ranges::forward_range<std::ranges::views::all_t<Range> const>
+  constexpr auto operator() (Range&& range) const {
     return transcode_view<FromEncoding, ToEncoding, std::ranges::views::all_t<Range>>{std::forward<Range> (range)};
   }
 };
@@ -2995,6 +3011,7 @@ public:
 /// \tparam ToEncoding  The encoding that will be produced.
 /// \tparam Range  The type of the range that will be consumed.
 template <typename FromEncoding, typename ToEncoding, std::ranges::viewable_range Range>
+  requires std::invocable<transcode_range_adaptor<FromEncoding, ToEncoding> const&, Range>
 constexpr auto operator| (Range&& range, transcode_range_adaptor<FromEncoding, ToEncoding> const& adaptor) {
   return adaptor (std::forward<Range> (range));
 }
