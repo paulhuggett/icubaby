@@ -87,7 +87,7 @@ There are three ways to use the icubaby library depending on your needs:
     
     auto const src = std::array{char32_t{0x1F600}};
     std::vector<char16_t> out;
-    icubaby::t8_16 t;
+    icubaby::t32_16 t;
     auto it = std::back_inserter (out);
     for (auto cu: src) {
       it = t (cu, it);

@@ -27,8 +27,8 @@ UTF-16 where this code point is encoded in two code units as 0xD83D and 0xDE00.
 
 You can experiment with a working example using `Compiler Explorer <https://godbolt.org/z/MaEEYnxG6>`_.
 
-Disecting the Example
-^^^^^^^^^^^^^^^^^^^^^
+Dissecting the Example
+^^^^^^^^^^^^^^^^^^^^^^
 
 1. Define the input range:
 

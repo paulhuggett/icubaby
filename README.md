@@ -85,7 +85,7 @@ std::vector<icubaby::char8> out;
 std::ranges::copy(r, std::back_inserter(out));
 ```
 
-This snippet converts “Ab” (U+0041 LATIN CAPITAL LETTER A), (U+0042 LATIN SMALL LETTER B) from big-endian UTF-16 to UTF-8.
+This snippet converts “Ab” (U+0041 LATIN CAPITAL LETTER A), (U+0062 LATIN SMALL LETTER B) from big-endian UTF-16 to UTF-8.
 
 See the [C++20 Range Adaptor documentation](https://paulhuggett-icubaby.readthedocs.io/en/latest/ranges.html)
 for more details.
@@ -125,6 +125,6 @@ for (auto cu: {0xF0, 0x9F, 0x98, 0x80}) {
 it = t.end_cp (it);
 ```
 
-The `out` vector will contain a two UTF-16 code units 0xD83D and 0xDE00. See
+The `out` vector will contain two UTF-16 code units 0xD83D and 0xDE00. See
 the [explicit conversion documentation](https://paulhuggett-icubaby.readthedocs.io/en/latest/explicit-conversion.html)
 for more details.
