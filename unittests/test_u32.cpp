@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <iterator>
 #include <type_traits>
@@ -207,6 +208,20 @@ TEST (Utf32To32, InitialWellFormedState) {
     EXPECT_EQ (transcoder.well_formed (), initial);
     EXPECT_THAT (output, testing::ElementsAre (U'$'));
   }
+}
+
+// "*it++ = value" must have the same effect as "*it = value; ++it;" even when the underlying output iterator is not
+// an insert iterator.
+// NOLINTNEXTLINE
+TEST (Utf32To16, IteratorPostIncrement) {
+  std::array<char16_t, 4> output{};
+  icubaby::t32_16 transcoder;
+  auto out_it = icubaby::iterator{&transcoder, output.begin ()};
+  for (auto const code_point : {char32_t{0x0041}, char32_t{0x1F600}, char32_t{0x0042}}) {
+    *out_it++ = code_point;
+  }
+  EXPECT_EQ (transcoder.end_cp (out_it).base (), output.end ());
+  EXPECT_THAT (output, ElementsAreArray ({char16_t{0x0041}, char16_t{0xD83D}, char16_t{0xDE00}, char16_t{0x0042}}));
 }
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS

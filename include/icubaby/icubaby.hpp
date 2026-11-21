@@ -742,7 +742,7 @@ public:
   constexpr iterator& operator++ () noexcept { return *this; }
   /// \brief no-op
   /// \returns \*this
-  constexpr iterator operator++ (int) noexcept (std::is_nothrow_copy_constructible_v<OutputIterator>) { return *this; }
+  constexpr iterator& operator++ (int) noexcept { return *this; }
 
   /// Accesses the underlying iterator.
   [[nodiscard]] constexpr OutputIterator base () const noexcept (std::is_nothrow_copy_constructible_v<OutputIterator>) {
@@ -2709,21 +2709,37 @@ namespace details {
 /// Unlike std::atomic<bool>, instances may be copied: the copy takes the value that the source held at the time.
 // The copy and move operations are user-provided only so that they read the source atomically. The class manages no
 // resource, so the destructor has nothing to do.
+//
+// Atomic operations cannot be used in a constant expression. transcode_view never clears the flag during constant
+// evaluation, so the value is always true then and the copy and move operations need not read the source.
 class well_formed_flag {  // NOSONAR(cpp:S3624)
 public:
   constexpr well_formed_flag () noexcept = default;
-  well_formed_flag (well_formed_flag const& rhs) noexcept : value_{rhs.get ()} {}
-  well_formed_flag (well_formed_flag&& rhs) noexcept : value_{rhs.get ()} {}
+  /// \brief Initializes the flag with the value held by \p rhs.
+  /// \param rhs  The flag whose value is to be copied.
+  constexpr well_formed_flag (well_formed_flag const& rhs) noexcept
+      : value_{std::is_constant_evaluated () || rhs.get ()} {}
+  /// \brief Initializes the flag with the value held by \p rhs.
+  /// \param rhs  The flag whose value is to be copied.
+  constexpr well_formed_flag (well_formed_flag&& rhs) noexcept : value_{std::is_constant_evaluated () || rhs.get ()} {}
   ~well_formed_flag () noexcept = default;
 
-  well_formed_flag& operator= (well_formed_flag const& rhs) noexcept {
-    if (&rhs != this) {
+  /// \brief Sets the flag to the value held by \p rhs.
+  /// \param rhs  The flag whose value is to be copied.
+  /// \returns \*this
+  constexpr well_formed_flag& operator= (well_formed_flag const& rhs) noexcept {
+    if (&rhs != this && !std::is_constant_evaluated ()) {
       value_.store (rhs.get (), std::memory_order_relaxed);
     }
     return *this;
   }
-  well_formed_flag& operator= (well_formed_flag&& rhs) noexcept {
-    value_.store (rhs.get (), std::memory_order_relaxed);
+  /// \brief Sets the flag to the value held by \p rhs.
+  /// \param rhs  The flag whose value is to be copied.
+  /// \returns \*this
+  constexpr well_formed_flag& operator= (well_formed_flag&& rhs) noexcept {
+    if (!std::is_constant_evaluated ()) {
+      value_.store (rhs.get (), std::memory_order_relaxed);
+    }
     return *this;
   }
 
@@ -2733,6 +2749,7 @@ public:
   void clear () noexcept { value_.store (false, std::memory_order_relaxed); }
 
 private:
+  /// The value of the flag.
   std::atomic<bool> value_{true};
 };
 
@@ -2786,7 +2803,7 @@ public:
   /// over the view: it is true until an iterator reaches malformed input and false thereafter. It may be called while
   /// other threads are iterating over the view.
   ///
-  /// The view can be iterated in a constant expression but, because this value is held in a std::atomic, this
+  /// The view can be used in a constant expression but, because this value is held in a std::atomic, this
   /// function cannot be called in one.
   ///
   /// \returns True if the input consumed so far was well formed.

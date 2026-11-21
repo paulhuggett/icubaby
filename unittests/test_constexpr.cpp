@@ -31,6 +31,8 @@
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 #include <algorithm>
+#include <ranges>
+#include <utility>
 #endif
 
 #include "gtest/gtest.h"
@@ -66,12 +68,12 @@ template <typename To, typename From, std::size_t N, std::size_t M>
 constexpr bool convert (std::array<From, N> const& input, std::array<To, M> const& expected, bool const well_formed) {
   std::array<To, 32> out{};
   icubaby::transcoder<From, To> transcoder;
-  auto out_it = out.begin ();
+  auto* out_it = out.data ();
   for (auto const code_unit : input) {
     out_it = transcoder (code_unit, out_it);
   }
   out_it = transcoder.end_cp (out_it);
-  return starts_with (out, static_cast<std::size_t> (std::distance (out.begin (), out_it)), expected) &&
+  return starts_with (out, static_cast<std::size_t> (std::distance (out.data (), out_it)), expected) &&
          transcoder.well_formed () == well_formed && !transcoder.partial ();
 }
 
@@ -80,13 +82,13 @@ template <typename To, typename From, std::size_t N, std::size_t M>
 constexpr bool convert_with_iterator (std::array<From, N> const& input, std::array<To, M> const& expected) {
   std::array<To, 32> out{};
   icubaby::transcoder<From, To> transcoder;
-  icubaby::iterator out_it{&transcoder, out.begin ()};
+  icubaby::iterator out_it{&transcoder, out.data ()};
   for (auto const code_unit : input) {
     *out_it = code_unit;
     ++out_it;
   }
-  auto const last = transcoder.end_cp (out_it).base ();
-  return starts_with (out, static_cast<std::size_t> (std::distance (out.begin (), last)), expected);
+  auto* const last = transcoder.end_cp (out_it).base ();
+  return starts_with (out, static_cast<std::size_t> (std::distance (out.data (), last)), expected);
 }
 
 // U+0041 LATIN CAPITAL LETTER A, U+20AC EURO SIGN, U+1F600 GRINNING FACE in each encoding.
@@ -142,7 +144,7 @@ constexpr bool from_bytes () {
 constexpr icubaby::encoding selected_encoding () {
   icubaby::transcoder<std::byte, char8> transcoder;
   std::array<char8, 16> out{};
-  auto out_it = out.begin ();
+  auto* out_it = out.data ();
   for (auto const value : bytes_utf32le) {
     out_it = transcoder (value, out_it);
   }
@@ -181,10 +183,24 @@ constexpr bool with_view () {
          convert_with_view<char32_t> (utf16, utf32) && convert_with_view<char8> (bytes_utf16le, utf8) &&
          convert_with_view<char32_t> (bad_utf8, replaced_utf32) && convert_with_view<char8> (bad_utf16, replaced_utf8);
 }
+/// Copies, assigns and moves a view, then passes it to a standard range adaptor (which moves it again). Returns true
+/// if the result holds the first three UTF-16 code units of the input.
+constexpr bool copy_view () {
+  auto const view = utf8 | icubaby::views::transcode<char8, char16_t>;
+  auto copy = view;
+  copy = view;
+  auto moved = std::move (copy);
+  moved = utf8 | icubaby::views::transcode<char8, char16_t>;
+  std::array<char16_t, 32> out{};
+  auto const result = std::ranges::copy (std::move (moved) | std::views::take (3), out.begin ());
+  return starts_with (out, static_cast<std::size_t> (std::distance (out.begin (), result.out)),
+                      std::array{char16_t{0x0041}, char16_t{0x20AC}, char16_t{0xD83D}});
+}
 constexpr bool ranges_length_and_index () {
   return icubaby::length (utf8) == 3 && icubaby::index (utf16, 2) == std::next (utf16.begin (), 2);
 }
 static_assert (with_view ());
+static_assert (copy_view ());
 static_assert (ranges_length_and_index ());
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
@@ -219,6 +235,10 @@ TEST (Constexpr, LengthAndIndex) {
 // NOLINTNEXTLINE
 TEST (Constexpr, View) {
   EXPECT_TRUE (with_view ());
+}
+// NOLINTNEXTLINE
+TEST (Constexpr, CopyView) {
+  EXPECT_TRUE (copy_view ());
 }
 // NOLINTNEXTLINE
 TEST (Constexpr, RangesLengthAndIndex) {
