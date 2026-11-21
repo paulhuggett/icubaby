@@ -742,7 +742,7 @@ public:
   constexpr iterator& operator++ () noexcept { return *this; }
   /// \brief no-op
   /// \returns \*this
-  constexpr iterator operator++ (int) noexcept (std::is_nothrow_copy_constructible_v<OutputIterator>) { return *this; }
+  constexpr iterator& operator++ (int) noexcept { return *this; }
 
   /// Accesses the underlying iterator.
   [[nodiscard]] constexpr OutputIterator base () const noexcept (std::is_nothrow_copy_constructible_v<OutputIterator>) {
