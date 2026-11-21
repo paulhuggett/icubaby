@@ -66,12 +66,12 @@ template <typename To, typename From, std::size_t N, std::size_t M>
 constexpr bool convert (std::array<From, N> const& input, std::array<To, M> const& expected, bool const well_formed) {
   std::array<To, 32> out{};
   icubaby::transcoder<From, To> transcoder;
-  auto out_it = out.begin ();
+  auto* out_it = out.data ();
   for (auto const code_unit : input) {
     out_it = transcoder (code_unit, out_it);
   }
   out_it = transcoder.end_cp (out_it);
-  return starts_with (out, static_cast<std::size_t> (std::distance (out.begin (), out_it)), expected) &&
+  return starts_with (out, static_cast<std::size_t> (std::distance (out.data (), out_it)), expected) &&
          transcoder.well_formed () == well_formed && !transcoder.partial ();
 }
 
@@ -80,13 +80,13 @@ template <typename To, typename From, std::size_t N, std::size_t M>
 constexpr bool convert_with_iterator (std::array<From, N> const& input, std::array<To, M> const& expected) {
   std::array<To, 32> out{};
   icubaby::transcoder<From, To> transcoder;
-  icubaby::iterator out_it{&transcoder, out.begin ()};
+  icubaby::iterator out_it{&transcoder, out.data ()};
   for (auto const code_unit : input) {
     *out_it = code_unit;
     ++out_it;
   }
-  auto const last = transcoder.end_cp (out_it).base ();
-  return starts_with (out, static_cast<std::size_t> (std::distance (out.begin (), last)), expected);
+  auto* const last = transcoder.end_cp (out_it).base ();
+  return starts_with (out, static_cast<std::size_t> (std::distance (out.data (), last)), expected);
 }
 
 // U+0041 LATIN CAPITAL LETTER A, U+20AC EURO SIGN, U+1F600 GRINNING FACE in each encoding.
@@ -142,7 +142,7 @@ constexpr bool from_bytes () {
 constexpr icubaby::encoding selected_encoding () {
   icubaby::transcoder<std::byte, char8> transcoder;
   std::array<char8, 16> out{};
-  auto out_it = out.begin ();
+  auto* out_it = out.data ();
   for (auto const value : bytes_utf32le) {
     out_it = transcoder (value, out_it);
   }
