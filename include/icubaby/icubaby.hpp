@@ -86,6 +86,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cassert>
 #include <climits>
 #include <cstddef>
@@ -2679,6 +2680,43 @@ using tx_32 = transcoder<std::byte, char32_t>;
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
+namespace details {
+
+/// \brief A flag which is initially true and may be cleared. It may be cleared and read concurrently by multiple
+///   threads.
+///
+/// Unlike std::atomic<bool>, instances may be copied: the copy takes the value that the source held at the time.
+// The copy and move operations are user-provided only so that they read the source atomically. The class manages no
+// resource, so the destructor has nothing to do.
+class well_formed_flag {  // NOSONAR(cpp:S3624)
+public:
+  constexpr well_formed_flag () noexcept = default;
+  well_formed_flag (well_formed_flag const& rhs) noexcept : value_{rhs.get ()} {}
+  well_formed_flag (well_formed_flag&& rhs) noexcept : value_{rhs.get ()} {}
+  ~well_formed_flag () noexcept = default;
+
+  well_formed_flag& operator= (well_formed_flag const& rhs) noexcept {
+    if (&rhs != this) {
+      value_.store (rhs.get (), std::memory_order_relaxed);
+    }
+    return *this;
+  }
+  well_formed_flag& operator= (well_formed_flag&& rhs) noexcept {
+    value_.store (rhs.get (), std::memory_order_relaxed);
+    return *this;
+  }
+
+  /// \returns The value of the flag.
+  [[nodiscard]] bool get () const noexcept { return value_.load (std::memory_order_relaxed); }
+  /// \brief Sets the flag to false.
+  void clear () noexcept { value_.store (false, std::memory_order_relaxed); }
+
+private:
+  std::atomic<bool> value_{true};
+};
+
+}  // end namespace details
+
 /// \brief icubaby C++ 20 ranges support types.
 namespace ranges {
 
@@ -2724,16 +2762,18 @@ public:
   /// \brief Indicates whether the input consumed so far was well formed.
   ///
   /// The view converts its input lazily, so this value only reflects the input that has been consumed by iterating
-  /// over the view: it is true until an iterator reaches malformed input and false thereafter.
+  /// over the view: it is true until an iterator reaches malformed input and false thereafter. It may be called while
+  /// other threads are iterating over the view.
   ///
   /// \returns True if the input consumed so far was well formed.
-  [[nodiscard]] constexpr bool well_formed () const noexcept { return well_formed_; }
+  [[nodiscard]] bool well_formed () const noexcept { return well_formed_.get (); }
 
 private:
   /// The underlying view from which input is drawn.
   ICUBABY_NO_UNIQUE_ADDRESS View base_ = View ();
-  /// True if the input consumed is well formed, false otherwise.
-  mutable bool well_formed_ = true;
+  /// True if the input consumed is well formed, false otherwise. Iterators clear it through a const view, perhaps
+  /// on multiple threads at once.
+  mutable details::well_formed_flag well_formed_;
 };
 
 /// The maximum number of code units that can be produced by a single code unit being passed to a transcoder.
@@ -2951,7 +2991,7 @@ constexpr std::ranges::iterator_t<View const> transcode_view<FromEncoding, ToEnc
   }
   assert (out_it >= out_begin && out_it <= out_.end () && "out_ buffer overflow!");
   if (!transcoder_.well_formed ()) {
-    parent->well_formed_ = false;
+    parent->well_formed_.clear ();
   }
   first_ = std::uint_least8_t{0};
   last_ = static_cast<std::uint_least8_t> (out_it - out_begin);

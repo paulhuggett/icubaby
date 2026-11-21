@@ -31,6 +31,7 @@
 #include <initializer_list>
 #include <iterator>
 #include <stdexcept>
+#include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -59,6 +60,7 @@
 #include "typed_test.hpp"
 
 using testing::ContainerEq;
+using testing::Each;
 using testing::ElementsAre;
 
 // NOLINTNEXTLINE(misc-redundant-expression)
@@ -717,6 +719,49 @@ TEST (Utf8To32, RangesBadInput) {
   auto const range = input | icubaby::views::transcode<char8_t, char32_t>;
   (void)std::ranges::copy (range, std::back_inserter (out32));
   EXPECT_THAT (out32, ElementsAre (char32_t{icubaby::replacement_char}));
+  EXPECT_FALSE (range.well_formed ());
+}
+// NOLINTNEXTLINE
+TEST (Utf8To32, RangesCopyKeepsWellFormed) {
+  std::array const input{char8_t{0xFF}};
+  auto const range = input | icubaby::views::transcode<char8_t, char32_t>;
+  using view_type = std::remove_const_t<decltype (range)>;
+  static_assert (std::ranges::view<view_type> && std::copyable<view_type>);
+
+  auto const fresh = range;  // NOLINT(performance-unnecessary-copy-initialization)
+  EXPECT_TRUE (fresh.well_formed ());
+  (void)std::ranges::distance (range);
+  EXPECT_FALSE (range.well_formed ());
+  EXPECT_TRUE (fresh.well_formed ()) << "Iterating the original view must not affect a copy";
+
+  auto const copy = range;  // NOLINT(performance-unnecessary-copy-initialization)
+  EXPECT_FALSE (copy.well_formed ()) << "A copy must take the state of the original view";
+  auto assigned = fresh;
+  assigned = range;
+  EXPECT_FALSE (assigned.well_formed ());
+}
+// NOLINTNEXTLINE
+TEST (Utf8To32, RangesConcurrentIteration) {
+  // Several threads iterate over the same const view of malformed input. Each one clears the view's well-formed flag
+  // as it goes, so this test is most useful when built with ThreadSanitizer.
+  std::vector const input (std::size_t{1000}, char8_t{0xFF});
+  auto const range = input | icubaby::views::transcode<char8_t, char32_t>;
+  constexpr auto num_threads = std::size_t{4};
+  std::array<std::size_t, num_threads> counts{};
+  {
+    std::vector<std::thread> threads;
+    threads.reserve (num_threads);
+    for (auto& count : counts) {
+      (void)threads.emplace_back ([&range, &count] {
+        count = static_cast<std::size_t> (std::ranges::count (range, icubaby::replacement_char));
+        (void)range.well_formed ();
+      });
+    }
+    for (auto& thread : threads) {
+      thread.join ();
+    }
+  }
+  EXPECT_THAT (counts, Each (input.size ()));
   EXPECT_FALSE (range.well_formed ());
 }
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
