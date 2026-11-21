@@ -31,6 +31,8 @@
 
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 #include <algorithm>
+#include <ranges>
+#include <utility>
 #endif
 
 #include "gtest/gtest.h"
@@ -181,10 +183,24 @@ constexpr bool with_view () {
          convert_with_view<char32_t> (utf16, utf32) && convert_with_view<char8> (bytes_utf16le, utf8) &&
          convert_with_view<char32_t> (bad_utf8, replaced_utf32) && convert_with_view<char8> (bad_utf16, replaced_utf8);
 }
+/// Copies, assigns and moves a view, then passes it to a standard range adaptor (which moves it again). Returns true
+/// if the result holds the first three UTF-16 code units of the input.
+constexpr bool copy_view () {
+  auto const view = utf8 | icubaby::views::transcode<char8, char16_t>;
+  auto copy = view;
+  copy = view;
+  auto moved = std::move (copy);
+  moved = utf8 | icubaby::views::transcode<char8, char16_t>;
+  std::array<char16_t, 32> out{};
+  auto const result = std::ranges::copy (std::move (moved) | std::views::take (3), out.begin ());
+  return starts_with (out, static_cast<std::size_t> (std::distance (out.begin (), result.out)),
+                      std::array{char16_t{0x0041}, char16_t{0x20AC}, char16_t{0xD83D}});
+}
 constexpr bool ranges_length_and_index () {
   return icubaby::length (utf8) == 3 && icubaby::index (utf16, 2) == std::next (utf16.begin (), 2);
 }
 static_assert (with_view ());
+static_assert (copy_view ());
 static_assert (ranges_length_and_index ());
 #endif  // ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
@@ -219,6 +235,10 @@ TEST (Constexpr, LengthAndIndex) {
 // NOLINTNEXTLINE
 TEST (Constexpr, View) {
   EXPECT_TRUE (with_view ());
+}
+// NOLINTNEXTLINE
+TEST (Constexpr, CopyView) {
+  EXPECT_TRUE (copy_view ());
 }
 // NOLINTNEXTLINE
 TEST (Constexpr, RangesLengthAndIndex) {
