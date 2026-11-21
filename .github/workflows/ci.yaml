@@ -113,6 +113,19 @@ jobs:
             os: ubuntu-24.04
             package: TGZ
 
+          # ThreadSanitizer cannot be combined with the address sanitizer enabled by ICUBABY_SANITIZE so it has a
+          # build of its own.
+          - name: Ubuntu-24.04/clang-18/Debug/ThreadSanitizer
+            apt_install: cmake ninja-build
+            llvm_install: 18
+            build_type: Debug
+            cxx_compiler: -D CMAKE_CXX_COMPILER=clang++-18 -D CMAKE_C_COMPILER=clang-18
+            generator: Ninja
+            options: -D CMAKE_CXX_FLAGS=-fsanitize=thread -D CMAKE_EXE_LINKER_FLAGS=-fsanitize=thread
+            os: ubuntu-24.04
+            package: TGZ
+            tsan: true
+
           # Windows builds
           # ~~~~~~~~~~~~~~
           - name: windows-2022/VS2022/Debug
@@ -159,6 +172,12 @@ jobs:
         uses: paulhuggett/install-llvm@bc2db147d7c6c67ac4c4b0a62537d1ab94f35498
         with:
           version: ${{matrix.llvm_install}}
+
+      - name: Reduce ASLR Entropy (ThreadSanitizer)
+        # ThreadSanitizer fails with "unexpected memory mapping" when the kernel uses more address space randomization
+        # bits than it supports.
+        if: matrix.tsan
+        run: sudo sysctl vm.mmap_rnd_bits=28
 
       - name: Create Build Environment
         shell: bash
