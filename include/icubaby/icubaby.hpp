@@ -2990,7 +2990,7 @@ private:
   /// The view to which this iterator belongs.
   transcode_view const* parent_ = nullptr;
   /// The transcoder and the code units that it has produced but which have not yet been consumed.
-  mutable state state_{};
+  state state_{};
 };
 
 template <typename FromEncoding, typename ToEncoding, std::ranges::forward_range View>
