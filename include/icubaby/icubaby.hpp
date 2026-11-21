@@ -2686,7 +2686,9 @@ namespace details {
 ///   threads.
 ///
 /// Unlike std::atomic<bool>, instances may be copied: the copy takes the value that the source held at the time.
-class well_formed_flag {
+// The copy and move operations are user-provided only so that they read the source atomically. The class manages no
+// resource, so the destructor has nothing to do.
+class well_formed_flag {  // NOSONAR(cpp:S3624)
 public:
   constexpr well_formed_flag () noexcept = default;
   well_formed_flag (well_formed_flag const& rhs) noexcept : value_{rhs.get ()} {}
@@ -2699,7 +2701,10 @@ public:
     }
     return *this;
   }
-  well_formed_flag& operator= (well_formed_flag&& rhs) noexcept { return *this = rhs; }
+  well_formed_flag& operator= (well_formed_flag&& rhs) noexcept {
+    value_.store (rhs.get (), std::memory_order_relaxed);
+    return *this;
+  }
 
   /// \returns The value of the flag.
   [[nodiscard]] bool get () const noexcept { return value_.load (std::memory_order_relaxed); }

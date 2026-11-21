@@ -752,7 +752,7 @@ TEST (Utf8To32, RangesConcurrentIteration) {
     std::vector<std::thread> threads;
     threads.reserve (num_threads);
     for (auto& count : counts) {
-      threads.emplace_back ([&range, &count] {
+      (void)threads.emplace_back ([&range, &count] {
         count = static_cast<std::size_t> (std::ranges::count (range, icubaby::replacement_char));
         (void)range.well_formed ();
       });
