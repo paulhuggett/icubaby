@@ -28,6 +28,24 @@ code point, ``end_cp()`` writes U+FFFD and ``well_formed()`` becomes false. Afte
 ``partial()`` is false and the transcoder may be used to convert further input, although
 ``well_formed()`` remains false if any malformed input has been seen.
 
+Constant Expressions
+^^^^^^^^^^^^^^^^^^^^
+The transcoders, :cpp:class:`icubaby::iterator`, ``length()``, and ``index()`` are ``constexpr`` so
+they can be used in constant expressions in C++17 and later, provided that the output iterator can
+be. In C++20, the same is true of the :ref:`range adaptor<C++ 20 Range Adaptor>` with the exception
+of the view's ``well_formed()`` member function.
+
+.. code-block:: cpp
+
+  constexpr std::array<char16_t, 2> to_utf16 (char32_t code_point) {
+    std::array<char16_t, 2> out{};
+    icubaby::t32_16 t;
+    t.end_cp (t (code_point, out.begin ()));
+    return out;
+  }
+  constexpr auto grinning_face = to_utf16 (char32_t{0x1F600});
+  static_assert (grinning_face[0] == 0xD83D && grinning_face[1] == 0xDE00);
+
 Byte Transcoder Encoding Detection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The :ref:`byte transcoder<Byte Transcoder>` (whose input type is ``std::byte``) determines the

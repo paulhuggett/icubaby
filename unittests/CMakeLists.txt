@@ -25,6 +25,7 @@ add_executable (icubaby-unittests
   direct_vs_triangulator.hpp
   encoded_char.hpp
   test_byte.cpp
+  test_constexpr.cpp
   test_u16.cpp
   test_u32.cpp
   test_u8.cpp
