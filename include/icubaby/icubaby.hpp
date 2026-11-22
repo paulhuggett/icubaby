@@ -2699,6 +2699,51 @@ using tx_16 = transcoder<std::byte, char16_t>;
 /// A shorter name for the UTF-32 "byte transcoder" which consumes bytes in unknown input encoding and produces UTF-32.
 using tx_32 = transcoder<std::byte, char32_t>;
 
+
+/// The maximum number of code units that can be produced by a single code unit being passed to a transcoder.
+template <typename FromEncoding, typename ToEncoding>
+inline constexpr auto max_output_bytes = longest_sequence_v<ToEncoding>;
+
+/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-16 to UTF-8
+/// transcoder.
+///
+/// The value six comes from the worst-case output which happens when converting the code units
+/// char16_t{0xD902}, char16_t{0xFFFF} (that is, a high surrogate followed by the maximum 16-bit value). The second
+/// code unit causes the transcoder to produce U+FFFD REPLACEMENT CHARACTER and the noncharacter U+FFFF, each of which
+/// is 3 bytes when encoded as UTF-8.
+template <> inline constexpr auto max_output_bytes<char16_t, icubaby::char8> = std::size_t{6};
+
+/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-16 to UTF-32
+/// transcoder.
+template <> inline constexpr auto max_output_bytes<char16_t, char32_t> = std::size_t{2};
+
+/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-8 to UTF-8
+/// transcoder.
+///
+/// A code unit which cuts short a multi-byte sequence causes REPLACEMENT CHARACTER to be written and is then
+/// processed again from the start state. If the code unit is itself ill-formed (for example, C2 C0), a second
+/// REPLACEMENT CHARACTER is written. Each is 3 bytes when encoded as UTF-8.
+template <> inline constexpr auto max_output_bytes<icubaby::char8, icubaby::char8> = std::size_t{6};
+
+/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-8 to UTF-32
+/// transcoder.
+///
+/// A code unit which cuts short a multi-byte sequence produces REPLACEMENT CHARACTER followed by the result of
+/// processing that code unit again from the start state (for example, C2 41 gives U+FFFD U+0041).
+template <> inline constexpr auto max_output_bytes<icubaby::char8, char32_t> = std::size_t{2};
+
+/// \brief The maximum number of code units produced by a single byte being passed to the byte transcoder.
+///
+/// When the bytes seen so far turn out not to be a byte order mark, up to four bytes are passed to the UTF-8
+/// transcoder at once. These yield at most four code points (for example, 00 00 FE 00 gives U+0000 U+0000 U+FFFD
+/// U+0000) and each code point that is encoded as 4 UTF-8 bytes or a UTF-16 surrogate pair consumes all four.
+template <> inline constexpr auto max_output_bytes<std::byte, icubaby::char8> = std::size_t{12};
+/// \brief The maximum number of code units produced by a single byte being passed to the byte transcoder.
+template <> inline constexpr auto max_output_bytes<std::byte, char16_t> = std::size_t{4};
+/// \brief The maximum number of code units produced by a single byte being passed to the byte transcoder.
+template <> inline constexpr auto max_output_bytes<std::byte, char32_t> = std::size_t{4};
+
+
 #if ICUBABY_HAVE_RANGES && ICUBABY_HAVE_CONCEPTS
 
 namespace details {
@@ -2758,6 +2803,10 @@ private:
 /// \brief icubaby C++ 20 ranges support types.
 namespace ranges {
 
+/// \brief An alias of icubaby::max_output_bytes, kept for compatibility with earlier versions of icubaby.
+template <typename FromEncoding, typename ToEncoding>
+inline constexpr auto max_output_bytes = icubaby::max_output_bytes<FromEncoding, ToEncoding>;
+
 /// \brief A view which lazily converts between Unicode encodings.
 ///
 /// A view of an underlying sequence of code units in the encoding given by FromEncoding which produces the equivalent
@@ -2816,49 +2865,6 @@ private:
   /// on multiple threads at once.
   mutable details::well_formed_flag well_formed_;
 };
-
-/// The maximum number of code units that can be produced by a single code unit being passed to a transcoder.
-template <typename FromEncoding, typename ToEncoding>
-inline constexpr auto max_output_bytes = longest_sequence_v<ToEncoding>;
-
-/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-16 to UTF-8
-/// transcoder.
-///
-/// The value six comes from the worst-case output which happens when converting the code units
-/// char16_t{0xD902}, char16_t{0xFFFF} (that is, a high surrogate followed by the maximum 16-bit value). The second
-/// code unit causes the transcoder to produce U+FFFD REPLACEMENT CHARACTER and the noncharacter U+FFFF, each of which
-/// is 3 bytes when encoded as UTF-8.
-template <> inline constexpr auto max_output_bytes<char16_t, icubaby::char8> = std::size_t{6};
-
-/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-16 to UTF-32
-/// transcoder.
-template <> inline constexpr auto max_output_bytes<char16_t, char32_t> = std::size_t{2};
-
-/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-8 to UTF-8
-/// transcoder.
-///
-/// A code unit which cuts short a multi-byte sequence causes REPLACEMENT CHARACTER to be written and is then
-/// processed again from the start state. If the code unit is itself ill-formed (for example, C2 C0), a second
-/// REPLACEMENT CHARACTER is written. Each is 3 bytes when encoded as UTF-8.
-template <> inline constexpr auto max_output_bytes<icubaby::char8, icubaby::char8> = std::size_t{6};
-
-/// \brief The maximum number of code units produced by a single code unit being passed to the UTF-8 to UTF-32
-/// transcoder.
-///
-/// A code unit which cuts short a multi-byte sequence produces REPLACEMENT CHARACTER followed by the result of
-/// processing that code unit again from the start state (for example, C2 41 gives U+FFFD U+0041).
-template <> inline constexpr auto max_output_bytes<icubaby::char8, char32_t> = std::size_t{2};
-
-/// \brief The maximum number of code units produced by a single byte being passed to the byte transcoder.
-///
-/// When the bytes seen so far turn out not to be a byte order mark, up to four bytes are passed to the UTF-8
-/// transcoder at once. These yield at most four code points (for example, 00 00 FE 00 gives U+0000 U+0000 U+FFFD
-/// U+0000) and each code point that is encoded as 4 UTF-8 bytes or a UTF-16 surrogate pair consumes all four.
-template <> inline constexpr auto max_output_bytes<std::byte, icubaby::char8> = std::size_t{12};
-/// \brief The maximum number of code units produced by a single byte being passed to the byte transcoder.
-template <> inline constexpr auto max_output_bytes<std::byte, char16_t> = std::size_t{4};
-/// \brief The maximum number of code units produced by a single byte being passed to the byte transcoder.
-template <> inline constexpr auto max_output_bytes<std::byte, char32_t> = std::size_t{4};
 
 /// \brief The iterator type of transcode_view.
 template <typename FromEncoding, typename ToEncoding, std::ranges::forward_range View>
@@ -2976,7 +2982,7 @@ private:
   private:
     /// The type of the output buffer. This is sized so that it allows for the largest number of bytes that the
     /// transcoder can produce.
-    using out_type = std::array<ToEncoding, max_output_bytes<FromEncoding, ToEncoding>>;
+    using out_type = std::array<ToEncoding, icubaby::max_output_bytes<FromEncoding, ToEncoding>>;
     /// Output buffer iterator type.
     using iterator = typename out_type::iterator;
 
